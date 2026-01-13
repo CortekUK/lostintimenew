@@ -233,7 +233,7 @@ export default function Auth() {
               )}
             </div>
 
-            <div className="flex items-center justify-between">
+            <div className="flex items-center">
               <div className="flex items-center space-x-2">
                 <Checkbox
                   id="remember"
@@ -244,18 +244,6 @@ export default function Auth() {
                   Remember me
                 </Label>
               </div>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button type="button" className="text-sm text-primary hover:underline">
-                      Forgot password?
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p className="max-w-xs">Password recovery is managed by the owner. Please contact admin for assistance.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
             </div>
 
             <Button
