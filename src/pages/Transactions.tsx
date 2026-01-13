@@ -395,17 +395,6 @@ export default function Transactions() {
   return (
     <AppLayout title="Transactions" subtitle="View and analyze sales history" showSearch>
       <div className="space-y-8">
-        {/* Header Actions */}
-        <div className="flex justify-end items-center">
-          <Button
-            variant="outline"
-            onClick={handleViewSoldItems}
-          >
-            <ArrowRight className="h-4 w-4 mr-2" />
-            View Sold Items
-          </Button>
-        </div>
-
         {/* Summary Cards */}
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -477,16 +466,22 @@ export default function Transactions() {
                 <Calendar className="h-5 w-5 text-primary" />
                 <span className="font-luxury">Filters</span>
               </div>
-              <Button
-                variant="outline" 
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isLoading}
-                aria-label="Refresh transaction data"
-              >
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={handleViewSoldItems}>
+                  <ArrowRight className="h-4 w-4 mr-2" />
+                  View Sold Items
+                </Button>
+                <Button
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                  aria-label="Refresh transaction data"
+                >
+                  <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              </div>
             </CardTitle>
             <CardDescription>
               Filter transactions by date range, payment method, staff, or search

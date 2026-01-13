@@ -465,25 +465,6 @@ export default function SoldItemsReport() {
         showSearch
       >
       <div className="space-y-8">
-        {/* Cross-navigation */}
-        <div className="flex items-center gap-2">
-          <Button
-            variant="outline"
-            onClick={handleViewTransactions}
-            className="gap-2"
-            aria-label="Navigate to transactions page"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            View Transactions
-          </Button>
-          
-          {filters.saleId && (
-            <Badge variant="secondary" className="px-3 py-1.5">
-              Filtered by Sale #{filters.saleId}
-            </Badge>
-          )}
-        </div>
-
         {/* Summary Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6" role="region" aria-label="Summary statistics">
           {isLoading ? (
@@ -567,22 +548,33 @@ export default function SoldItemsReport() {
         {/* Filters */}
         <Card className="shadow-card border-primary/10">
           <CardHeader>
-            <CardTitle className="flex items-center justify-between">
+            <CardTitle className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-2">
                 <Filter className="h-5 w-5 text-primary" />
                 <span className="text-primary">Advanced Filters</span>
               </div>
-              <Button
-                variant="outline" 
-                size="sm"
-                onClick={handleRefresh}
-                disabled={isLoading}
-                aria-label="Refresh data"
-                className="gap-2"
-              >
-                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
+              <div className="flex items-center gap-2">
+                {filters.saleId && (
+                  <Badge variant="secondary" className="px-3 py-1.5">
+                    Filtered by Sale #{filters.saleId}
+                  </Badge>
+                )}
+                <Button variant="outline" size="sm" onClick={handleViewTransactions}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  View Transactions
+                </Button>
+                <Button
+                  variant="outline" 
+                  size="sm"
+                  onClick={handleRefresh}
+                  disabled={isLoading}
+                  aria-label="Refresh data"
+                  className="gap-2"
+                >
+                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  Refresh
+                </Button>
+              </div>
             </CardTitle>
             <CardDescription>
               Filter sold items by various criteria
