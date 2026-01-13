@@ -537,10 +537,7 @@ export default function Settings() {
           {/* Account Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Account Information
-              </CardTitle>
+              <CardTitle>Account Information</CardTitle>
               <CardDescription>
                 Your personal account details and role information.
               </CardDescription>
@@ -639,10 +636,7 @@ export default function Settings() {
           {/* Store Information */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Store className="h-5 w-5" />
-                Store Information
-              </CardTitle>
+              <CardTitle>Store Information</CardTitle>
               <CardDescription>
                 Your business contact details that appear on receipts and documents.
               </CardDescription>
@@ -721,10 +715,7 @@ export default function Settings() {
           {/* General Settings */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Building className="h-5 w-5" />
-                General Settings
-              </CardTitle>
+              <CardTitle>General Settings</CardTitle>
               <CardDescription>
                 Basic application preferences and currency settings.
               </CardDescription>
@@ -806,10 +797,7 @@ export default function Settings() {
           {/* Inventory Settings */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="h-5 w-5" />
-                Inventory Settings
-              </CardTitle>
+              <CardTitle>Inventory Settings</CardTitle>
               <CardDescription>
                 Stock management and inventory control preferences.
               </CardDescription>
@@ -851,10 +839,7 @@ export default function Settings() {
           {/* POS Settings */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5" />
-                Point of Sale Settings
-              </CardTitle>
+              <CardTitle>Point of Sale Settings</CardTitle>
               <CardDescription>
                 Configure POS behavior and receipt preferences.
               </CardDescription>
@@ -919,10 +904,7 @@ export default function Settings() {
           {/* Staff Members Management */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <User className="h-5 w-5" />
-                Staff Members
-              </CardTitle>
+              <CardTitle>Staff Members</CardTitle>
               <CardDescription>
                 Manage staff members for tracking who processes sales.
               </CardDescription>
@@ -1000,10 +982,7 @@ export default function Settings() {
           {/* Quick Filters Settings */}
           <Card id="quick-filters">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Filter className="h-5 w-5" />
-                Quick Filters
-              </CardTitle>
+              <CardTitle>Quick Filters</CardTitle>
               <CardDescription>
                 Choose which filter presets appear in the quick filters bar on the Products page. Select up to 8 presets for optimal display.
               </CardDescription>
@@ -1078,10 +1057,7 @@ export default function Settings() {
           {/* Data Management */}
           <Card>
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Download className="h-5 w-5" />
-                Data Management
-              </CardTitle>
+              <CardTitle>Data Management</CardTitle>
               <CardDescription>
                 Import and export your business data.
               </CardDescription>
@@ -1161,10 +1137,7 @@ export default function Settings() {
           {showInstallPrompt && (
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Smartphone className="h-5 w-5" />
-                  Install App
-                </CardTitle>
+              <CardTitle>Install App</CardTitle>
                 <CardDescription>
                   Install Sourced Jewellers CRM as a Progressive Web App for better performance.
                 </CardDescription>
@@ -1188,10 +1161,7 @@ export default function Settings() {
           {/* Onboarding Section */}
           <Card id="onboarding">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="h-5 w-5" />
-                Onboarding
-              </CardTitle>
+              <CardTitle>Onboarding</CardTitle>
               <CardDescription>
                 Replay welcome tours and quick start guides for training new staff
               </CardDescription>

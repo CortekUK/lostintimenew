@@ -111,10 +111,7 @@ export function CheckoutForm({
   const canCompleteSale = (items.length > 0 || partExchanges.length > 0) && paymentMethod && staffMember && !isProcessing && (!requiresOwnerApproval || netTotal >= 0);
   return <Card className="shadow-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-luxury">
-          <Calculator className="h-5 w-5 text-muted-foreground" />
-          Checkout
-        </CardTitle>
+        <CardTitle className="font-luxury">Checkout</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Staff Member Selection */}

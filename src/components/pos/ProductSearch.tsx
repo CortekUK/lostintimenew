@@ -100,10 +100,7 @@ export function ProductSearch({ onAddToCart, cartItems }: ProductSearchProps) {
   return (
     <Card className="shadow-card">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2 font-luxury">
-          <Search className="h-5 w-5 text-muted-foreground" />
-          Product Search
-        </CardTitle>
+        <CardTitle className="font-luxury">Product Search</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Search Input */}

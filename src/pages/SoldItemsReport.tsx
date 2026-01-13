@@ -549,10 +549,7 @@ export default function SoldItemsReport() {
         <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-2">
-                <Filter className="h-5 w-5 text-muted-foreground" />
-                <span className="text-foreground">Advanced Filters</span>
-              </div>
+              <span className="text-foreground">Advanced Filters</span>
               <div className="flex items-center gap-2">
                 {filters.saleId && (
                   <Badge variant="secondary" className="px-3 py-1.5">

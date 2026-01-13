@@ -43,10 +43,7 @@ export const ExpenseSnapshot = () => {
     return (
       <Card className="shadow-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <PoundSterling className="h-5 w-5 text-primary" />
-            Weekly Expenses
-          </CardTitle>
+        <CardTitle>Weekly Expenses</CardTitle>
           <CardDescription>This week's spending overview</CardDescription>
         </CardHeader>
         <CardContent>
@@ -63,10 +60,7 @@ export const ExpenseSnapshot = () => {
   return (
     <Card className="shadow-card hover:shadow-elegant transition-all duration-300 cursor-pointer" onClick={() => navigate('/expenses')}>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <PoundSterling className="h-5 w-5 text-primary" />
-          Weekly Expenses
-        </CardTitle>
+        <CardTitle>Weekly Expenses</CardTitle>
         <CardDescription>This week's spending overview · Click to view all</CardDescription>
       </CardHeader>
       <CardContent>

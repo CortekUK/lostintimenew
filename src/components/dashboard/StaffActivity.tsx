@@ -80,10 +80,7 @@ export const StaffActivity = () => {
     return (
       <Card className="shadow-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-primary" />
-            Staff Activity
-          </CardTitle>
+        <CardTitle>Staff Activity</CardTitle>
           <CardDescription>Recent team sales performance</CardDescription>
         </CardHeader>
         <CardContent>
@@ -100,10 +97,7 @@ export const StaffActivity = () => {
   return (
     <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Users className="h-5 w-5 text-primary" />
-          Staff Activity
-        </CardTitle>
+        <CardTitle>Staff Activity</CardTitle>
         <CardDescription>Recent team sales performance</CardDescription>
       </CardHeader>
       <CardContent>

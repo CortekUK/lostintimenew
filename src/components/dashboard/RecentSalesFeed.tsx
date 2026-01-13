@@ -110,10 +110,7 @@ export const RecentSalesFeed = () => {
     return (
       <Card className="shadow-card">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <PoundSterling className="h-5 w-5 text-primary" />
-            Recent Sales
-          </CardTitle>
+          <CardTitle>Recent Sales</CardTitle>
           <CardDescription>Latest transactions</CardDescription>
         </CardHeader>
         <CardContent>
@@ -134,10 +131,7 @@ export const RecentSalesFeed = () => {
       <CardHeader>
         <div className="flex items-center justify-between">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <PoundSterling className="h-5 w-5 text-primary" />
-              Recent Sales
-            </CardTitle>
+            <CardTitle>Recent Sales</CardTitle>
             <CardDescription>Latest transactions</CardDescription>
           </div>
           <Button

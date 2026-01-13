@@ -330,10 +330,7 @@ export function UserManagement() {
         <CardHeader>
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                User Management
-              </CardTitle>
+              <CardTitle>User Management</CardTitle>
               <CardDescription>
                 Manage team members, roles and permissions.
               </CardDescription>

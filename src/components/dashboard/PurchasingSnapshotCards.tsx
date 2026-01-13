@@ -71,8 +71,7 @@ const PurchasesThisMonthCard = () => {
     <Card className="shadow-card hover:shadow-elegant transition-all duration-300 flex flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <CardTitle className="font-luxury text-lg font-semibold flex items-center gap-2">
-            <ShoppingCart className="h-4 w-4 text-primary" />
+          <CardTitle className="font-luxury text-lg font-semibold">
             Purchases {periodLabels[period]}
           </CardTitle>
           <div className="flex gap-2 flex-wrap">
@@ -167,8 +166,7 @@ const InventoryAgeCard = () => {
     <Card className="shadow-card hover:shadow-elegant transition-all duration-300 flex flex-col">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
-          <CardTitle className="font-luxury text-lg font-semibold flex items-center gap-2">
-            <Package className="h-4 w-4 text-primary" />
+          <CardTitle className="font-luxury text-lg font-semibold">
             Inventory Age
           </CardTitle>
           <TooltipProvider>
@@ -278,8 +276,7 @@ const PurchasesVsSalesCard = () => {
   return (
     <Card className="shadow-card hover:shadow-elegant transition-all duration-300 flex flex-col">
       <CardHeader className="pb-3">
-        <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-          <TrendingUp className="h-4 w-4" />
+        <CardTitle className="text-sm font-medium text-muted-foreground">
           Purchases vs Sales (30d)
         </CardTitle>
       </CardHeader>

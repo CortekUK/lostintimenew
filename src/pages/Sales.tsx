@@ -202,10 +202,7 @@ export default function Sales() {
         <div className="lg:col-span-2 space-y-6">
           <Card className="shadow-card">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Search className="h-5 w-5 text-primary" />
-                Product Search
-              </CardTitle>
+              <CardTitle>Product Search</CardTitle>
               <CardDescription>Search and add products to cart</CardDescription>
             </CardHeader>
             <CardContent>
@@ -267,10 +264,7 @@ export default function Sales() {
         <div className="space-y-6">
           <Card className="shadow-card">
             <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <ShoppingCart className="h-5 w-5 text-primary" />
-                Cart ({cart.length.toString()} items)
-              </CardTitle>
+              <CardTitle>Cart ({cart.length.toString()} items)</CardTitle>
             </CardHeader>
             <CardContent>
               {cart.length === 0 ? (
@@ -322,10 +316,7 @@ export default function Sales() {
           {cart.length > 0 && (
             <Card className="shadow-card">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Calculator className="h-5 w-5 text-primary" />
-                  Checkout
-                </CardTitle>
+              <CardTitle>Checkout</CardTitle>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">

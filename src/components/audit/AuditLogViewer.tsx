@@ -161,10 +161,7 @@ export function AuditLogViewer({ className }: AuditLogViewerProps) {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Database className="h-5 w-5 text-muted-foreground" />
-              Audit Trail
-            </CardTitle>
+            <CardTitle>Audit Trail</CardTitle>
             <div className="flex gap-2">
               <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
                 <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
