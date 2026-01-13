@@ -275,9 +275,9 @@ export function StockAlerts({ className }: RestockAlertsProps) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <PoundSterling className="h-4 w-4" />
-                <span className="text-sm font-medium">Overdue Consignment Payments</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Overdue Consignment Payments</span>
+                <PoundSterling className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -292,9 +292,9 @@ export function StockAlerts({ className }: RestockAlertsProps) {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Clock className="h-4 w-4" />
-                <span className="text-sm font-medium">Aged Inventory (90+ Days)</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Aged Inventory (90+ Days)</span>
+                <Clock className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -309,9 +309,9 @@ export function StockAlerts({ className }: RestockAlertsProps) {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <FileText className="h-4 w-4" />
-                <span className="text-sm font-medium">Missing Documentation</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Missing Documentation</span>
+                <FileText className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
