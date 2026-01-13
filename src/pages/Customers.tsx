@@ -75,7 +75,7 @@ export default function Customers() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               VIP Customers
             </CardTitle>
-            <Crown className="h-4 w-4 text-amber-500" />
+            <Crown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold font-luxury">{stats.vip}</p>
@@ -86,7 +86,7 @@ export default function Customers() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Birthdays (30d)
             </CardTitle>
-            <Gift className="h-4 w-4 text-rose-500" />
+            <Gift className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold font-luxury">{stats.upcomingBirthdays}</p>
@@ -97,7 +97,7 @@ export default function Customers() {
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Anniversaries (30d)
             </CardTitle>
-            <Heart className="h-4 w-4 text-pink-500" />
+            <Heart className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <p className="text-2xl font-bold font-luxury">{stats.upcomingAnniversaries}</p>
