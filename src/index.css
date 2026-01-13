@@ -142,10 +142,10 @@
   .login-logo {
     display: block;
     margin: 0 auto;
-    height: 200px;
-    max-width: 350px;
+    height: 140px;
+    max-width: 280px;
     width: auto;
-    image-rendering: auto;
+    object-fit: contain;
     filter: drop-shadow(0 0 14px rgba(212, 175, 55, 0.25));
     transition: var(--transition-smooth);
   }

@@ -24,7 +24,7 @@ export function Logo({ variant = "full", size = "md", className }: LogoProps) {
   };
 
   // Use the new logo
-  const logoSrc = "/auth-logo.png";
+  const logoSrc = "/sourced-new.png";
 
   if (variant === "login") {
     return (
