@@ -212,10 +212,7 @@ export function SupplierSpendReport({ className }: SupplierSpendReportProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-muted-foreground" />
-              Top 10 Suppliers by Total Spend
-            </CardTitle>
+            <CardTitle>Top 10 Suppliers by Total Spend</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -235,10 +232,7 @@ export function SupplierSpendReport({ className }: SupplierSpendReportProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <LineChartIcon className="h-5 w-5 text-muted-foreground" />
-              Supplier Spend Over Time
-            </CardTitle>
+            <CardTitle>Supplier Spend Over Time</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
