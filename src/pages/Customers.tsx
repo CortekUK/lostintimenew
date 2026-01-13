@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
@@ -13,7 +13,10 @@ import { AddCustomerDialog } from '@/components/customers/AddCustomerDialog';
 import { useCustomers, useCustomerReminders } from '@/hooks/useCustomers';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useSettings } from '@/contexts/SettingsContext';
-import { Plus, Search, Users, Crown, Gift, Heart, Mail, Phone, ChevronRight } from 'lucide-react';
+import { Plus, Search, Users, Crown, Gift, Heart, Mail, Phone, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+
+type SortField = 'name' | 'lifetime_spend' | 'total_purchases';
+type SortDirection = 'asc' | 'desc';
 
 export default function Customers() {
   const navigate = useNavigate();
@@ -23,6 +26,8 @@ export default function Customers() {
   const [search, setSearch] = useState('');
   const [vipFilter, setVipFilter] = useState<string>('all');
   const [addDialogOpen, setAddDialogOpen] = useState(false);
+  const [sortField, setSortField] = useState<SortField>('name');
+  const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
 
   const { data: customers, isLoading } = useCustomers(search || undefined);
   const { data: reminders } = useCustomerReminders();
@@ -42,12 +47,53 @@ export default function Customers() {
     return customer.vip_tier === vipFilter;
   });
 
+  // Sort customers
+  const sortedCustomers = useMemo(() => {
+    if (!filteredCustomers) return [];
+    
+    return [...filteredCustomers].sort((a, b) => {
+      let comparison = 0;
+      
+      switch (sortField) {
+        case 'name':
+          comparison = a.name.localeCompare(b.name);
+          break;
+        case 'lifetime_spend':
+          comparison = a.lifetime_spend - b.lifetime_spend;
+          break;
+        case 'total_purchases':
+          comparison = a.total_purchases - b.total_purchases;
+          break;
+      }
+      
+      return sortDirection === 'asc' ? comparison : -comparison;
+    });
+  }, [filteredCustomers, sortField, sortDirection]);
+
   // Calculate stats
   const stats = {
     total: customers?.length || 0,
     vip: customers?.filter(c => c.vip_tier !== 'standard').length || 0,
     upcomingBirthdays: reminders?.filter(r => r.reminder_type === 'birthday').length || 0,
     upcomingAnniversaries: reminders?.filter(r => r.reminder_type === 'anniversary').length || 0,
+  };
+
+  const handleSort = (field: SortField) => {
+    if (sortField === field) {
+      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
+    } else {
+      setSortField(field);
+      setSortDirection('asc');
+    }
+  };
+
+  const SortIcon = ({ field }: { field: SortField }) => {
+    if (sortField !== field) {
+      return <ArrowUpDown className="h-4 w-4 ml-1 opacity-50" />;
+    }
+    return sortDirection === 'asc' 
+      ? <ArrowUp className="h-4 w-4 ml-1" />
+      : <ArrowDown className="h-4 w-4 ml-1" />;
   };
 
   const handleCustomerClick = (customerId: number) => {
@@ -148,21 +194,45 @@ export default function Customers() {
             <Skeleton key={i} className="h-14 w-full" />
           ))}
         </div>
-      ) : filteredCustomers && filteredCustomers.length > 0 ? (
+      ) : sortedCustomers && sortedCustomers.length > 0 ? (
         <Card>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead>Customer</TableHead>
+                <TableHead 
+                  className="cursor-pointer select-none hover:bg-muted/50"
+                  onClick={() => handleSort('name')}
+                >
+                  <div className="flex items-center">
+                    Customer
+                    <SortIcon field="name" />
+                  </div>
+                </TableHead>
                 <TableHead className="hidden sm:table-cell">Contact</TableHead>
                 <TableHead>Tier</TableHead>
-                <TableHead className="text-right">Lifetime Spend</TableHead>
-                <TableHead className="text-right hidden md:table-cell">Purchases</TableHead>
+                <TableHead 
+                  className="text-right cursor-pointer select-none hover:bg-muted/50"
+                  onClick={() => handleSort('lifetime_spend')}
+                >
+                  <div className="flex items-center justify-end">
+                    Lifetime Spend
+                    <SortIcon field="lifetime_spend" />
+                  </div>
+                </TableHead>
+                <TableHead 
+                  className="text-right hidden md:table-cell cursor-pointer select-none hover:bg-muted/50"
+                  onClick={() => handleSort('total_purchases')}
+                >
+                  <div className="flex items-center justify-end">
+                    Purchases
+                    <SortIcon field="total_purchases" />
+                  </div>
+                </TableHead>
                 <TableHead className="w-10"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredCustomers.map((customer) => (
+              {sortedCustomers.map((customer) => (
                 <TableRow
                   key={customer.id}
                   className="cursor-pointer hover:bg-muted/50"
