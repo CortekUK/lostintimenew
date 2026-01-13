@@ -18,10 +18,12 @@ import {
   X,
   Settings,
   PoundSterling,
-  Repeat
+  Repeat,
+  Filter,
+  Tag
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { useSettings } from '@/contexts/SettingsContext';
+import { useSettings, CustomFilter } from '@/contexts/SettingsContext';
 import { useNavigate } from 'react-router-dom';
 
 interface QuickFiltersProps {
@@ -102,6 +104,118 @@ export function QuickFilters({
   const activePresets = allPresets.filter(preset => 
     settings.quickFilterPresets.includes(preset.id)
   );
+
+  // Icon map for custom filters
+  const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
+    filter: Filter,
+    tag: Tag,
+    watch: Watch,
+    ring: CircleDot,
+    gem: Gem,
+    star: Star,
+    sparkles: Sparkles,
+    heart: Heart,
+    crown: Crown,
+    diamond: Diamond,
+    zap: Zap,
+  };
+
+  // Check if a custom filter is active
+  const isCustomFilterActive = (customFilter: CustomFilter): boolean => {
+    const cf = customFilter.filters;
+    
+    // Check categories
+    if (cf.categories?.length) {
+      const allCategoriesActive = cf.categories.every(cat => filters.categories.includes(cat));
+      if (!allCategoriesActive) return false;
+    }
+    
+    // Check metals
+    if (cf.metals?.length) {
+      const allMetalsActive = cf.metals.every(metal => filters.metals.includes(metal));
+      if (!allMetalsActive) return false;
+    }
+    
+    // Check stock level
+    if (cf.stockLevel && cf.stockLevel !== 'all') {
+      if (filters.stockLevel !== cf.stockLevel) return false;
+    }
+    
+    // Check trade-in
+    if (cf.isTradeIn === 'trade_in_only') {
+      if (filters.isTradeIn !== 'trade_in_only') return false;
+    }
+    
+    // Check price range
+    if (cf.priceRange) {
+      if (filters.priceRange.min !== cf.priceRange.min || filters.priceRange.max !== cf.priceRange.max) {
+        return false;
+      }
+    }
+    
+    // If we have criteria and all matched, it's active
+    const hasCriteria = 
+      (cf.categories?.length || 0) > 0 ||
+      (cf.metals?.length || 0) > 0 ||
+      (cf.stockLevel && cf.stockLevel !== 'all') ||
+      cf.isTradeIn === 'trade_in_only' ||
+      !!cf.priceRange;
+    
+    return !!hasCriteria;
+  };
+
+  // Toggle custom filter
+  const toggleCustomFilter = (customFilter: CustomFilter) => {
+    const isActive = isCustomFilterActive(customFilter);
+    const cf = customFilter.filters;
+    
+    if (isActive) {
+      // Deactivate - remove all criteria
+      let newFilters = { ...filters };
+      
+      if (cf.categories?.length) {
+        newFilters.categories = filters.categories.filter(cat => !cf.categories!.includes(cat));
+      }
+      if (cf.metals?.length) {
+        newFilters.metals = filters.metals.filter(metal => !cf.metals!.includes(metal));
+      }
+      if (cf.stockLevel && cf.stockLevel !== 'all') {
+        newFilters.stockLevel = 'all';
+      }
+      if (cf.isTradeIn === 'trade_in_only') {
+        newFilters.isTradeIn = 'all';
+      }
+      if (cf.priceRange) {
+        newFilters.priceRange = {
+          min: filterOptions.priceRange.min,
+          max: filterOptions.priceRange.max
+        };
+      }
+      
+      onFiltersChange(newFilters);
+    } else {
+      // Activate - apply all criteria
+      let newFilters = { ...filters };
+      
+      if (cf.categories?.length) {
+        newFilters.categories = [...new Set([...filters.categories, ...cf.categories])];
+      }
+      if (cf.metals?.length) {
+        newFilters.metals = [...new Set([...filters.metals, ...cf.metals])];
+      }
+      if (cf.stockLevel && cf.stockLevel !== 'all') {
+        newFilters.stockLevel = cf.stockLevel;
+      }
+      if (cf.isTradeIn === 'trade_in_only') {
+        newFilters.isTradeIn = 'trade_in_only';
+      }
+      if (cf.priceRange) {
+        newFilters.priceRange = cf.priceRange;
+      }
+      
+      onFiltersChange(newFilters);
+    }
+  };
 
   const isPresetActive = (preset: PresetConfig): boolean => {
     switch (preset.type) {
@@ -201,6 +315,31 @@ export function QuickFilters({
                 >
                   <Icon className="h-3 w-3" />
                   {preset.label}
+                </Button>
+              );
+            })}
+
+            {/* Custom Filters */}
+            {(settings.customFilters || []).map((customFilter) => {
+              const isActive = isCustomFilterActive(customFilter);
+              const CustomIcon = iconMap[customFilter.icon || 'filter'] || Filter;
+              
+              return (
+                <Button
+                  key={customFilter.id}
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => toggleCustomFilter(customFilter)}
+                  className={cn(
+                    "flex items-center gap-2 whitespace-nowrap transition-all flex-shrink-0",
+                    isActive 
+                      ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90 shadow-gold" 
+                      : "hover:border-primary/50 hover:bg-primary/5 border-dashed"
+                  )}
+                  aria-pressed={isActive}
+                >
+                  <CustomIcon className="h-3 w-3" />
+                  {customFilter.name}
                 </Button>
               );
             })}

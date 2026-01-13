@@ -2,6 +2,21 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
 
+export interface CustomFilter {
+  id: string;
+  name: string;
+  icon?: string;
+  filters: {
+    categories?: string[];
+    metals?: string[];
+    karats?: string[];
+    gemstones?: string[];
+    stockLevel?: 'all' | 'in' | 'risk' | 'out';
+    priceRange?: { min: number; max: number };
+    isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
+  };
+}
+
 export interface AppSettings {
   currency: string;
   taxInclusive: boolean;
@@ -14,6 +29,7 @@ export interface AppSettings {
   digitalReceiptDefault: 'email' | 'none';
   quickFilterPresets: string[];
   staffMembers: string[];
+  customFilters: CustomFilter[];
 }
 
 interface SettingsContextType {
@@ -34,7 +50,8 @@ const defaultSettings: AppSettings = {
   reorderPointDefault: 5,
   digitalReceiptDefault: 'none',
   quickFilterPresets: ['watches', 'rings', 'gold', 'white-gold', 'rose-gold', 'silver', 'in-stock', 'low-stock'],
-  staffMembers: []
+  staffMembers: [],
+  customFilters: []
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
@@ -88,9 +105,9 @@ export function SettingsProvider({ children }: { children: React.ReactNode }) {
         .from('app_settings')
         .upsert({
           id: 1,
-          values: newSettings,
+          values: JSON.parse(JSON.stringify(newSettings)),
           updated_at: new Date().toISOString()
-        });
+        } as any);
 
       if (error) throw error;
 

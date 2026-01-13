@@ -10,9 +10,10 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Settings as SettingsIcon, User, Building, ShoppingCart, Download, Upload, Smartphone, Sparkles, Filter, Clock, Package, Store } from 'lucide-react';
+import { Settings as SettingsIcon, User, Building, ShoppingCart, Download, Upload, Smartphone, Sparkles, Filter, Clock, Package, Store, Plus, Pencil, Trash2, Watch, CircleDot, Gem, Star, Heart, Crown, Diamond, Zap, Tag } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
-import { useSettings } from '@/contexts/SettingsContext';
+import { useSettings, CustomFilter } from '@/contexts/SettingsContext';
+import { CustomFilterDialog } from '@/components/settings/CustomFilterDialog';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { CSVExportButton } from '@/components/csv/CSVExportButton';
 import { CSVImportModal } from '@/components/csv/CSVImportModal';
@@ -63,6 +64,10 @@ export default function Settings() {
   const [showExpenseImport, setShowExpenseImport] = useState(false);
   const [showInstallPrompt, setShowInstallPrompt] = useState(false);
   const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  
+  // Custom filter dialog state
+  const [showCustomFilterDialog, setShowCustomFilterDialog] = useState(false);
+  const [editingFilter, setEditingFilter] = useState<CustomFilter | undefined>(undefined);
   
   // Profile state
   const [profile, setProfile] = useState<any>(null);
@@ -984,13 +989,14 @@ export default function Settings() {
             <CardHeader>
               <CardTitle>Quick Filters</CardTitle>
               <CardDescription>
-                Choose which filter presets appear in the quick filters bar on the Products page. Select up to 8 presets for optimal display.
+                Choose which filter presets appear in the quick filters bar on the Products page, or create your own custom filters.
               </CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
+              {/* Built-in Presets */}
               <div className="space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <Label className="text-base font-medium">Active Presets ({localSettings.quickFilterPresets.length}/8)</Label>
+                  <Label className="text-base font-medium">Built-in Presets ({localSettings.quickFilterPresets.length}/8)</Label>
                 </div>
                 
                 <div className="grid gap-4">
@@ -1046,11 +1052,123 @@ export default function Settings() {
                       Clear All
                     </Button>
                   </div>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Changes will be reflected immediately in the Products page quick filters bar.
-                  </p>
                 </div>
               </div>
+
+              <Separator />
+
+              {/* Custom Filters Section */}
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <Label className="text-base font-medium">Custom Filters ({(localSettings.customFilters || []).length})</Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Create your own filter shortcuts with custom criteria
+                    </p>
+                  </div>
+                  {userRole === 'owner' && (
+                    <Button
+                      size="sm"
+                      onClick={() => {
+                        setEditingFilter(undefined);
+                        setShowCustomFilterDialog(true);
+                      }}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Filter
+                    </Button>
+                  )}
+                </div>
+
+                {(localSettings.customFilters || []).length === 0 ? (
+                  <div className="text-center py-8 border rounded-lg bg-muted/30">
+                    <Filter className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                    <p className="text-sm text-muted-foreground">
+                      No custom filters yet. Create one to quickly filter products.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    {(localSettings.customFilters || []).map((filter) => {
+                      const getFilterSummary = (f: CustomFilter) => {
+                        const parts: string[] = [];
+                        if (f.filters.categories?.length) parts.push(`${f.filters.categories.length} categories`);
+                        if (f.filters.metals?.length) parts.push(`${f.filters.metals.length} metals`);
+                        if (f.filters.stockLevel && f.filters.stockLevel !== 'all') parts.push('stock filter');
+                        if (f.filters.priceRange) parts.push('price range');
+                        if (f.filters.isTradeIn === 'trade_in_only') parts.push('part exchange');
+                        return parts.join(', ') || 'No criteria';
+                      };
+
+                      const IconMap: Record<string, React.ElementType> = {
+                        filter: Filter,
+                        tag: Tag,
+                        watch: Watch,
+                        ring: CircleDot,
+                        gem: Gem,
+                        star: Star,
+                        sparkles: Sparkles,
+                        heart: Heart,
+                        crown: Crown,
+                        diamond: Diamond,
+                        zap: Zap,
+                      };
+                      const FilterIcon = IconMap[filter.icon || 'filter'] || Filter;
+
+                      return (
+                        <div
+                          key={filter.id}
+                          className="flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/30 transition-colors"
+                        >
+                          <div className="flex items-center gap-3 min-w-0">
+                            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted">
+                              <FilterIcon className="h-4 w-4 text-muted-foreground" />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="font-medium truncate">{filter.name}</p>
+                              <p className="text-xs text-muted-foreground truncate">
+                                {getFilterSummary(filter)}
+                              </p>
+                            </div>
+                          </div>
+                          {userRole === 'owner' && (
+                            <div className="flex gap-1 flex-shrink-0">
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8"
+                                onClick={() => {
+                                  setEditingFilter(filter);
+                                  setShowCustomFilterDialog(true);
+                                }}
+                              >
+                                <Pencil className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                size="icon"
+                                variant="ghost"
+                                className="h-8 w-8 text-destructive hover:text-destructive"
+                                onClick={() => {
+                                  const newFilters = (localSettings.customFilters || []).filter(
+                                    (f) => f.id !== filter.id
+                                  );
+                                  handleSettingChange('customFilters', newFilters);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+
+              <p className="text-sm text-muted-foreground">
+                Changes will be reflected immediately in the Products page quick filters bar.
+              </p>
             </CardContent>
           </Card>
 
@@ -1232,6 +1350,27 @@ export default function Settings() {
           expectedHeaders={expenseCSVHeaders}
           typeCoercion={expenseTypeCoercion}
           onImport={handleExpenseImport}
+        />
+
+        {/* Custom Filter Dialog */}
+        <CustomFilterDialog
+          open={showCustomFilterDialog}
+          onOpenChange={setShowCustomFilterDialog}
+          filter={editingFilter}
+          onSave={(filter) => {
+            const existingFilters = localSettings.customFilters || [];
+            const isEditing = existingFilters.some((f) => f.id === filter.id);
+            
+            const newFilters = isEditing
+              ? existingFilters.map((f) => (f.id === filter.id ? filter : f))
+              : [...existingFilters, filter];
+            
+            handleSettingChange('customFilters', newFilters);
+            toast({
+              title: isEditing ? 'Filter updated' : 'Filter created',
+              description: `"${filter.name}" has been ${isEditing ? 'updated' : 'added'}.`,
+            });
+          }}
         />
       </div>
     </AppLayout>
