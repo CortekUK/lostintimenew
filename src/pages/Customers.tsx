@@ -1,5 +1,5 @@
-import { useState, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useMemo, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
@@ -40,6 +40,7 @@ type SortDirection = 'asc' | 'desc';
 
 export default function Customers() {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { canCreate } = usePermissions();
   const { settings } = useSettings();
   
@@ -48,6 +49,14 @@ export default function Customers() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+
+  // Handle ?add=true query parameter
+  useEffect(() => {
+    if (searchParams.get('add') === 'true' && canCreate('customers')) {
+      setAddDialogOpen(true);
+      setSearchParams({}, { replace: true });
+    }
+  }, [searchParams, canCreate, setSearchParams]);
 
   const { data: customers, isLoading } = useCustomers(search || undefined);
   const { data: reminders } = useCustomerReminders();

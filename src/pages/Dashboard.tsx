@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleChip } from '@/components/ui/toggle-chip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { PoundSterling, Package, TrendingUp, ReceiptPoundSterling, ShoppingCart, AlertTriangle, ChevronDown, Users, Wallet, Eye, ExternalLink, ChevronRight, Plus, Receipt, FileText } from 'lucide-react';
+import { PoundSterling, Package, TrendingUp, ReceiptPoundSterling, ShoppingCart, AlertTriangle, ChevronDown, Users, Wallet, Eye, ExternalLink, ChevronRight, Plus, Receipt, FileText, UserPlus } from 'lucide-react';
 import { useTodayStats, useRecentSales, useTrendsData, useExpenseSnapshot, useStaffActivity, useBusinessInsights } from '@/hooks/useDashboardData';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -64,11 +64,12 @@ const QuickActionsBar = () => {
     { label: 'Add Product', icon: Plus, route: '/products?add=true' },
     { label: 'Log Expense', icon: ReceiptPoundSterling, route: '/expenses?add=true' },
     { label: 'Add Supplier', icon: Users, route: '/suppliers?add=true' },
+    { label: 'Add Customer', icon: UserPlus, route: '/customers?add=true' },
     { label: 'View Reports', icon: FileText, route: '/reports' },
   ];
   
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-6 md:mb-8">
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-6 md:mb-8">
       {actions.map((action) => (
         <Button
           key={action.label}
