@@ -63,7 +63,7 @@ export function CustomerSearchInput({
         <Label htmlFor="customer-search">Customer Name (Optional)</Label>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverAnchor asChild>
-            <div className="relative">
+            <div className="relative" data-customer-search>
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
                 id="customer-search"
@@ -71,14 +71,6 @@ export function CustomerSearchInput({
                 value={selectedCustomerId ? customerName : searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
                 onFocus={() => setOpen(true)}
-                onBlur={(e) => {
-                  // Delay close to allow clicking items in dropdown
-                  setTimeout(() => {
-                    if (!e.currentTarget.contains(document.activeElement)) {
-                      setOpen(false);
-                    }
-                  }, 200);
-                }}
                 className={cn(
                   "pl-9 pr-9",
                   selectedCustomerId && "border-primary/50 bg-primary/5"
@@ -101,6 +93,14 @@ export function CustomerSearchInput({
             className="w-[var(--radix-popover-trigger-width)] p-0" 
             align="start"
             onOpenAutoFocus={(e) => e.preventDefault()}
+            onPointerDownOutside={(e) => {
+              // Don't close if clicking inside the anchor (input area)
+              if (e.target instanceof Element && e.target.closest('[data-customer-search]')) {
+                e.preventDefault();
+                return;
+              }
+              setOpen(false);
+            }}
           >
             <Command shouldFilter={false}>
               <CommandList>
