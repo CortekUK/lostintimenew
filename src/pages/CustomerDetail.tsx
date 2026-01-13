@@ -111,7 +111,7 @@ export default function CustomerDetail() {
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div>
             <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-serif font-semibold">{customer.name}</h1>
+              <h1 className="text-3xl font-semibold">{customer.name}</h1>
               <VIPTierBadge tier={customer.vip_tier} size="lg" />
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
