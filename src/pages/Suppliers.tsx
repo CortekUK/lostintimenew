@@ -697,7 +697,7 @@ export default function Suppliers() {
         <div className="grid gap-4 md:grid-cols-3">
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Suppliers</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Active Suppliers</CardTitle>
               <Truck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -712,7 +712,7 @@ export default function Suppliers() {
           </Card>
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Orders This Month</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Orders This Month</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
@@ -724,7 +724,7 @@ export default function Suppliers() {
           </Card>
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Spend This Year</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Spend This Year</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
