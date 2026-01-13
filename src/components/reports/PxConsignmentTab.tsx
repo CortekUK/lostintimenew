@@ -146,7 +146,7 @@ export function PxConsignmentTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Part Exchange Items">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">PX Items</CardTitle>
-            <Package className="h-4 w-4 text-primary" aria-hidden="true" />
+            <Package className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight">{pxSummary.items}</div>
@@ -159,10 +159,10 @@ export function PxConsignmentTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Part Exchange Gross Profit">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">PX Gross Profit</CardTitle>
-            <TrendingUp className="h-4 w-4 text-success" aria-hidden="true" />
+            <TrendingUp className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tracking-tight text-success">{formatCurrency(pxSummary.grossProfit)}</div>
+            <div className="text-2xl font-bold tracking-tight">{formatCurrency(pxSummary.grossProfit)}</div>
             <p className="text-xs text-muted-foreground mt-1">
               From {pxSummary.items} items sold
             </p>
@@ -172,7 +172,7 @@ export function PxConsignmentTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Consignment Items">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Consignment Items</CardTitle>
-            <Package className="h-4 w-4 text-primary" aria-hidden="true" />
+            <Package className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight">{consignmentSummary.items}</div>
@@ -185,10 +185,10 @@ export function PxConsignmentTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Consignment Gross Profit">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Consignment GP</CardTitle>
-            <PoundSterling className="h-4 w-4 text-success" aria-hidden="true" />
+            <PoundSterling className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tracking-tight text-success">{formatCurrency(consignmentSummary.grossProfit)}</div>
+            <div className="text-2xl font-bold tracking-tight">{formatCurrency(consignmentSummary.grossProfit)}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Settled items only
             </p>
