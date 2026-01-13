@@ -73,7 +73,7 @@ export function AddCustomerDialog({ open, onOpenChange, onSuccess }: AddCustomer
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-serif">Add New Customer</DialogTitle>
+          <DialogTitle>Add New Customer</DialogTitle>
           <DialogDescription>
             Create a new customer record. You can add preferences and special dates.
           </DialogDescription>
