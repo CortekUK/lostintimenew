@@ -640,10 +640,10 @@ export default function Products() {
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300 relative">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="font-luxury text-sm">Inventory Value</CardTitle>
-              <PoundSterling className="h-5 w-5 text-primary" />
+              <PoundSterling className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="font-luxury text-2xl font-bold text-primary">£{totalInventoryValue.toLocaleString()}</div>
+              <div className="font-luxury text-2xl font-bold text-foreground">£{totalInventoryValue.toLocaleString()}</div>
               <p className="text-xs text-muted-foreground">Total inventory value</p>
             </CardContent>
           </Card>
@@ -651,10 +651,10 @@ export default function Products() {
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="font-luxury text-sm">Low Stock Items</CardTitle>
-              <AlertTriangle className="h-5 w-5 text-amber-600" />
+              <AlertTriangle className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="font-luxury text-2xl font-bold text-amber-600">{restockAlerts}</div>
+              <div className="font-luxury text-2xl font-bold text-foreground">{restockAlerts}</div>
               <p className="text-xs text-muted-foreground">At reorder threshold</p>
             </CardContent>
           </Card>
