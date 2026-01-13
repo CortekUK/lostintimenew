@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleChip } from '@/components/ui/toggle-chip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { PoundSterling, Package, TrendingUp, Receipt, ShoppingCart, AlertTriangle, ChevronDown, Users, Wallet, Eye, ExternalLink, ChevronRight } from 'lucide-react';
+import { PoundSterling, Package, TrendingUp, ReceiptPoundSterling, ShoppingCart, AlertTriangle, ChevronDown, Users, Wallet, Eye, ExternalLink, ChevronRight } from 'lucide-react';
 import { useTodayStats, useRecentSales, useTrendsData, useExpenseSnapshot, useStaffActivity, useBusinessInsights } from '@/hooks/useDashboardData';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -559,7 +559,7 @@ export default function Dashboard() {
       <div className={`grid gap-4 grid-cols-1 sm:grid-cols-2 ${isOwner ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} mb-6 md:mb-8 auto-rows-fr`}>
         <KPICard title="Today's Sales" value={formatCurrency(todayStats?.sales || 0)} icon={PoundSterling} isPrimary />
 
-        <KPICard title="Transactions" value={(todayStats?.transactions || 0).toString()} icon={Receipt} />
+        <KPICard title="Transactions" value={(todayStats?.transactions || 0).toString()} icon={ReceiptPoundSterling} />
 
         {/* Gross Profit - Owner only */}
         {isOwner && (
