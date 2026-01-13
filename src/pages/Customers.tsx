@@ -7,16 +7,18 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
-import { CustomerCard } from '@/components/customers/CustomerCard';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { VIPTierBadge } from '@/components/customers/VIPTierBadge';
 import { AddCustomerDialog } from '@/components/customers/AddCustomerDialog';
 import { useCustomers, useCustomerReminders } from '@/hooks/useCustomers';
 import { usePermissions } from '@/hooks/usePermissions';
-import { Plus, Search, Users, Crown, Gift, Heart } from 'lucide-react';
-import type { VIPTier } from '@/components/customers/VIPTierBadge';
+import { useSettings } from '@/contexts/SettingsContext';
+import { Plus, Search, Users, Crown, Gift, Heart, Mail, Phone, ChevronRight } from 'lucide-react';
 
 export default function Customers() {
   const navigate = useNavigate();
   const { canCreate } = usePermissions();
+  const { settings } = useSettings();
   
   const [search, setSearch] = useState('');
   const [vipFilter, setVipFilter] = useState<string>('all');
@@ -24,6 +26,15 @@ export default function Customers() {
 
   const { data: customers, isLoading } = useCustomers(search || undefined);
   const { data: reminders } = useCustomerReminders();
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
 
   // Filter by VIP tier
   const filteredCustomers = customers?.filter(customer => {
@@ -130,23 +141,67 @@ export default function Customers() {
         </Select>
       </div>
 
-      {/* Customer Grid */}
+      {/* Customer Table */}
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {[...Array(6)].map((_, i) => (
-            <Skeleton key={i} className="h-32" />
+        <div className="space-y-2">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-14 w-full" />
           ))}
         </div>
       ) : filteredCustomers && filteredCustomers.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredCustomers.map((customer) => (
-            <CustomerCard
-              key={customer.id}
-              customer={customer}
-              onClick={() => handleCustomerClick(customer.id)}
-            />
-          ))}
-        </div>
+        <Card>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Customer</TableHead>
+                <TableHead className="hidden sm:table-cell">Contact</TableHead>
+                <TableHead>Tier</TableHead>
+                <TableHead className="text-right">Lifetime Spend</TableHead>
+                <TableHead className="text-right hidden md:table-cell">Purchases</TableHead>
+                <TableHead className="w-10"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredCustomers.map((customer) => (
+                <TableRow
+                  key={customer.id}
+                  className="cursor-pointer hover:bg-muted/50"
+                  onClick={() => handleCustomerClick(customer.id)}
+                >
+                  <TableCell className="font-medium">{customer.name}</TableCell>
+                  <TableCell className="hidden sm:table-cell">
+                    <div className="flex flex-col gap-0.5 text-sm text-muted-foreground">
+                      {customer.email && (
+                        <div className="flex items-center gap-1.5">
+                          <Mail className="h-3.5 w-3.5" />
+                          <span className="truncate max-w-[200px]">{customer.email}</span>
+                        </div>
+                      )}
+                      {customer.phone && (
+                        <div className="flex items-center gap-1.5">
+                          <Phone className="h-3.5 w-3.5" />
+                          <span>{customer.phone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <VIPTierBadge tier={customer.vip_tier} size="sm" />
+                  </TableCell>
+                  <TableCell className="text-right font-medium">
+                    {formatCurrency(customer.lifetime_spend)}
+                  </TableCell>
+                  <TableCell className="text-right text-muted-foreground hidden md:table-cell">
+                    {customer.total_purchases}
+                  </TableCell>
+                  <TableCell>
+                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Card>
       ) : (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
