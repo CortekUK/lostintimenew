@@ -104,7 +104,7 @@ const PurchasesThisMonthCard = () => {
       <CardContent className="flex flex-col flex-1">
         <div className="space-y-3">
           <div className="flex items-end justify-between">
-            <p className="text-2xl font-bold text-primary tracking-tight">
+            <p className="text-2xl font-bold text-foreground tracking-tight">
               {formatCurrency(data?.totalCost || 0)}
             </p>
             <p className="text-sm text-muted-foreground">
