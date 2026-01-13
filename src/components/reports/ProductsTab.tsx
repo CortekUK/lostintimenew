@@ -12,7 +12,7 @@ import { useProductMixReport } from '@/hooks/useProductMixReport';
 import { exportProductMixToCSV, exportProductMixToPDF } from '@/utils/productMixExport';
 import { formatCurrency, formatPercentage } from '@/lib/utils';
 import { startOfMonth, endOfDay, format } from 'date-fns';
-import { Download, Search, Package, TrendingUp, DollarSign, Percent, BarChart3 } from 'lucide-react';
+import { Download, Search, Package, TrendingUp, PoundSterling, Percent, BarChart3 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -199,7 +199,7 @@ export function ProductsTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Gross Profit">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Gross Profit</CardTitle>
-            <DollarSign className="h-4 w-4 text-success" aria-hidden="true" />
+            <PoundSterling className="h-4 w-4 text-success" aria-hidden="true" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight text-success">{formatCurrency(totals.grossProfit)}</div>

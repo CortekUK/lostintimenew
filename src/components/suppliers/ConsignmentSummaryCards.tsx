@@ -1,5 +1,5 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Package, AlertCircle, DollarSign } from 'lucide-react';
+import { Package, AlertCircle, PoundSterling } from 'lucide-react';
 import { useSupplierConsignments } from '@/hooks/useSupplierTradeInsConsignments';
 
 interface ConsignmentSummaryCardsProps {
@@ -80,7 +80,7 @@ export function ConsignmentSummaryCards({ supplierId }: ConsignmentSummaryCardsP
               <p className="text-xs text-muted-foreground mt-1">Pending payout</p>
             </div>
             <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center">
-              <DollarSign className="h-6 w-6 text-orange-500" />
+              <PoundSterling className="h-6 w-6 text-orange-500" />
             </div>
           </div>
         </CardContent>
@@ -101,7 +101,7 @@ export function ConsignmentSummaryCards({ supplierId }: ConsignmentSummaryCardsP
               <p className="text-xs text-muted-foreground mt-1">All-time settlements</p>
             </div>
             <div className="h-12 w-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center">
-              <DollarSign className="h-6 w-6 text-[#D4AF37]" />
+              <PoundSterling className="h-6 w-6 text-[#D4AF37]" />
             </div>
           </div>
         </CardContent>
