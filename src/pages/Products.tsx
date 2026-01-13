@@ -732,6 +732,7 @@ export default function Products() {
                     karats: [],
                     gemstones: [],
                     suppliers: [],
+                    locations: [],
                     stockLevel: 'all',
                     priceRange: filterOptions?.priceRange || { min: 0, max: 50000 },
                     marginRange: { min: 0, max: 100 }
