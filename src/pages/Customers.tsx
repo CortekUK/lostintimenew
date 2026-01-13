@@ -73,7 +73,7 @@ export default function Customers() {
   // Calculate stats
   const stats = {
     total: customers?.length || 0,
-    vip: customers?.filter(c => c.vip_tier !== 'standard').length || 0,
+    platinum: customers?.filter(c => c.vip_tier === 'platinum').length || 0,
     upcomingBirthdays: reminders?.filter(r => r.reminder_type === 'birthday').length || 0,
     upcomingAnniversaries: reminders?.filter(r => r.reminder_type === 'anniversary').length || 0,
   };
@@ -130,12 +130,12 @@ export default function Customers() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
-              VIP Customers
+              Platinum Customers
             </CardTitle>
             <Crown className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <p className="text-2xl font-bold font-luxury">{stats.vip}</p>
+            <p className="text-2xl font-bold font-luxury">{stats.platinum}</p>
           </CardContent>
         </Card>
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
