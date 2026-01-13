@@ -197,9 +197,9 @@ export function SupplierSpendReport({ className }: SupplierSpendReportProps) {
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-              <div className="text-3xl font-bold tracking-tight text-primary">
-                {topSupplierPercentage.toFixed(1)}%
-              </div>
+                <div className="text-3xl font-bold tracking-tight">
+                  {topSupplierPercentage.toFixed(1)}%
+                </div>
               <p className="text-xs text-muted-foreground mt-1">
                 of total spend
               </p>
