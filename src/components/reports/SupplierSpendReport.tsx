@@ -146,9 +146,9 @@ export function SupplierSpendReport({ className }: SupplierSpendReportProps) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <ShoppingCart className="h-4 w-4" />
-                <span className="text-sm font-medium">Inventory Spend</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Inventory Spend</span>
+                <ShoppingCart className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -160,9 +160,9 @@ export function SupplierSpendReport({ className }: SupplierSpendReportProps) {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <PoundSterling className="h-4 w-4" />
-                <span className="text-sm font-medium">Other Expenses</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Other Expenses</span>
+                <PoundSterling className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -174,9 +174,9 @@ export function SupplierSpendReport({ className }: SupplierSpendReportProps) {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <PoundSterling className="h-4 w-4" />
-                <span className="text-sm font-medium">Total Spend</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Total Spend</span>
+                <PoundSterling className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -188,15 +188,15 @@ export function SupplierSpendReport({ className }: SupplierSpendReportProps) {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <TrendingUp className="h-4 w-4" />
-                <span className="text-sm font-medium">Top Supplier %</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Top Supplier %</span>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
-                <div className="text-3xl font-bold tracking-tight">
-                  {topSupplierPercentage.toFixed(1)}%
-                </div>
+              <div className="text-3xl font-bold tracking-tight">
+                {topSupplierPercentage.toFixed(1)}%
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
                 of total spend
               </p>
