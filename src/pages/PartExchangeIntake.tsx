@@ -200,7 +200,7 @@ export default function PartExchangeIntake() {
               )}
 
               <Badge variant="secondary" className="text-base px-4 py-1.5 whitespace-nowrap">
-                {filteredPXs.length} pending
+                {filteredPXs.length} Pending
               </Badge>
             </div>
           </CardContent>
