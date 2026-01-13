@@ -701,7 +701,7 @@ export default function Suppliers() {
               <Truck className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="font-luxury text-2xl font-bold text-primary">
+              <div className="font-luxury text-2xl font-bold text-foreground">
                 {summary?.activeSuppliers || 0}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -716,7 +716,7 @@ export default function Suppliers() {
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="font-luxury text-2xl font-bold text-primary">
+              <div className="font-luxury text-2xl font-bold text-foreground">
                 {summary?.ordersThisMonth || 0}
               </div>
               <p className="text-xs text-muted-foreground">Purchase orders placed</p>
@@ -728,7 +728,7 @@ export default function Suppliers() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="font-luxury text-2xl font-bold text-primary">
+              <div className="font-luxury text-2xl font-bold text-foreground">
                 £{(summary?.totalSpendThisYear || 0).toLocaleString()}
               </div>
               <p className="text-xs text-muted-foreground">Inventory + expenses</p>
