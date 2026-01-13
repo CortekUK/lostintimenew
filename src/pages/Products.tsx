@@ -550,20 +550,21 @@ export default function Products() {
   return (
     <AppLayout title="Products" subtitle="Manage inventory and product catalogue" showSearch>
       <div className="space-y-6">
-        {/* Row 1: Full-width Search */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Search products by name, SKU, or category..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 w-full"
-          />
-        </div>
+        {/* Row 1: Search + Controls in one compact row */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-3">
+          {/* Search input - takes available space */}
+          <div className="relative flex-1 min-w-0">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Search products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-9 w-full"
+            />
+          </div>
 
-        {/* Row 2: Controls Bar - Filters + Sort on left, Add Product on right */}
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
+          {/* Controls grouped together */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <EnhancedProductFilters
               searchQuery={searchQuery}
               onSearchChange={setSearchQuery}
@@ -578,7 +579,7 @@ export default function Products() {
               value={filters.sortBy || 'newest'}
               onValueChange={(value) => setFilters(prev => ({ ...prev, sortBy: value as any }))}
             >
-              <SelectTrigger className="w-[150px]">
+              <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="Sort by..." />
               </SelectTrigger>
               <SelectContent>
@@ -592,16 +593,16 @@ export default function Products() {
                 <SelectItem value="margin_low">Margin (Low-High)</SelectItem>
               </SelectContent>
             </Select>
+            {canCreate(CRM_MODULES.PRODUCTS) && (
+              <Button variant="premium" onClick={() => setShowAddProduct(true)}>
+                <Plus className="h-4 w-4 mr-2" />
+                Add Product
+              </Button>
+            )}
           </div>
-          {canCreate(CRM_MODULES.PRODUCTS) && (
-            <Button variant="premium" onClick={() => setShowAddProduct(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Product
-            </Button>
-          )}
         </div>
 
-        {/* Quick Filters */}
+        {/* Row 2: Quick Filters */}
         <div className="w-full max-w-full overflow-hidden">
           {filterOptions && (
             <QuickFilters
@@ -609,7 +610,6 @@ export default function Products() {
               onFiltersChange={setFilters}
               filterOptions={filterOptions}
               onOpenFullFilters={() => {
-                // Trigger the sheet to open - we'll need to expose this from EnhancedProductFilters
                 const filtersButton = document.querySelector('[data-filter-trigger]') as HTMLButtonElement;
                 filtersButton?.click();
               }}
