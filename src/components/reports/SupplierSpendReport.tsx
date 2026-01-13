@@ -101,10 +101,7 @@ export function SupplierSpendReport({ className }: SupplierSpendReportProps) {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-muted-foreground" />
-              Supplier Spend Analysis
-            </CardTitle>
+            <CardTitle>Supplier Spend Analysis</CardTitle>
             <Button variant="outline" onClick={handleExportCSV} disabled={isLoading}>
               <Download className="h-4 w-4 mr-2" />
               Export CSV
