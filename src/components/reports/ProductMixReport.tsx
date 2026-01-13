@@ -351,10 +351,7 @@ export function ProductMixReport({ className }: ProductMixReportProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <PieChartIcon className="h-5 w-5 text-muted-foreground" />
-              Sales by Category
-            </CardTitle>
+            <CardTitle>Sales by Category</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
@@ -374,10 +371,7 @@ export function ProductMixReport({ className }: ProductMixReportProps) {
 
         <Card>
           <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-muted-foreground" />
-              Top 10 Products by Revenue
-            </CardTitle>
+            <CardTitle>Top 10 Products by Revenue</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoading ? (
