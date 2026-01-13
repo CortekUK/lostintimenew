@@ -399,7 +399,7 @@ export function EnhancedProductFilters({
                 {/* 8. Price Range - Slider */}
                 <div className="space-y-3">
                   <Label className="font-luxury text-sm font-medium">Price Range</Label>
-                  <div className="space-y-4 px-1">
+                  <div className="space-y-4 px-3">
                     <Slider
                       value={[
                         isNaN(filters.priceRange.min) ? 0 : filters.priceRange.min, 
@@ -451,7 +451,7 @@ export function EnhancedProductFilters({
                 {/* 10. Profit Margin - Slider */}
                 <div className="space-y-3">
                   <Label className="font-luxury text-sm font-medium">Profit Margin</Label>
-                  <div className="space-y-4 px-1">
+                  <div className="space-y-4 px-3">
                     <Slider
                       value={[filters.marginRange.min, filters.marginRange.max]}
                       onValueChange={([min, max]) => 
