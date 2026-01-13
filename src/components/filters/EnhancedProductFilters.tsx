@@ -100,7 +100,7 @@ export function EnhancedProductFilters({
     onFiltersChange({ ...filters, [filterKey]: newArray });
   };
 
-  const formatCurrency = (value: number) => `£${value.toLocaleString()}`;
+  const formatCurrency = (value: number) => isNaN(value) ? '£0' : `£${value.toLocaleString()}`;
 
   const getActiveFilterChips = () => {
     const chips = [];
@@ -399,17 +399,20 @@ export function EnhancedProductFilters({
                 {/* 8. Price Range - Slider */}
                 <div className="space-y-3">
                   <Label className="font-luxury text-sm font-medium">Price Range</Label>
-                  <div className="space-y-4">
+                  <div className="space-y-4 px-1">
                     <Slider
-                      value={[filters.priceRange.min, filters.priceRange.max]}
+                      value={[
+                        isNaN(filters.priceRange.min) ? 0 : filters.priceRange.min, 
+                        isNaN(filters.priceRange.max) ? 10000 : filters.priceRange.max
+                      ]}
                       onValueChange={([min, max]) => 
                         onFiltersChange({
                           ...filters, 
                           priceRange: { min, max }
                         })
                       }
-                      min={filterOptions.priceRange.min}
-                      max={filterOptions.priceRange.max}
+                      min={isNaN(filterOptions.priceRange.min) ? 0 : filterOptions.priceRange.min}
+                      max={isNaN(filterOptions.priceRange.max) ? 10000 : filterOptions.priceRange.max}
                       step={100}
                       className="w-full"
                     />
@@ -448,7 +451,7 @@ export function EnhancedProductFilters({
                 {/* 10. Profit Margin - Slider */}
                 <div className="space-y-3">
                   <Label className="font-luxury text-sm font-medium">Profit Margin</Label>
-                  <div className="space-y-4">
+                  <div className="space-y-4 px-1">
                     <Slider
                       value={[filters.marginRange.min, filters.marginRange.max]}
                       onValueChange={([min, max]) => 
