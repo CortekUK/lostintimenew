@@ -26,7 +26,8 @@ import {
   Calendar,
   TrendingUp,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Crown
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -151,32 +152,44 @@ export default function CustomerDetail() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground mb-1">Lifetime Spend</p>
+        <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Lifetime Spend</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
             <p className="text-2xl font-bold">{formatCurrency(customer.lifetime_spend)}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground mb-1">Total Purchases</p>
+        <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Purchases</CardTitle>
+            <ShoppingBag className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
             <p className="text-2xl font-bold">{customer.total_purchases}</p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground mb-1">Avg. Order Value</p>
+        <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Avg. Order Value</CardTitle>
+            <Gem className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
             <p className="text-2xl font-bold">
               {customer.total_purchases > 0 
                 ? formatCurrency(customer.lifetime_spend / customer.total_purchases)
-                : '—'
+                : 'N/A'
               }
             </p>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="p-4">
-            <p className="text-sm text-muted-foreground mb-1">Member Since</p>
+        <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Member Since</CardTitle>
+            <Calendar className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
             <p className="text-2xl font-bold">
               {format(new Date(customer.created_at), 'MMM yyyy')}
             </p>
@@ -186,11 +199,11 @@ export default function CustomerDetail() {
 
       {/* VIP Progress */}
       {nextTier && (
-        <Card className="mb-6">
+        <Card className="mb-6 shadow-card">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
-                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <Crown className="h-4 w-4 text-amber-500" />
                 <span className="text-sm font-medium">Progress to {nextTier.charAt(0).toUpperCase() + nextTier.slice(1)}</span>
               </div>
               <span className="text-sm text-muted-foreground">
@@ -227,93 +240,89 @@ export default function CustomerDetail() {
         <TabsContent value="overview">
           <div className="grid gap-6 md:grid-cols-2">
             {/* Contact Details */}
-            <Card>
+            <Card className="shadow-card">
               <CardHeader>
                 <CardTitle className="text-lg">Contact Details</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {customer.email && (
-                  <div className="flex items-start gap-3">
-                    <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Email</p>
+                <div className="flex items-start gap-3">
+                  <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium">Email</p>
+                    {customer.email ? (
                       <a href={`mailto:${customer.email}`} className="text-sm text-primary hover:underline">
                         {customer.email}
                       </a>
-                    </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Not specified</p>
+                    )}
                   </div>
-                )}
-                {customer.phone && (
-                  <div className="flex items-start gap-3">
-                    <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Phone</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium">Phone</p>
+                    {customer.phone ? (
                       <a href={`tel:${customer.phone}`} className="text-sm text-primary hover:underline">
                         {customer.phone}
                       </a>
-                    </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Not specified</p>
+                    )}
                   </div>
-                )}
-                {customer.address && (
-                  <div className="flex items-start gap-3">
-                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Address</p>
+                </div>
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium">Address</p>
+                    {customer.address ? (
                       <p className="text-sm text-muted-foreground whitespace-pre-line">{customer.address}</p>
-                    </div>
+                    ) : (
+                      <p className="text-sm text-muted-foreground">Not specified</p>
+                    )}
                   </div>
-                )}
-                {!customer.email && !customer.phone && !customer.address && (
-                  <p className="text-sm text-muted-foreground">No contact details added</p>
-                )}
+                </div>
               </CardContent>
             </Card>
 
             {/* Special Dates */}
-            <Card>
+            <Card className="shadow-card">
               <CardHeader>
                 <CardTitle className="text-lg">Special Dates</CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
-                {customer.birthday && (
-                  <div className="flex items-start gap-3">
-                    <Gift className="h-4 w-4 text-amber-500 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Birthday</p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(parseISO(customer.birthday), 'dd MMMM')}
-                      </p>
-                    </div>
+                <div className="flex items-start gap-3">
+                  <Gift className="h-4 w-4 text-amber-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium">Birthday</p>
+                    <p className="text-sm text-muted-foreground">
+                      {customer.birthday ? format(parseISO(customer.birthday), 'dd MMMM') : 'Not specified'}
+                    </p>
                   </div>
-                )}
-                {customer.anniversary && (
-                  <div className="flex items-start gap-3">
-                    <Heart className="h-4 w-4 text-rose-500 mt-0.5" />
-                    <div>
-                      <p className="text-sm font-medium">Anniversary</p>
-                      <p className="text-sm text-muted-foreground">
-                        {format(parseISO(customer.anniversary), 'dd MMMM yyyy')}
-                      </p>
-                    </div>
+                </div>
+                <div className="flex items-start gap-3">
+                  <Heart className="h-4 w-4 text-rose-500 mt-0.5" />
+                  <div>
+                    <p className="text-sm font-medium">Anniversary</p>
+                    <p className="text-sm text-muted-foreground">
+                      {customer.anniversary ? format(parseISO(customer.anniversary), 'dd MMMM yyyy') : 'Not specified'}
+                    </p>
                   </div>
-                )}
-                {!customer.birthday && !customer.anniversary && (
-                  <p className="text-sm text-muted-foreground">No special dates added</p>
-                )}
+                </div>
               </CardContent>
             </Card>
 
             {/* Notes */}
-            {customer.notes && (
-              <Card className="md:col-span-2">
-                <CardHeader>
-                  <CardTitle className="text-lg">Notes</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-sm text-muted-foreground whitespace-pre-line">{customer.notes}</p>
-                </CardContent>
-              </Card>
-            )}
+            <Card className="md:col-span-2 shadow-card">
+              <CardHeader>
+                <CardTitle className="text-lg">Notes</CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground whitespace-pre-line">
+                  {customer.notes || 'No notes added'}
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
 
