@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleChip } from '@/components/ui/toggle-chip';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { PoundSterling, Package, TrendingUp, ReceiptPoundSterling, ShoppingCart, AlertTriangle, ChevronDown, Users, Wallet, Eye, ExternalLink, ChevronRight } from 'lucide-react';
+import { PoundSterling, Package, TrendingUp, ReceiptPoundSterling, ShoppingCart, AlertTriangle, ChevronDown, Users, Wallet, Eye, ExternalLink, ChevronRight, Plus, Receipt, FileText } from 'lucide-react';
 import { useTodayStats, useRecentSales, useTrendsData, useExpenseSnapshot, useStaffActivity, useBusinessInsights } from '@/hooks/useDashboardData';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -25,24 +25,63 @@ const KPICard = ({
   title,
   value,
   icon: Icon,
-  isPrimary = false
+  isPrimary = false,
+  onClick
 }: {
   title: string;
   value: string;
   icon: any;
   isPrimary?: boolean;
+  onClick?: () => void;
 }) => {
-  return <Card className="shadow-card hover:shadow-elegant transition-all duration-300 relative h-full flex flex-col">
+  return (
+    <Card 
+      className={`shadow-card hover:shadow-elegant transition-all duration-300 relative h-full flex flex-col group ${onClick ? 'cursor-pointer hover:border-primary/50' : ''}`}
+      onClick={onClick}
+    >
       <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 p-4 md:p-6 flex-grow">
         <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground font-sans">{title}</CardTitle>
         <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
       </CardHeader>
       <CardContent className="p-4 md:p-6 pt-0 mt-auto">
-        <div className="text-xl sm:text-2xl font-bold tracking-tight font-luxury text-foreground">
-          {value}
+        <div className="text-xl sm:text-2xl font-bold tracking-tight font-luxury text-foreground flex items-center justify-between">
+          <span>{value}</span>
+          {onClick && (
+            <ChevronRight className="h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity" />
+          )}
         </div>
       </CardContent>
-    </Card>;
+    </Card>
+  );
+};
+
+// Quick Actions Bar Component
+const QuickActionsBar = () => {
+  const navigate = useNavigate();
+  
+  const actions = [
+    { label: 'New Sale', icon: ShoppingCart, route: '/sales' },
+    { label: 'Add Product', icon: Plus, route: '/products?add=true' },
+    { label: 'Log Expense', icon: Receipt, route: '/expenses?add=true' },
+    { label: 'Add Supplier', icon: Users, route: '/suppliers?add=true' },
+    { label: 'View Reports', icon: FileText, route: '/reports' },
+  ];
+  
+  return (
+    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-3 mb-6 md:mb-8">
+      {actions.map((action) => (
+        <Button
+          key={action.label}
+          variant="outline"
+          className="h-auto py-3 flex flex-col items-center gap-2 hover:border-primary/50 hover:bg-muted/50 transition-all"
+          onClick={() => navigate(action.route)}
+        >
+          <action.icon className="h-5 w-5 text-muted-foreground" />
+          <span className="text-xs font-medium">{action.label}</span>
+        </Button>
+      ))}
+    </div>
+  );
 };
 
 // Enhanced Recent Sales Component with thumbnails and staff
@@ -550,20 +589,50 @@ export default function Dashboard() {
   }
     return <AppLayout title="Dashboard" subtitle="Business overview and key metrics">
       
+      {/* Quick Actions */}
+      <QuickActionsBar />
+
       {/* Top KPI Row */}
       <div className={`grid gap-4 grid-cols-1 sm:grid-cols-2 ${isOwner ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} mb-6 md:mb-8 auto-rows-fr`}>
-        <KPICard title="Today's Sales" value={formatCurrency(todayStats?.sales || 0)} icon={PoundSterling} isPrimary />
+        <KPICard 
+          title="Today's Sales" 
+          value={formatCurrency(todayStats?.sales || 0)} 
+          icon={PoundSterling} 
+          isPrimary 
+          onClick={() => navigate('/sales/history')}
+        />
 
-        <KPICard title="Transactions" value={(todayStats?.transactions || 0).toString()} icon={ReceiptPoundSterling} />
+        <KPICard 
+          title="Transactions" 
+          value={(todayStats?.transactions || 0).toString()} 
+          icon={ReceiptPoundSterling}
+          onClick={() => navigate('/sales/history')}
+        />
 
         {/* Gross Profit - Owner only */}
         {isOwner && (
-          <KPICard title="Gross Profit Today" value={formatCurrency(todayStats?.grossProfit || 0)} icon={TrendingUp} isPrimary />
+          <KPICard 
+            title="Gross Profit Today" 
+            value={formatCurrency(todayStats?.grossProfit || 0)} 
+            icon={TrendingUp} 
+            isPrimary 
+            onClick={() => navigate('/reports')}
+          />
         )}
 
-        <KPICard title="Items Sold" value={(todayStats?.itemsSold || 0).toString()} icon={ShoppingCart} />
+        <KPICard 
+          title="Items Sold" 
+          value={(todayStats?.itemsSold || 0).toString()} 
+          icon={ShoppingCart}
+          onClick={() => navigate('/sales/history')}
+        />
 
-        <KPICard title="Inventory Value" value={formatCurrency(todayStats?.totalInventoryValue || 0)} icon={Package} />
+        <KPICard 
+          title="Inventory Value" 
+          value={formatCurrency(todayStats?.totalInventoryValue || 0)} 
+          icon={Package}
+          onClick={() => navigate('/products')}
+        />
       </div>
 
       {/* Recent Sales Section */}
