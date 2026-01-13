@@ -346,20 +346,21 @@ export default function Expenses() {
         </div>
 
         {/* Expenses List */}
-        <div>
-          <h2 className="text-xl font-semibold mb-4">
-            {viewMode === 'grid' ? 'Recent Expenses' : 'All Expenses'}
-          </h2>
-          
-          {viewMode === 'grid' ? (
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {expenses.slice(0, 9).map((expense) => (
-                <ExpenseCard key={expense.id} expense={expense} />
-              ))}
-              {expenses.length === 0 && (
-                <div className="col-span-full">
-                  <Card className="shadow-card">
-                    <CardContent className="flex flex-col items-center justify-center py-12">
+        <Card className="shadow-card">
+          <CardHeader>
+            <CardTitle>
+              {viewMode === 'grid' ? 'Recent Expenses' : 'All Expenses'}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {viewMode === 'grid' ? (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {expenses.slice(0, 9).map((expense) => (
+                  <ExpenseCard key={expense.id} expense={expense} />
+                ))}
+                {expenses.length === 0 && (
+                  <div className="col-span-full">
+                    <div className="flex flex-col items-center justify-center py-12">
                       <PoundSterling className="h-12 w-12 text-muted-foreground mb-4" />
                       <h3 className="text-lg font-semibold mb-2">No expenses found</h3>
                       <p className="text-muted-foreground text-center mb-4">
@@ -372,15 +373,15 @@ export default function Expenses() {
                         <Plus className="mr-2 h-4 w-4" />
                         Record Expense
                       </Button>
-                    </CardContent>
-                  </Card>
-                </div>
-              )}
-            </div>
-          ) : (
-            <ExpenseTable expenses={expenses} onEdit={setEditingExpense} />
-          )}
-        </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <ExpenseTable expenses={expenses} onEdit={setEditingExpense} />
+            )}
+          </CardContent>
+        </Card>
       </div>
 
       {/* Expense Modal */}
