@@ -69,8 +69,21 @@ export function CustomerSearchInput({
                 id="customer-search"
                 placeholder="Search or enter customer name..."
                 value={selectedCustomerId ? customerName : searchQuery}
-                onChange={(e) => handleSearchChange(e.target.value)}
-                onFocus={() => setOpen(true)}
+                onChange={(e) => {
+                  handleSearchChange(e.target.value);
+                  // Only open dropdown when there's enough input to search
+                  if (e.target.value.length >= 2) {
+                    setOpen(true);
+                  } else {
+                    setOpen(false);
+                  }
+                }}
+                onFocus={() => {
+                  // Only open if we have enough text to search
+                  if (searchQuery.length >= 2 || (selectedCustomerId && customerName.length >= 2)) {
+                    setOpen(true);
+                  }
+                }}
                 className={cn(
                   "pl-9 pr-9",
                   selectedCustomerId && "border-primary/50 bg-primary/5"
@@ -93,13 +106,19 @@ export function CustomerSearchInput({
             className="w-[var(--radix-popover-trigger-width)] p-0" 
             align="start"
             onOpenAutoFocus={(e) => e.preventDefault()}
-            onPointerDownOutside={(e) => {
-              // Don't close if clicking inside the anchor (input area)
+            onInteractOutside={(e) => {
+              // Don't close if interacting inside the anchor (input area)
               if (e.target instanceof Element && e.target.closest('[data-customer-search]')) {
                 e.preventDefault();
                 return;
               }
-              setOpen(false);
+            }}
+            onFocusOutside={(e) => {
+              // Don't close if focus moves to the anchor (input area)
+              if (e.target instanceof Element && e.target.closest('[data-customer-search]')) {
+                e.preventDefault();
+                return;
+              }
             }}
           >
             <Command shouldFilter={false}>
