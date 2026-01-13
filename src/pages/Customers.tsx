@@ -48,15 +48,14 @@ export default function Customers() {
       <PageHeader
         title="Customers"
         description="Manage customer relationships, preferences, and track purchase history"
-        actions={
-          canCreate('customers') && (
-            <Button onClick={() => setAddDialogOpen(true)}>
-              <Plus className="h-4 w-4 mr-2" />
-              Add Customer
-            </Button>
-          )
-        }
-      />
+      >
+        {canCreate('customers') && (
+          <Button onClick={() => setAddDialogOpen(true)}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Customer
+          </Button>
+        )}
+      </PageHeader>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">

@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Repeat, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Repeat, Users, type LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from 'next-themes';
@@ -47,6 +47,11 @@ const navigationItems: NavigationItem[] = [{
   url: '/suppliers',
   icon: Truck,
   module: CRM_MODULES.SUPPLIERS
+}, {
+  title: 'Customers',
+  url: '/customers',
+  icon: Users,
+  module: CRM_MODULES.CUSTOMERS
 }, {
   title: 'Consignments',
   url: '/consignments',

@@ -19,6 +19,8 @@ import Dashboard from "./pages/Dashboard";
 import Products from "./pages/Products";
 import Suppliers from "./pages/Suppliers";
 import SupplierDetail from "./pages/SupplierDetail";
+import Customers from "./pages/Customers";
+import CustomerDetail from "./pages/CustomerDetail";
 import EnhancedSales from "./pages/EnhancedSales";
 import Transactions from "./pages/Transactions";
 import SaleDetail from "./pages/SaleDetail";
@@ -70,6 +72,8 @@ function AppInner() {
           <Route path="/products/intake" element={<ProtectedRoute><PartExchangeIntake /></ProtectedRoute>} />
           <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
           <Route path="/suppliers/:id" element={<ProtectedRoute><SupplierDetail /></ProtectedRoute>} />
+          <Route path="/customers" element={<ProtectedRoute module="customers"><Customers /></ProtectedRoute>} />
+          <Route path="/customers/:id" element={<ProtectedRoute module="customers"><CustomerDetail /></ProtectedRoute>} />
           <Route path="/consignments" element={<ProtectedRoute><Consignments /></ProtectedRoute>} />
           <Route path="/sales" element={<ProtectedRoute><EnhancedSales /></ProtectedRoute>} />
           <Route path="/sales/transactions" element={<ProtectedRoute><Transactions /></ProtectedRoute>} />
