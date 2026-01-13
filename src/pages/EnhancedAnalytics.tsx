@@ -89,10 +89,7 @@ export default function EnhancedAnalytics() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5 text-muted-foreground" />
-                      Product Performance
-                    </div>
+                    <span>Product Performance</span>
                     <Button 
                       variant="ghost" 
                       size="sm"
@@ -160,10 +157,7 @@ export default function EnhancedAnalytics() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-muted-foreground" />
-                      Supplier Analysis
-                    </div>
+                    <span>Supplier Analysis</span>
                     <Button 
                       variant="ghost" 
                       size="sm"
@@ -217,10 +211,7 @@ export default function EnhancedAnalytics() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Database className="h-5 w-5 text-muted-foreground" />
-                      System Activity
-                    </div>
+                    <span>System Activity</span>
                     <Button 
                       variant="ghost" 
                       size="sm"
@@ -278,10 +269,7 @@ export default function EnhancedAnalytics() {
               <Card>
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-muted-foreground" />
-                      Business Health
-                    </div>
+                    <span>Business Health</span>
                     <Button 
                       variant="ghost" 
                       size="sm"
