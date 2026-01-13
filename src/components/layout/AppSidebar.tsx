@@ -134,7 +134,7 @@ export function AppSidebar() {
   const isCollapsed = state === 'collapsed';
   return <TooltipProvider>
       <Sidebar className={isCollapsed ? "w-16" : "w-64"} collapsible="icon" variant="sidebar">
-        <SidebarHeader className="header-divider flex items-center justify-center px-2 py-3">
+        <SidebarHeader className="header-divider flex items-center justify-center px-2 py-4">
           {isCollapsed ? <Tooltip>
               <TooltipTrigger asChild>
                 <img src="/new-logo.png" alt="Sourced Jewellers" className="w-10 object-contain cursor-pointer" />
@@ -143,7 +143,7 @@ export function AppSidebar() {
                 <p>Sourced Jewellers</p>
               </TooltipContent>
             </Tooltip> :
-            <img src="/new-logo.png" alt="Sourced Jewellers" className="max-h-[40px] w-[47%] object-cover" />
+            <img src="/new-logo.png" alt="Sourced Jewellers" className="max-h-[56px] w-[60%] object-contain" />
           }
         </SidebarHeader>
 
