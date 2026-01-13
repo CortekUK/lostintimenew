@@ -546,12 +546,12 @@ export default function SoldItemsReport() {
         </div>
 
         {/* Filters */}
-        <Card className="shadow-card border-primary/10">
+        <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="flex items-center justify-between flex-wrap gap-4">
               <div className="flex items-center gap-2">
-                <Filter className="h-5 w-5 text-primary" />
-                <span className="text-primary">Advanced Filters</span>
+                <Filter className="h-5 w-5 text-muted-foreground" />
+                <span className="text-foreground">Advanced Filters</span>
               </div>
               <div className="flex items-center gap-2">
                 {filters.saleId && (
@@ -796,9 +796,9 @@ export default function SoldItemsReport() {
         </Card>
 
         {/* Sold Items Table */}
-        <Card className="shadow-card border-primary/10">
+        <Card className="shadow-card">
           <CardHeader>
-            <CardTitle className="text-primary">Sold Items Analysis</CardTitle>
+            <CardTitle className="text-foreground">Sold Items Analysis</CardTitle>
             <CardDescription>
               {filteredItems.length} line items • {totals.items} total units
             </CardDescription>
