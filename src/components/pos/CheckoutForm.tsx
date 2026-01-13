@@ -1,17 +1,18 @@
 import { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CurrencyInput } from '@/components/ui/currency-input';
+import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatCurrency, calculateCartTotals } from '@/lib/utils';
 import type { CartItem, PaymentMethod, PartExchangeItem } from '@/types';
-import { Calculator, CreditCard, Banknote, Smartphone, Building, Loader2, Percent, PoundSterling, PenTool, ChevronDown } from 'lucide-react';
+import { CreditCard, Banknote, Smartphone, Building, Loader2, PenTool, ChevronDown } from 'lucide-react';
 import { SignaturePad, SignaturePadRef } from './SignaturePad';
+import { CustomerSearchInput } from './CustomerSearchInput';
 export type DiscountType = 'percentage' | 'fixed';
 interface CheckoutFormProps {
   items: CartItem[];
@@ -24,6 +25,8 @@ interface CheckoutFormProps {
   onCustomerNameChange: (name: string) => void;
   customerEmail: string;
   onCustomerEmailChange: (email: string) => void;
+  selectedCustomerId: number | null;
+  onCustomerSelect: (customerId: number | null, name: string, email: string) => void;
   customerNotes: string;
   onCustomerNotesChange: (notes: string) => void;
   paymentMethod: PaymentMethod | '';
@@ -65,6 +68,8 @@ export function CheckoutForm({
   onCustomerNameChange,
   customerEmail,
   onCustomerEmailChange,
+  selectedCustomerId,
+  onCustomerSelect,
   customerNotes,
   onCustomerNotesChange,
   paymentMethod,
@@ -139,15 +144,14 @@ export function CheckoutForm({
         </div>
 
         {/* Customer Information */}
-        <div className="space-y-2">
-          <Label htmlFor="customer-name">Customer Name (Optional)</Label>
-          <Input id="customer-name" placeholder="Enter customer name" value={customerName} onChange={e => onCustomerNameChange(e.target.value)} />
-        </div>
-
-        <div className="space-y-2">
-          <Label htmlFor="customer-email">Customer Email (Optional)</Label>
-          <Input id="customer-email" type="email" placeholder="customer@example.com" value={customerEmail} onChange={e => onCustomerEmailChange(e.target.value)} />
-        </div>
+        <CustomerSearchInput
+          customerName={customerName}
+          customerEmail={customerEmail}
+          selectedCustomerId={selectedCustomerId}
+          onCustomerNameChange={onCustomerNameChange}
+          onCustomerEmailChange={onCustomerEmailChange}
+          onCustomerSelect={onCustomerSelect}
+        />
         
         <div className="space-y-2">
           <Label htmlFor="customer-notes">Notes (Optional)</Label>

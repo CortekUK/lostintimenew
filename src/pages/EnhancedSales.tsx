@@ -12,6 +12,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useOwnerGuard } from '@/hooks/useOwnerGuard';
+import { matchOrCreateCustomer } from '@/hooks/useCustomerMatchOrCreate';
 import type { CartItem, Product, Sale, PartExchangeItem } from '@/types';
 
 export default function EnhancedSales() {
@@ -26,6 +27,7 @@ export default function EnhancedSales() {
   const [searchQuery, setSearchQuery] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
+  const [selectedCustomerId, setSelectedCustomerId] = useState<number | null>(null);
   const [discount, setDiscount] = useState(0);
   const [discountType, setDiscountType] = useState<DiscountType>('percentage');
   const [paymentMethod, setPaymentMethod] = useState<'cash' | 'card' | 'transfer' | 'other'>('cash');
@@ -165,6 +167,17 @@ export default function EnhancedSales() {
         }
       }
 
+      // Match or create customer if name provided
+      let customerId: number | null = selectedCustomerId;
+      
+      if (!customerId && customerName.trim()) {
+        const result = await matchOrCreateCustomer(
+          customerName.trim(),
+          customerEmail.trim() || null
+        );
+        customerId = result.customerId;
+      }
+
       const saleData = {
         staff_id: user?.id,
         staff_member_name: staffMember,
@@ -175,6 +188,7 @@ export default function EnhancedSales() {
         total,
         part_exchange_total: partExchangeTotal,
         notes: notes || null,
+        customer_id: customerId,
         customer_name: customerName || null,
         customer_email: customerEmail || null,
         signature_data: signature
@@ -257,6 +271,7 @@ export default function EnhancedSales() {
       queryClient.invalidateQueries({ queryKey: ['part-exchanges'] });
       queryClient.invalidateQueries({ queryKey: ['consignment-settlements'] });
       queryClient.invalidateQueries({ queryKey: ['consignment-products'] });
+      queryClient.invalidateQueries({ queryKey: ['customers'] });
       
       // Store completed sale data for modal
       setCompletedSale({ 
@@ -275,6 +290,7 @@ export default function EnhancedSales() {
       setPartExchanges([]);
       setCustomerName('');
       setCustomerEmail('');
+      setSelectedCustomerId(null);
       setDiscount(0);
       setDiscountType('percentage');
       setNotes('');
@@ -335,6 +351,12 @@ export default function EnhancedSales() {
               onCustomerNameChange={setCustomerName}
               customerEmail={customerEmail}
               onCustomerEmailChange={setCustomerEmail}
+              selectedCustomerId={selectedCustomerId}
+              onCustomerSelect={(id, name, email) => {
+                setSelectedCustomerId(id);
+                setCustomerName(name);
+                setCustomerEmail(email);
+              }}
               customerNotes={notes}
               onCustomerNotesChange={setNotes}
               paymentMethod={paymentMethod}
