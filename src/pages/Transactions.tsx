@@ -400,7 +400,7 @@ export default function Transactions() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card className="shadow-card hover:shadow-elegant transition-all duration-300 h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Sales</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Sales</CardTitle>
                 <ReceiptPoundSterling className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -411,7 +411,7 @@ export default function Transactions() {
             
             <Card className="shadow-card hover:shadow-elegant transition-all duration-300 h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Total Revenue</CardTitle>
                 <PoundSterling className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
@@ -422,7 +422,7 @@ export default function Transactions() {
             
             <Card className="shadow-card hover:shadow-elegant transition-all duration-300 h-full">
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Avg Sale</CardTitle>
+                <CardTitle className="text-sm font-medium text-muted-foreground">Avg Sale</CardTitle>
                 <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
