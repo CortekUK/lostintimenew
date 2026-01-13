@@ -234,7 +234,7 @@ export function StockAlerts({ className }: RestockAlertsProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <AlertTriangle className="h-5 w-5 text-primary" />
+              <AlertTriangle className="h-5 w-5 text-muted-foreground" />
               Business Alerts
             </CardTitle>
             <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isLoading}>

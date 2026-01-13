@@ -101,7 +101,7 @@ export function ProductSearch({ onAddToCart, cartItems }: ProductSearchProps) {
     <Card className="shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 font-luxury">
-          <Search className="h-5 w-5 text-primary" />
+          <Search className="h-5 w-5 text-muted-foreground" />
           Product Search
         </CardTitle>
       </CardHeader>

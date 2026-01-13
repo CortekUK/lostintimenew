@@ -112,7 +112,7 @@ export function CheckoutForm({
   return <Card className="shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 font-luxury">
-          <Calculator className="h-5 w-5 text-primary" />
+          <Calculator className="h-5 w-5 text-muted-foreground" />
           Checkout
         </CardTitle>
       </CardHeader>

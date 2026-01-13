@@ -90,7 +90,7 @@ export default function EnhancedAnalytics() {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <BarChart3 className="h-5 w-5 text-primary" />
+                      <BarChart3 className="h-5 w-5 text-muted-foreground" />
                       Product Performance
                     </div>
                     <Button 
@@ -161,7 +161,7 @@ export default function EnhancedAnalytics() {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Building2 className="h-5 w-5 text-primary" />
+                      <Building2 className="h-5 w-5 text-muted-foreground" />
                       Supplier Analysis
                     </div>
                     <Button 
@@ -218,7 +218,7 @@ export default function EnhancedAnalytics() {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <Database className="h-5 w-5 text-primary" />
+                      <Database className="h-5 w-5 text-muted-foreground" />
                       System Activity
                     </div>
                     <Button 
@@ -279,7 +279,7 @@ export default function EnhancedAnalytics() {
                 <CardHeader>
                   <CardTitle className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
-                      <AlertTriangle className="h-5 w-5 text-primary" />
+                      <AlertTriangle className="h-5 w-5 text-muted-foreground" />
                       Business Health
                     </div>
                     <Button 

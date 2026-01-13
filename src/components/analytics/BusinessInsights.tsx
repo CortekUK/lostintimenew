@@ -68,7 +68,7 @@ export function BusinessInsights() {
       <Card className="shadow-card">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Lightbulb className="h-5 w-5 text-primary" />
+            <Lightbulb className="h-5 w-5 text-muted-foreground" />
             Business Insights
           </CardTitle>
           <CardDescription>Real-time performance indicators</CardDescription>
@@ -88,7 +88,7 @@ export function BusinessInsights() {
     <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Lightbulb className="h-5 w-5 text-primary" />
+          <Lightbulb className="h-5 w-5 text-muted-foreground" />
           Business Insights
         </CardTitle>
         <CardDescription>Real-time performance indicators</CardDescription>
@@ -105,8 +105,8 @@ export function BusinessInsights() {
                 className="w-full justify-between p-3 h-auto hover:bg-muted/50 transition-colors"
               >
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-primary/10 rounded-lg">
-                    <Icon className="h-4 w-4 text-primary" />
+                  <div className="p-2 bg-muted rounded-lg">
+                    <Icon className="h-4 w-4 text-muted-foreground" />
                   </div>
                   <div className="text-left">
                     <p className="text-xs text-muted-foreground mb-0.5">{insight.label}</p>

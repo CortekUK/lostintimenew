@@ -68,7 +68,7 @@ export function ShoppingCartComponent({
     <Card className="shadow-card">
       <CardHeader>
         <CardTitle className="flex items-center gap-2 font-luxury">
-          <ShoppingCart className="h-5 w-5 text-primary" />
+          <ShoppingCart className="h-5 w-5 text-muted-foreground" />
           Shopping Cart
         </CardTitle>
       </CardHeader>

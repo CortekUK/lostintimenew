@@ -162,7 +162,7 @@ export function AuditLogViewer({ className }: AuditLogViewerProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Database className="h-5 w-5 text-primary" />
+              <Database className="h-5 w-5 text-muted-foreground" />
               Audit Trail
             </CardTitle>
             <div className="flex gap-2">
