@@ -11,7 +11,7 @@ import { useConsolidatedPnL } from '@/hooks/useConsolidatedPnL';
 import { exportPnLToCSV, exportPnLToPDF } from '@/utils/pnlExport';
 import { formatCurrency, formatPercentage } from '@/lib/utils';
 import { startOfMonth, endOfDay, format } from 'date-fns';
-import { Download, TrendingUp, ShoppingCart, PoundSterling, Receipt, Wallet, ChevronDown, ChevronRight } from 'lucide-react';
+import { Download, TrendingUp, ShoppingCart, PoundSterling, FileText, Wallet, ChevronDown, ChevronRight } from 'lucide-react';
 import { toast } from 'sonner';
 
 interface DateRangeInput {
@@ -181,7 +181,7 @@ export function FinancialTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Operating Expenses">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Operating Expenses</CardTitle>
-            <Receipt className="h-4 w-4 text-primary" aria-hidden="true" />
+            <FileText className="h-4 w-4 text-primary" aria-hidden="true" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight">{formatCurrency(operatingExpenses)}</div>
