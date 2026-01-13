@@ -228,10 +228,7 @@ export function ProductMixReport({ className }: ProductMixReportProps) {
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5 text-muted-foreground" />
-              Product Mix Analysis
-            </CardTitle>
+            <CardTitle>Product Mix Analysis</CardTitle>
             <Button variant="outline" onClick={handleExportCSV} disabled={isLoading}>
               <Download className="h-4 w-4 mr-2" />
               Export CSV
