@@ -59,8 +59,8 @@ export function SupplierKPICards({
               <p className="text-sm font-medium text-muted-foreground">Linked Products</p>
               <p className="text-3xl font-luxury font-bold mt-1">{productCount}</p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
-              <Package className="h-6 w-6 text-primary" />
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0">
+              <Package className="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
           <p className="text-xs text-muted-foreground mt-2">Click to view inventory</p>
@@ -82,8 +82,8 @@ export function SupplierKPICards({
                 })}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center shrink-0">
-              <TrendingUp className="h-6 w-6 text-[#D4AF37]" />
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0">
+              <TrendingUp className="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
           {supplierType === 'customer' ? (
@@ -127,8 +127,8 @@ export function SupplierKPICards({
                 </>
               )}
             </div>
-            <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0">
-              <AlertCircle className="h-6 w-6 text-orange-500" />
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0">
+              <AlertCircle className="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
         </CardContent>

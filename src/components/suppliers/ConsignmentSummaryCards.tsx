@@ -42,8 +42,8 @@ export function ConsignmentSummaryCards({ supplierId }: ConsignmentSummaryCardsP
               <p className="text-3xl font-luxury font-bold mt-1">{activeStock.length}</p>
               <p className="text-xs text-muted-foreground mt-1">Items on consignment</p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-              <Package className="h-6 w-6 text-primary" />
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+              <Package className="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
         </CardContent>
@@ -58,8 +58,8 @@ export function ConsignmentSummaryCards({ supplierId }: ConsignmentSummaryCardsP
               <p className="text-3xl font-luxury font-bold mt-1">{unsettledSales.length}</p>
               <p className="text-xs text-muted-foreground mt-1">Awaiting settlement</p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center">
-              <AlertCircle className="h-6 w-6 text-orange-500" />
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+              <AlertCircle className="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
         </CardContent>
@@ -79,8 +79,8 @@ export function ConsignmentSummaryCards({ supplierId }: ConsignmentSummaryCardsP
               </p>
               <p className="text-xs text-muted-foreground mt-1">Pending payout</p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-orange-500/10 flex items-center justify-center">
-              <PoundSterling className="h-6 w-6 text-orange-500" />
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+              <PoundSterling className="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
         </CardContent>
@@ -100,8 +100,8 @@ export function ConsignmentSummaryCards({ supplierId }: ConsignmentSummaryCardsP
               </p>
               <p className="text-xs text-muted-foreground mt-1">All-time settlements</p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center">
-              <PoundSterling className="h-6 w-6 text-[#D4AF37]" />
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center">
+              <PoundSterling className="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
         </CardContent>

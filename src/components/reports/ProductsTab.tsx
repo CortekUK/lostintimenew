@@ -173,7 +173,7 @@ export function ProductsTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Units Sold">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Units Sold</CardTitle>
-            <Package className="h-4 w-4 text-primary" aria-hidden="true" />
+            <Package className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight">{totals.units.toLocaleString()}</div>
@@ -186,7 +186,7 @@ export function ProductsTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Total Revenue">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-primary" aria-hidden="true" />
+            <TrendingUp className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight">{formatCurrency(totals.revenue)}</div>
@@ -199,7 +199,7 @@ export function ProductsTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Gross Profit">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Gross Profit</CardTitle>
-            <PoundSterling className="h-4 w-4 text-success" aria-hidden="true" />
+            <PoundSterling className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight text-success">{formatCurrency(totals.grossProfit)}</div>
@@ -212,7 +212,7 @@ export function ProductsTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Average Margin">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Avg Margin</CardTitle>
-            <Percent className="h-4 w-4 text-primary" aria-hidden="true" />
+            <Percent className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight">{formatPercentage(avgMargin)}</div>

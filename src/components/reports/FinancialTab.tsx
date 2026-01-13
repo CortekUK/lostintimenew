@@ -142,7 +142,7 @@ export function FinancialTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Revenue">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Revenue</CardTitle>
-            <TrendingUp className="h-4 w-4 text-primary" aria-hidden="true" />
+            <TrendingUp className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight">{formatCurrency(revenue)}</div>
@@ -155,7 +155,7 @@ export function FinancialTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Cost of Goods Sold">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">COGS</CardTitle>
-            <ShoppingCart className="h-4 w-4 text-primary" aria-hidden="true" />
+            <ShoppingCart className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight">{formatCurrency(cogs)}</div>
@@ -168,7 +168,7 @@ export function FinancialTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Gross Profit">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Gross Profit</CardTitle>
-            <PoundSterling className="h-4 w-4 text-success" aria-hidden="true" />
+            <PoundSterling className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight text-success">{formatCurrency(grossProfit)}</div>
@@ -181,7 +181,7 @@ export function FinancialTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Operating Expenses">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Operating Expenses</CardTitle>
-            <FileText className="h-4 w-4 text-primary" aria-hidden="true" />
+            <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold tracking-tight">{formatCurrency(operatingExpenses)}</div>
@@ -194,7 +194,7 @@ export function FinancialTab() {
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Net Profit">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Net Profit</CardTitle>
-            <Wallet className={`h-4 w-4 ${netProfit >= 0 ? 'text-success' : 'text-destructive'}`} aria-hidden="true" />
+            <Wallet className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-bold tracking-tight ${netProfit >= 0 ? 'text-success' : 'text-destructive'}`}>
