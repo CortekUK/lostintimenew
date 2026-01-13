@@ -38,7 +38,7 @@ const KPICard = ({
         <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
       </CardHeader>
       <CardContent className="p-4 md:p-6 pt-0 mt-auto">
-        <div className={`text-xl sm:text-2xl font-bold tracking-tight font-luxury ${isPrimary ? 'text-primary' : 'text-foreground'}`}>
+        <div className="text-xl sm:text-2xl font-bold tracking-tight font-luxury text-foreground">
           {value}
         </div>
       </CardContent>
@@ -78,7 +78,7 @@ const EnhancedRecentSales = () => {
     return <Card className="shadow-card">
         <CardHeader>
           <CardTitle className="font-luxury flex items-center gap-2">
-            <PoundSterling className="h-5 w-5 text-primary" />
+            <PoundSterling className="h-5 w-5 text-muted-foreground" />
             Recent Sales
           </CardTitle>
           <CardDescription>Latest 5 transactions</CardDescription>
@@ -123,7 +123,7 @@ const EnhancedRecentSales = () => {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <CardTitle className="font-luxury flex items-center gap-2 text-base md:text-lg">
-              <PoundSterling className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+              <PoundSterling className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
               Recent Sales
             </CardTitle>
             <CardDescription className="text-xs md:text-sm">Latest 5 transactions</CardDescription>
@@ -228,7 +228,7 @@ const RevenueAndProfitTrends = () => {
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
             <CardTitle className="font-luxury flex items-center gap-2 text-base md:text-lg">
-              <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+              <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
               Revenue & Profit Trends
             </CardTitle>
             <CardDescription className="text-xs md:text-sm">Performance over time</CardDescription>
@@ -314,7 +314,7 @@ const BusinessInsightsCard = ({ showProfitData = true }: { showProfitData?: bool
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <CardTitle className="font-luxury text-base md:text-lg font-semibold flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+            <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
             Business Insights
           </CardTitle>
           <div className="flex gap-1 md:gap-2 flex-wrap">
@@ -398,7 +398,7 @@ const WeeklyExpensesCard = () => {
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-3">
           <CardTitle className="font-luxury text-base md:text-lg font-semibold flex items-center gap-2">
-            <Wallet className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+            <Wallet className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
             Expenses {periodLabels[period]}
           </CardTitle>
           <div className="flex gap-1 md:gap-2 flex-wrap">
@@ -417,7 +417,7 @@ const WeeklyExpensesCard = () => {
       </CardHeader>
       <CardContent>
         <div className="space-y-2">
-          <p className="text-xl sm:text-2xl font-bold text-primary tracking-tight">
+          <p className="text-xl sm:text-2xl font-bold text-foreground tracking-tight">
             {formatCurrency(expenseData?.weeklyTotal || 0)}
           </p>
           {expenseData?.topCategory && (

@@ -171,7 +171,7 @@ export function FinancialTab() {
             <PoundSterling className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tracking-tight text-success">{formatCurrency(grossProfit)}</div>
+            <div className={`text-2xl font-bold tracking-tight ${grossProfit > 0 ? 'text-success' : grossProfit < 0 ? 'text-destructive' : 'text-foreground'}`}>{formatCurrency(grossProfit)}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {formatPercentage(grossMargin)} margin
             </p>
@@ -228,7 +228,7 @@ export function FinancialTab() {
             </div>
             
             <div className="border-t pt-3 border-border">
-              <div className="flex justify-between items-center font-semibold text-success">
+              <div className={`flex justify-between items-center font-semibold ${grossProfit > 0 ? 'text-success' : grossProfit < 0 ? 'text-destructive' : 'text-foreground'}`}>
                 <span>Gross Profit</span>
                 <span className="font-mono">{formatCurrency(grossProfit)}</span>
               </div>

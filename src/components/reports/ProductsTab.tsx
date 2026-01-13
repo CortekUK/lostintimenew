@@ -202,7 +202,7 @@ export function ProductsTab() {
             <PoundSterling className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tracking-tight text-success">{formatCurrency(totals.grossProfit)}</div>
+            <div className={`text-2xl font-bold tracking-tight ${totals.grossProfit > 0 ? 'text-success' : totals.grossProfit < 0 ? 'text-destructive' : 'text-foreground'}`}>{formatCurrency(totals.grossProfit)}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Total profit earned
             </p>
@@ -305,7 +305,7 @@ export function ProductsTab() {
                         <td className="py-3 px-2 text-right font-mono text-muted-foreground tabular-nums">
                           {formatCurrency(Number(product.cogs || 0))}
                         </td>
-                        <td className="py-3 px-2 text-right font-mono text-success tabular-nums">
+                        <td className={`py-3 px-2 text-right font-mono tabular-nums ${Number(product.gross_profit || 0) > 0 ? 'text-success' : Number(product.gross_profit || 0) < 0 ? 'text-destructive' : 'text-foreground'}`}>
                           {formatCurrency(Number(product.gross_profit || 0))}
                         </td>
                         <td className="py-3 px-2 text-right">

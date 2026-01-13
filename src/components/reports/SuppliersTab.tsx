@@ -172,7 +172,7 @@ export function SuppliersTab() {
             <Users className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tracking-tight text-success">{activeSuppliers}</div>
+            <div className="text-2xl font-bold tracking-tight">{activeSuppliers}</div>
             <p className="text-xs text-muted-foreground mt-1">
               Contributing to sales
             </p>
@@ -198,7 +198,7 @@ export function SuppliersTab() {
             <PoundSterling className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold tracking-tight text-success">{formatCurrency(totals.gross_profit)}</div>
+            <div className={`text-2xl font-bold tracking-tight ${totals.gross_profit > 0 ? 'text-success' : totals.gross_profit < 0 ? 'text-destructive' : 'text-foreground'}`}>{formatCurrency(totals.gross_profit)}</div>
             <p className="text-xs text-muted-foreground mt-1">
               {formatPercentage(avgMargin)} avg margin
             </p>
@@ -292,7 +292,7 @@ export function SuppliersTab() {
                         <td className="py-3 px-2 text-right font-mono text-muted-foreground tabular-nums">
                           {formatCurrency(Number(supplier.cogs || 0))}
                         </td>
-                        <td className="py-3 px-2 text-right font-mono text-success tabular-nums">
+                        <td className={`py-3 px-2 text-right font-mono tabular-nums ${Number(supplier.gross_profit || 0) > 0 ? 'text-success' : Number(supplier.gross_profit || 0) < 0 ? 'text-destructive' : 'text-foreground'}`}>
                           {formatCurrency(Number(supplier.gross_profit || 0))}
                         </td>
                         <td className="py-3 px-2 text-right">

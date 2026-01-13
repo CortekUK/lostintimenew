@@ -28,14 +28,32 @@ All colors must use CSS variables defined in `index.css`. Never use hardcoded he
 | Primary actions | `text-primary` | Only when icon IS the action |
 | Status indicators | Semantic colors | Success/warning/destructive based on state |
 
-### Currency Values
+### Currency & Number Values
 
-| Context | Color Class |
-|---------|-------------|
-| Primary amounts (price, total) | `text-primary` |
-| Profit/positive values | `text-success` |
-| Loss/negative values | `text-destructive` |
-| Neutral/secondary amounts | `text-foreground` or `text-muted-foreground` |
+| Context | Color Class | Notes |
+|---------|-------------|-------|
+| Neutral amounts (counts, totals, base values) | `text-foreground` | Default for most KPI values |
+| Positive profit/margin (> 0) | `text-success` | Only when value is positive |
+| Negative profit/loss (< 0) | `text-destructive` | Only when value is negative |
+| Zero profit/margin (= 0) | `text-foreground` | Neutral, not success |
+| Primary emphasis (checkout total, sale confirmation) | `text-primary` | Reserved for action contexts |
+
+**Conditional Coloring Pattern:**
+```tsx
+// For profit/margin values that can be positive, negative, or zero:
+<div className={`text-2xl font-bold ${
+  value > 0 ? 'text-success' : 
+  value < 0 ? 'text-destructive' : 
+  'text-foreground'
+}`}>
+  {formatCurrency(value)}
+</div>
+
+// For neutral counts/totals (always use foreground):
+<div className="text-2xl font-bold text-foreground">
+  {count}
+</div>
+```
 
 ---
 
