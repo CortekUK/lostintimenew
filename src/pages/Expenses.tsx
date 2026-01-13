@@ -316,9 +316,9 @@ export default function Expenses() {
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">YoY Change</CardTitle>
               {yoyComparison && yoyComparison.percentageChange >= 0 ? (
-                <TrendingUp className="h-4 w-4 text-destructive" />
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
               ) : (
-                <TrendingDown className="h-4 w-4 text-success" />
+                <TrendingDown className="h-4 w-4 text-muted-foreground" />
               )}
             </CardHeader>
             <CardContent>
