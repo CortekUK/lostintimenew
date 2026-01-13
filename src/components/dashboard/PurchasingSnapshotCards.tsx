@@ -86,20 +86,6 @@ const PurchasesThisMonthCard = () => {
             ))}
           </div>
         </div>
-        <div className="mt-2">
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <div className="h-4 w-4 rounded-full border border-muted-foreground/30 flex items-center justify-center text-xs text-muted-foreground">
-                  ?
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Total purchase cost recognised this month (based on purchase_date)</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
       </CardHeader>
       <CardContent className="flex flex-col flex-1">
         <div className="space-y-3">
@@ -165,23 +151,9 @@ const InventoryAgeCard = () => {
   return (
     <Card className="shadow-card hover:shadow-elegant transition-all duration-300 flex flex-col">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="font-luxury text-lg font-semibold">
-            Inventory Age
-          </CardTitle>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger>
-                <div className="h-4 w-4 rounded-full border border-muted-foreground/30 flex items-center justify-center text-xs text-muted-foreground">
-                  ?
-                </div>
-              </TooltipTrigger>
-              <TooltipContent>
-                <p>Based on purchase_date. Consignment items use consignment_start_date if present.</p>
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
-        </div>
+        <CardTitle className="font-luxury text-lg font-semibold">
+          Inventory Age
+        </CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col flex-1">
         <div className="space-y-2">
