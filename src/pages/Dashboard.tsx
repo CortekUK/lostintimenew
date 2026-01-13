@@ -77,8 +77,7 @@ const EnhancedRecentSales = () => {
   if (!recentSales || recentSales.length === 0) {
     return <Card className="shadow-card">
         <CardHeader>
-          <CardTitle className="font-luxury flex items-center gap-2">
-            <PoundSterling className="h-5 w-5 text-muted-foreground" />
+          <CardTitle className="font-luxury">
             Recent Sales
           </CardTitle>
           <CardDescription>Latest 5 transactions</CardDescription>
@@ -122,8 +121,7 @@ const EnhancedRecentSales = () => {
       <CardHeader>
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <CardTitle className="font-luxury flex items-center gap-2 text-base md:text-lg">
-              <PoundSterling className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+            <CardTitle className="font-luxury text-base md:text-lg">
               Recent Sales
             </CardTitle>
             <CardDescription className="text-xs md:text-sm">Latest 5 transactions</CardDescription>
@@ -227,8 +225,7 @@ const RevenueAndProfitTrends = () => {
       <CardHeader>
         <div className="flex items-center justify-between flex-wrap gap-3">
           <div>
-            <CardTitle className="font-luxury flex items-center gap-2 text-base md:text-lg">
-              <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+            <CardTitle className="font-luxury text-base md:text-lg">
               Revenue & Profit Trends
             </CardTitle>
             <CardDescription className="text-xs md:text-sm">Performance over time</CardDescription>
@@ -313,8 +310,7 @@ const BusinessInsightsCard = ({ showProfitData = true }: { showProfitData?: bool
     <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <CardTitle className="font-luxury text-base md:text-lg font-semibold flex items-center gap-2">
-            <TrendingUp className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+          <CardTitle className="font-luxury text-base md:text-lg font-semibold">
             Business Insights
           </CardTitle>
           <div className="flex gap-1 md:gap-2 flex-wrap">
@@ -397,8 +393,7 @@ const WeeklyExpensesCard = () => {
     <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between flex-wrap gap-3">
-          <CardTitle className="font-luxury text-base md:text-lg font-semibold flex items-center gap-2">
-            <Wallet className="h-4 w-4 md:h-5 md:w-5 text-muted-foreground" />
+          <CardTitle className="font-luxury text-base md:text-lg font-semibold">
             Expenses {periodLabels[period]}
           </CardTitle>
           <div className="flex gap-1 md:gap-2 flex-wrap">

@@ -124,8 +124,7 @@ export function LocationsSettings() {
       <CardHeader>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div>
-            <CardTitle className="flex items-center gap-2">
-              <MapPin className="h-5 w-5" />
+            <CardTitle>
               Store Locations
             </CardTitle>
             <CardDescription>

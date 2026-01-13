@@ -462,10 +462,7 @@ export default function Transactions() {
         <Card className="shadow-card">
           <CardHeader>
             <CardTitle className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-2">
-                <Calendar className="h-5 w-5 text-primary" />
-                <span className="font-luxury">Filters</span>
-              </div>
+              <span className="font-luxury">Filters</span>
               <div className="flex items-center gap-2">
                 <Button variant="outline" size="sm" onClick={handleViewSoldItems}>
                   <ArrowRight className="h-4 w-4 mr-2" />
