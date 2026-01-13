@@ -14,6 +14,26 @@ import { useCustomers, useCustomerReminders } from '@/hooks/useCustomers';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Plus, Search, Users, Crown, Gift, Heart, Mail, Phone, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { differenceInDays, setYear, addYears, parseISO } from 'date-fns';
+
+// Check if event date occurs within next N days (handles year wrap-around)
+const isWithinNextDays = (eventDate: string | null, days: number): boolean => {
+  if (!eventDate) return false;
+  
+  const today = new Date();
+  const event = parseISO(eventDate);
+  
+  // Set the event to this year
+  let nextOccurrence = setYear(event, today.getFullYear());
+  
+  // If that date has already passed this year, use next year
+  if (nextOccurrence < today) {
+    nextOccurrence = addYears(nextOccurrence, 1);
+  }
+  
+  const daysUntil = differenceInDays(nextOccurrence, today);
+  return daysUntil >= 0 && daysUntil <= days;
+};
 
 type SortField = 'name' | 'lifetime_spend' | 'total_purchases';
 type SortDirection = 'asc' | 'desc';
@@ -70,13 +90,18 @@ export default function Customers() {
     });
   }, [filteredCustomers, sortField, sortDirection]);
 
-  // Calculate stats
-  const stats = {
-    total: customers?.length || 0,
-    platinum: customers?.filter(c => c.vip_tier === 'platinum').length || 0,
-    upcomingBirthdays: reminders?.filter(r => r.reminder_type === 'birthday').length || 0,
-    upcomingAnniversaries: reminders?.filter(r => r.reminder_type === 'anniversary').length || 0,
-  };
+  // Calculate stats - filter reminders properly for 30-day window
+  const stats = useMemo(() => {
+    const upcomingBirthdays = customers?.filter(c => isWithinNextDays(c.birthday, 30)).length || 0;
+    const upcomingAnniversaries = customers?.filter(c => isWithinNextDays(c.anniversary, 30)).length || 0;
+    
+    return {
+      total: customers?.length || 0,
+      platinum: customers?.filter(c => c.vip_tier === 'platinum').length || 0,
+      upcomingBirthdays,
+      upcomingAnniversaries,
+    };
+  }, [customers]);
 
   const handleSort = (field: SortField) => {
     if (sortField === field) {
