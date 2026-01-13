@@ -5,7 +5,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { CustomerCard } from '@/components/customers/CustomerCard';
 import { AddCustomerDialog } from '@/components/customers/AddCustomerDialog';
@@ -59,59 +59,48 @@ export default function Customers() {
 
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-primary/10">
-                <Users className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.total}</p>
-                <p className="text-sm text-muted-foreground">Total Customers</p>
-              </div>
-            </div>
+        <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Total Customers
+            </CardTitle>
+            <Users className="h-4 w-4 text-muted-foreground" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold font-luxury">{stats.total}</p>
           </CardContent>
         </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-amber-500/10">
-                <Crown className="h-5 w-5 text-amber-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.vip}</p>
-                <p className="text-sm text-muted-foreground">VIP Customers</p>
-              </div>
-            </div>
+        <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              VIP Customers
+            </CardTitle>
+            <Crown className="h-4 w-4 text-amber-500" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold font-luxury">{stats.vip}</p>
           </CardContent>
         </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-pink-500/10">
-                <Gift className="h-5 w-5 text-pink-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.upcomingBirthdays}</p>
-                <p className="text-sm text-muted-foreground">Birthdays (30d)</p>
-              </div>
-            </div>
+        <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Birthdays (30d)
+            </CardTitle>
+            <Gift className="h-4 w-4 text-rose-500" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold font-luxury">{stats.upcomingBirthdays}</p>
           </CardContent>
         </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-rose-500/10">
-                <Heart className="h-5 w-5 text-rose-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.upcomingAnniversaries}</p>
-                <p className="text-sm text-muted-foreground">Anniversaries (30d)</p>
-              </div>
-            </div>
+        <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+          <CardHeader className="flex flex-row items-center justify-between pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Anniversaries (30d)
+            </CardTitle>
+            <Heart className="h-4 w-4 text-pink-500" />
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold font-luxury">{stats.upcomingAnniversaries}</p>
           </CardContent>
         </Card>
       </div>

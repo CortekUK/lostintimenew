@@ -44,14 +44,14 @@ export function CustomerCard({ customer, onClick }: CustomerCardProps) {
 
   return (
     <Card 
-      className="group cursor-pointer hover:shadow-md transition-all duration-200 hover:border-primary/30"
+      className="shadow-card hover:shadow-elegant transition-all duration-300 h-full flex flex-col group cursor-pointer"
       onClick={onClick}
     >
       <CardContent className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1">
-              <h3 className="font-semibold text-foreground truncate">{customer.name}</h3>
+              <h3 className="font-luxury text-lg font-semibold text-foreground truncate">{customer.name}</h3>
               <VIPTierBadge tier={customer.vip_tier} size="sm" />
             </div>
             
