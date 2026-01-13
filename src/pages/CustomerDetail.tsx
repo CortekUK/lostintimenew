@@ -9,6 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { VIPTierBadge, getNextVIPTier, getVIPTierThreshold } from '@/components/customers/VIPTierBadge';
 import { CustomerPurchaseHistory } from '@/components/customers/CustomerPurchaseHistory';
 import { EditCustomerDialog } from '@/components/customers/EditCustomerDialog';
+import { QuickNotesCard } from '@/components/customers/QuickNotesCard';
 import { useCustomer, useDeleteCustomer } from '@/hooks/useCustomers';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -312,17 +313,8 @@ export default function CustomerDetail() {
               </CardContent>
             </Card>
 
-            {/* Notes */}
-            <Card className="md:col-span-2 shadow-card">
-              <CardHeader>
-                <CardTitle className="text-lg">Notes</CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-sm text-muted-foreground whitespace-pre-line">
-                  {customer.notes || 'No notes added'}
-                </p>
-              </CardContent>
-            </Card>
+            {/* Quick Notes */}
+            <QuickNotesCard customerId={customer.id} notes={customer.notes} />
           </div>
         </TabsContent>
 
