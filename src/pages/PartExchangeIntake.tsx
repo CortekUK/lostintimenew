@@ -151,17 +151,10 @@ export default function PartExchangeIntake() {
       subtitle="Review and convert trade-ins into sellable inventory"
     >
       <div className="space-y-6">
-        {/* Header with count */}
-        <div className="flex items-center justify-end">
-          <Badge variant="secondary" className="text-lg px-4 py-1">
-            {filteredPXs.length} pending
-          </Badge>
-        </div>
-
         {/* Search and Filters */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
@@ -205,6 +198,10 @@ export default function PartExchangeIntake() {
                   Clear
                 </Button>
               )}
+
+              <Badge variant="secondary" className="text-base px-4 py-1.5 whitespace-nowrap">
+                {filteredPXs.length} pending
+              </Badge>
             </div>
           </CardContent>
         </Card>
