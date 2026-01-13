@@ -111,7 +111,7 @@ export function ExpenseFiltersEnhanced({
       <div className="flex items-center gap-2">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline">
+            <Button variant="outline" size="sm">
               <Filter className="h-4 w-4 mr-2" />
               Filters
               {activeFilterCount > 0 && (

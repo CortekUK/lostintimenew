@@ -254,7 +254,7 @@ export default function Expenses() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button onClick={() => { setShowModal(true); setEditingExpense(null); }} className="w-full sm:w-auto">
+            <Button variant="premium" size="sm" onClick={() => { setShowModal(true); setEditingExpense(null); }} className="w-full sm:w-auto">
               <Plus className="mr-2 h-4 w-4" />
               Record Expense
             </Button>
