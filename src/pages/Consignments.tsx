@@ -453,16 +453,16 @@ export default function Consignments() {
       title="Consignment Management"
       subtitle="Track consignment stock, unsettled sales, and supplier settlements"
     >
-      <div className="container mx-auto py-6 space-y-6">
+      <div className="space-y-6">
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 auto-rows-fr">
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Active Consignment Stock</CardTitle>
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Active Consignment Stock</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{activeProducts.length}</div>
+              <div className="text-xl sm:text-2xl font-bold tracking-tight">{activeProducts.length}</div>
               <p className="text-xs text-muted-foreground">
                 Total items currently consigned
               </p>
@@ -471,11 +471,11 @@ export default function Consignments() {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Unsettled Sales</CardTitle>
-              <AlertCircle className="h-4 w-4 text-warning" />
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Unsettled Sales</CardTitle>
+              <AlertCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{soldUnsettledSettlements.length}</div>
+              <div className="text-xl sm:text-2xl font-bold tracking-tight">{soldUnsettledSettlements.length}</div>
               <p className="text-xs text-muted-foreground">
                 Sold items awaiting supplier payout
               </p>
@@ -484,11 +484,11 @@ export default function Consignments() {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Pending Payouts</CardTitle>
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Pending Payouts</CardTitle>
               <PoundSterling className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalUnsettled)}</div>
+              <div className="text-xl sm:text-2xl font-bold tracking-tight">{formatCurrency(totalUnsettled)}</div>
               <p className="text-xs text-muted-foreground">
                 £ value owed across all unsettled sales
               </p>
@@ -497,11 +497,11 @@ export default function Consignments() {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Consignment Value</CardTitle>
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total Consignment Value</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalConsignmentValue)}</div>
+              <div className="text-xl sm:text-2xl font-bold tracking-tight">{formatCurrency(totalConsignmentValue)}</div>
               <p className="text-xs text-muted-foreground">
                 Current liability to suppliers
               </p>
@@ -510,11 +510,11 @@ export default function Consignments() {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Settled Value</CardTitle>
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total Settled Value</CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{formatCurrency(totalSettledValue)}</div>
+              <div className="text-xl sm:text-2xl font-bold tracking-tight">{formatCurrency(totalSettledValue)}</div>
               <p className="text-xs text-muted-foreground">
                 All-time payouts made to suppliers
               </p>
