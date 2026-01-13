@@ -299,9 +299,9 @@ export function ProductMixReport({ className }: ProductMixReportProps) {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Package className="h-4 w-4" />
-                <span className="text-sm font-medium">Total Units</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Total Units</span>
+                <Package className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -311,9 +311,9 @@ export function ProductMixReport({ className }: ProductMixReportProps) {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <PoundSterling className="h-4 w-4" />
-                <span className="text-sm font-medium">Total Revenue</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Total Revenue</span>
+                <PoundSterling className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -325,9 +325,9 @@ export function ProductMixReport({ className }: ProductMixReportProps) {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <Target className="h-4 w-4" />
-                <span className="text-sm font-medium">Total COGS</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Total COGS</span>
+                <Target className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
@@ -339,9 +339,9 @@ export function ProductMixReport({ className }: ProductMixReportProps) {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="pb-3">
-              <div className="flex items-center gap-2 text-muted-foreground">
-                <TrendingUp className="h-4 w-4" />
-                <span className="text-sm font-medium">Gross Margin</span>
+              <div className="flex items-center justify-between">
+                <span className="text-sm font-medium text-muted-foreground">Gross Margin</span>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
               </div>
             </CardHeader>
             <CardContent className="pt-0">
