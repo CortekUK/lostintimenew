@@ -30,12 +30,12 @@ export function PendingTradeInsCard() {
         <div className="flex items-center justify-between mb-4">
           <h3 className="font-luxury text-lg font-semibold">Pending Trade-Ins</h3>
           <div className="flex items-center gap-2">
-            <Repeat className="h-4 w-4 text-blue-500" />
+            <Repeat className="h-4 w-4 text-muted-foreground" />
             <ArrowUpRight className="h-3 w-3 text-muted-foreground" />
           </div>
         </div>
         <div className="space-y-2">
-          <p className="text-2xl font-bold text-blue-600 dark:text-blue-400 tracking-tight">
+          <p className="text-2xl font-bold tracking-tight">
             {stats?.count || 0} {stats?.count === 1 ? 'item' : 'items'}
           </p>
           <p className="text-sm text-muted-foreground">
