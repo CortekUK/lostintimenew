@@ -175,6 +175,114 @@ export type Database = {
           },
         ]
       }
+      customer_preferences: {
+        Row: {
+          created_at: string
+          customer_id: number
+          id: number
+          preference_type: string
+          preference_value: string
+        }
+        Insert: {
+          created_at?: string
+          customer_id: number
+          id?: never
+          preference_type: string
+          preference_value: string
+        }
+        Update: {
+          created_at?: string
+          customer_id?: number
+          id?: never
+          preference_type?: string
+          preference_value?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_preferences_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_preferences_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "v_customer_summary"
+            referencedColumns: ["customer_id"]
+          },
+        ]
+      }
+      customers: {
+        Row: {
+          address: string | null
+          anniversary: string | null
+          birthday: string | null
+          bracelet_size: string | null
+          created_at: string
+          demo_session_id: string | null
+          email: string | null
+          id: number
+          lifetime_spend: number
+          metal_preference: string | null
+          name: string
+          necklace_length: string | null
+          notes: string | null
+          phone: string | null
+          ring_size: string | null
+          status: string
+          style_preference: string | null
+          total_purchases: number
+          updated_at: string
+          vip_tier: string
+        }
+        Insert: {
+          address?: string | null
+          anniversary?: string | null
+          birthday?: string | null
+          bracelet_size?: string | null
+          created_at?: string
+          demo_session_id?: string | null
+          email?: string | null
+          id?: never
+          lifetime_spend?: number
+          metal_preference?: string | null
+          name: string
+          necklace_length?: string | null
+          notes?: string | null
+          phone?: string | null
+          ring_size?: string | null
+          status?: string
+          style_preference?: string | null
+          total_purchases?: number
+          updated_at?: string
+          vip_tier?: string
+        }
+        Update: {
+          address?: string | null
+          anniversary?: string | null
+          birthday?: string | null
+          bracelet_size?: string | null
+          created_at?: string
+          demo_session_id?: string | null
+          email?: string | null
+          id?: never
+          lifetime_spend?: number
+          metal_preference?: string | null
+          name?: string
+          necklace_length?: string | null
+          notes?: string | null
+          phone?: string | null
+          ring_size?: string | null
+          status?: string
+          style_preference?: string | null
+          total_purchases?: number
+          updated_at?: string
+          vip_tier?: string
+        }
+        Relationships: []
+      }
       expense_receipts: {
         Row: {
           expense_id: number
@@ -904,6 +1012,7 @@ export type Database = {
       sales: {
         Row: {
           customer_email: string | null
+          customer_id: number | null
           customer_name: string | null
           demo_session_id: string | null
           discount_total: number
@@ -929,6 +1038,7 @@ export type Database = {
         }
         Insert: {
           customer_email?: string | null
+          customer_id?: number | null
           customer_name?: string | null
           demo_session_id?: string | null
           discount_total?: number
@@ -954,6 +1064,7 @@ export type Database = {
         }
         Update: {
           customer_email?: string | null
+          customer_id?: number | null
           customer_name?: string | null
           demo_session_id?: string | null
           discount_total?: number
@@ -984,6 +1095,20 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "sales_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "sales_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "v_customer_summary"
+            referencedColumns: ["customer_id"]
           },
           {
             foreignKeyName: "sales_edited_by_fkey"
@@ -1300,6 +1425,33 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      v_customer_reminders: {
+        Row: {
+          customer_id: number | null
+          email: string | null
+          event_date: string | null
+          name: string | null
+          phone: string | null
+          reminder_type: string | null
+          vip_tier: string | null
+        }
+        Relationships: []
+      }
+      v_customer_summary: {
+        Row: {
+          anniversary: string | null
+          birthday: string | null
+          customer_id: number | null
+          email: string | null
+          last_purchase_date: string | null
+          lifetime_spend: number | null
+          name: string | null
+          sale_count: number | null
+          total_purchases: number | null
+          vip_tier: string | null
+        }
+        Relationships: []
       }
       v_customer_supplier_payouts: {
         Row: {

@@ -1,0 +1,405 @@
+import { useState } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import { AppLayout } from '@/components/layout/AppLayout';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
+import { VIPTierBadge, getNextVIPTier, getVIPTierThreshold } from '@/components/customers/VIPTierBadge';
+import { CustomerPurchaseHistory } from '@/components/customers/CustomerPurchaseHistory';
+import { EditCustomerDialog } from '@/components/customers/EditCustomerDialog';
+import { useCustomer, useDeleteCustomer } from '@/hooks/useCustomers';
+import { usePermissions } from '@/hooks/usePermissions';
+import { format, parseISO } from 'date-fns';
+import { 
+  ArrowLeft, 
+  Edit, 
+  Mail, 
+  Phone, 
+  MapPin, 
+  Gift, 
+  Heart, 
+  ShoppingBag, 
+  Gem,
+  Calendar,
+  TrendingUp,
+  Trash2,
+  AlertTriangle
+} from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+
+export default function CustomerDetail() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { canEdit, canDelete } = usePermissions();
+  
+  const customerId = id ? parseInt(id, 10) : null;
+  const { data: customer, isLoading } = useCustomer(customerId);
+  const deleteCustomer = useDeleteCustomer();
+
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-GB', {
+      style: 'currency',
+      currency: 'GBP',
+    }).format(amount);
+  };
+
+  const handleDelete = async () => {
+    if (!customerId) return;
+    await deleteCustomer.mutateAsync(customerId);
+    navigate('/customers');
+  };
+
+  if (isLoading) {
+    return (
+      <AppLayout>
+        <div className="space-y-6">
+          <Skeleton className="h-8 w-48" />
+          <Skeleton className="h-64 w-full" />
+        </div>
+      </AppLayout>
+    );
+  }
+
+  if (!customer) {
+    return (
+      <AppLayout>
+        <div className="text-center py-12">
+          <h2 className="text-xl font-semibold mb-2">Customer not found</h2>
+          <Button onClick={() => navigate('/customers')}>
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Customers
+          </Button>
+        </div>
+      </AppLayout>
+    );
+  }
+
+  const nextTier = getNextVIPTier(customer.vip_tier);
+  const nextTierThreshold = nextTier ? getVIPTierThreshold(nextTier) : null;
+  const progressToNextTier = nextTierThreshold 
+    ? Math.min(100, (customer.lifetime_spend / nextTierThreshold) * 100)
+    : 100;
+
+  return (
+    <AppLayout>
+      {/* Header */}
+      <div className="mb-6">
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => navigate('/customers')}
+          className="mb-4"
+        >
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back to Customers
+        </Button>
+
+        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-3 mb-2">
+              <h1 className="text-3xl font-serif font-semibold">{customer.name}</h1>
+              <VIPTierBadge tier={customer.vip_tier} size="lg" />
+            </div>
+            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
+              {customer.email && (
+                <span className="flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5" />
+                  {customer.email}
+                </span>
+              )}
+              {customer.phone && (
+                <span className="flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5" />
+                  {customer.phone}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div className="flex gap-2">
+            {canEdit('customers') && (
+              <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            )}
+            {canDelete('customers') && (
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(true)}>
+                <Trash2 className="h-4 w-4 mr-2" />
+                Archive
+              </Button>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Stats Cards */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground mb-1">Lifetime Spend</p>
+            <p className="text-2xl font-bold">{formatCurrency(customer.lifetime_spend)}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground mb-1">Total Purchases</p>
+            <p className="text-2xl font-bold">{customer.total_purchases}</p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground mb-1">Avg. Order Value</p>
+            <p className="text-2xl font-bold">
+              {customer.total_purchases > 0 
+                ? formatCurrency(customer.lifetime_spend / customer.total_purchases)
+                : '—'
+              }
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardContent className="p-4">
+            <p className="text-sm text-muted-foreground mb-1">Member Since</p>
+            <p className="text-2xl font-bold">
+              {format(new Date(customer.created_at), 'MMM yyyy')}
+            </p>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* VIP Progress */}
+      {nextTier && (
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between mb-2">
+              <div className="flex items-center gap-2">
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+                <span className="text-sm font-medium">Progress to {nextTier.charAt(0).toUpperCase() + nextTier.slice(1)}</span>
+              </div>
+              <span className="text-sm text-muted-foreground">
+                {formatCurrency(customer.lifetime_spend)} / {formatCurrency(nextTierThreshold!)}
+              </span>
+            </div>
+            <div className="h-2 bg-muted rounded-full overflow-hidden">
+              <div 
+                className="h-full bg-primary transition-all duration-500"
+                style={{ width: `${progressToNextTier}%` }}
+              />
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Tabs */}
+      <Tabs defaultValue="overview" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="overview" className="gap-2">
+            <Calendar className="h-4 w-4" />
+            Overview
+          </TabsTrigger>
+          <TabsTrigger value="purchases" className="gap-2">
+            <ShoppingBag className="h-4 w-4" />
+            Purchases
+          </TabsTrigger>
+          <TabsTrigger value="preferences" className="gap-2">
+            <Gem className="h-4 w-4" />
+            Preferences
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="overview">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Contact Details */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Contact Details</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {customer.email && (
+                  <div className="flex items-start gap-3">
+                    <Mail className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium">Email</p>
+                      <a href={`mailto:${customer.email}`} className="text-sm text-primary hover:underline">
+                        {customer.email}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {customer.phone && (
+                  <div className="flex items-start gap-3">
+                    <Phone className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium">Phone</p>
+                      <a href={`tel:${customer.phone}`} className="text-sm text-primary hover:underline">
+                        {customer.phone}
+                      </a>
+                    </div>
+                  </div>
+                )}
+                {customer.address && (
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium">Address</p>
+                      <p className="text-sm text-muted-foreground whitespace-pre-line">{customer.address}</p>
+                    </div>
+                  </div>
+                )}
+                {!customer.email && !customer.phone && !customer.address && (
+                  <p className="text-sm text-muted-foreground">No contact details added</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Special Dates */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="text-lg">Special Dates</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                {customer.birthday && (
+                  <div className="flex items-start gap-3">
+                    <Gift className="h-4 w-4 text-amber-500 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium">Birthday</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(parseISO(customer.birthday), 'dd MMMM')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {customer.anniversary && (
+                  <div className="flex items-start gap-3">
+                    <Heart className="h-4 w-4 text-rose-500 mt-0.5" />
+                    <div>
+                      <p className="text-sm font-medium">Anniversary</p>
+                      <p className="text-sm text-muted-foreground">
+                        {format(parseISO(customer.anniversary), 'dd MMMM yyyy')}
+                      </p>
+                    </div>
+                  </div>
+                )}
+                {!customer.birthday && !customer.anniversary && (
+                  <p className="text-sm text-muted-foreground">No special dates added</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Notes */}
+            {customer.notes && (
+              <Card className="md:col-span-2">
+                <CardHeader>
+                  <CardTitle className="text-lg">Notes</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-sm text-muted-foreground whitespace-pre-line">{customer.notes}</p>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="purchases">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Purchase History</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <CustomerPurchaseHistory customerId={customer.id} />
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="preferences">
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Jewellery Preferences</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <div>
+                  <p className="text-sm font-medium mb-1">Ring Size</p>
+                  <Badge variant={customer.ring_size ? 'secondary' : 'outline'}>
+                    {customer.ring_size || 'Not specified'}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm font-medium mb-1">Bracelet Size</p>
+                  <Badge variant={customer.bracelet_size ? 'secondary' : 'outline'}>
+                    {customer.bracelet_size || 'Not specified'}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm font-medium mb-1">Necklace Length</p>
+                  <Badge variant={customer.necklace_length ? 'secondary' : 'outline'}>
+                    {customer.necklace_length || 'Not specified'}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm font-medium mb-1">Metal Preference</p>
+                  <Badge variant={customer.metal_preference ? 'secondary' : 'outline'}>
+                    {customer.metal_preference || 'Not specified'}
+                  </Badge>
+                </div>
+                <div>
+                  <p className="text-sm font-medium mb-1">Style Preference</p>
+                  <Badge variant={customer.style_preference ? 'secondary' : 'outline'}>
+                    {customer.style_preference || 'Not specified'}
+                  </Badge>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+
+      {/* Edit Dialog */}
+      <EditCustomerDialog
+        customer={customer}
+        open={editDialogOpen}
+        onOpenChange={setEditDialogOpen}
+      />
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-destructive" />
+              Archive Customer
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to archive <strong>{customer.name}</strong>? 
+              They will no longer appear in the customer list but their purchase history will be preserved.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Archive
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </AppLayout>
+  );
+}
