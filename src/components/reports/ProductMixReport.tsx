@@ -229,7 +229,7 @@ export function ProductMixReport({ className }: ProductMixReportProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Package className="h-5 w-5 text-primary" />
+              <Package className="h-5 w-5 text-muted-foreground" />
               Product Mix Analysis
             </CardTitle>
             <Button variant="outline" onClick={handleExportCSV} disabled={isLoading}>
@@ -364,7 +364,7 @@ export function ProductMixReport({ className }: ProductMixReportProps) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <PieChartIcon className="h-5 w-5 text-primary" />
+              <PieChartIcon className="h-5 w-5 text-muted-foreground" />
               Sales by Category
             </CardTitle>
           </CardHeader>
@@ -387,7 +387,7 @@ export function ProductMixReport({ className }: ProductMixReportProps) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
+              <BarChart3 className="h-5 w-5 text-muted-foreground" />
               Top 10 Products by Revenue
             </CardTitle>
           </CardHeader>

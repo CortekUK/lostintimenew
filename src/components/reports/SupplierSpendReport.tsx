@@ -102,7 +102,7 @@ export function SupplierSpendReport({ className }: SupplierSpendReportProps) {
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle className="flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-primary" />
+              <Building2 className="h-5 w-5 text-muted-foreground" />
               Supplier Spend Analysis
             </CardTitle>
             <Button variant="outline" onClick={handleExportCSV} disabled={isLoading}>
@@ -213,7 +213,7 @@ export function SupplierSpendReport({ className }: SupplierSpendReportProps) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-primary" />
+              <BarChart3 className="h-5 w-5 text-muted-foreground" />
               Top 10 Suppliers by Total Spend
             </CardTitle>
           </CardHeader>
@@ -236,7 +236,7 @@ export function SupplierSpendReport({ className }: SupplierSpendReportProps) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <LineChartIcon className="h-5 w-5 text-primary" />
+              <LineChartIcon className="h-5 w-5 text-muted-foreground" />
               Supplier Spend Over Time
             </CardTitle>
           </CardHeader>

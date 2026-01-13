@@ -39,8 +39,8 @@ const StatItem = ({
 }) => (
   <div className="flex items-center justify-between p-4 bg-muted/30 rounded-lg">
     <div className="flex items-center gap-3">
-      <div className="p-2 bg-primary/10 rounded-lg">
-        <Icon className="h-4 w-4 text-primary" />
+      <div className="p-2 bg-muted rounded-lg">
+        <Icon className="h-4 w-4 text-muted-foreground" />
       </div>
       <div>
         <p className="text-sm font-medium">{title}</p>
@@ -103,7 +103,7 @@ export const TodayOverviewCard = () => {
     <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <PoundSterling className="h-5 w-5 text-primary" />
+          <PoundSterling className="h-5 w-5 text-muted-foreground" />
           Today's Overview
         </CardTitle>
         <CardDescription>Today's performance vs yesterday</CardDescription>

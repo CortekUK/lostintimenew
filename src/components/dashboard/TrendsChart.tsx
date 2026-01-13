@@ -67,8 +67,8 @@ export const TrendsChart = () => {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-primary" />
+            <CardTitle className="flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-muted-foreground" />
                 Revenue Trends
               </CardTitle>
               <CardDescription>Revenue and profit over time</CardDescription>
@@ -106,7 +106,7 @@ export const TrendsChart = () => {
         <div className="flex items-center justify-between">
           <div>
             <CardTitle className="flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-primary" />
+              <TrendingUp className="h-5 w-5 text-muted-foreground" />
               Revenue Trends
             </CardTitle>
             <CardDescription>Revenue and profit over time</CardDescription>
