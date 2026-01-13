@@ -485,20 +485,20 @@ export default function SoldItemsReport() {
             </>
           ) : (
             <>
-          <Card className="shadow-elegant hover:shadow-gold transition-all duration-300 border-l-4 border-l-primary/20">
+          <Card className="shadow-elegant hover:shadow-gold transition-all duration-300 border-l-4 border-l-muted/30">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium flex items-center gap-2">
-                <span className="text-primary">Total Items Sold</span>
+                <span>Total Items Sold</span>
                 {totals.tradeInCount > 0 && (
                   <Badge variant="secondary" className="text-xs font-normal">
                     {totals.tradeInCount} PX excluded
                   </Badge>
                 )}
               </CardTitle>
-              <Package className="h-5 w-5 text-primary/70" />
+              <Package className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-3xl font-bold text-primary">{totals.items}</div>
+              <div className="text-3xl font-bold">{totals.items}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 across {filteredItems.length} line items
               </p>
@@ -508,7 +508,7 @@ export default function SoldItemsReport() {
           <Card className="shadow-elegant hover:shadow-gold transition-all duration-300 border-l-4 border-l-success/20">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-success">Total Revenue</CardTitle>
-              <PoundSterling className="h-5 w-5 text-success/70" />
+              <PoundSterling className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-3xl font-bold text-success">£{totals.revenue.toFixed(2)}</div>
@@ -527,13 +527,13 @@ export default function SoldItemsReport() {
             </CardContent>
           </Card>
           
-          <Card className="shadow-elegant hover:shadow-gold transition-all duration-300 border-l-4 border-l-primary">
+          <Card className="shadow-elegant hover:shadow-gold transition-all duration-300 border-l-4 border-l-muted/30">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-primary">Gross Profit</CardTitle>
-              <TrendingUp className="h-5 w-5 text-primary/70" />
+              <CardTitle className="text-sm font-medium">Gross Profit</CardTitle>
+              <TrendingUp className="h-5 w-5 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className={`text-3xl font-bold ${totals.profit >= 0 ? 'text-primary' : 'text-destructive'}`}>
+              <div className={`text-3xl font-bold ${totals.profit >= 0 ? 'text-foreground' : 'text-destructive'}`}>
                 £{totals.profit.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
