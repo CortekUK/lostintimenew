@@ -12,6 +12,7 @@ import { DateRangePicker } from '@/components/reports/DateRangePicker';
 import { useToast } from '@/hooks/use-toast';
 import { useTransactions } from '@/hooks/useDatabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import { EmailService } from '@/components/integrations/EmailService';
 import { SaleDetailModal } from '@/components/transactions/SaleDetailModal';
 import { 
@@ -26,7 +27,9 @@ import {
   ChevronRight,
   Package2,
   Mail,
-  User
+  User,
+  Percent,
+  Coins
 } from 'lucide-react';
 import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, startOfWeek, endOfWeek } from 'date-fns';
 import type { DateRange } from '@/types';
@@ -43,8 +46,13 @@ export default function MySales() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { toast } = useToast();
+  const { settings } = useSettings();
   const queryClient = useQueryClient();
   const { data: transactionsData = [], isLoading } = useTransactions();
+  
+  // Commission settings
+  const commissionEnabled = settings.commissionSettings?.enabled ?? true;
+  const commissionRate = settings.commissionSettings?.defaultRate ?? 5;
   
   const [filters, setFilters] = useState<MySalesFilters>({
     dateRange: { from: '', to: '' },
@@ -105,6 +113,7 @@ export default function MySales() {
   const totalSales = mySales.length;
   const totalRevenue = mySales.reduce((sum, transaction) => sum + (Number(transaction.total) || 0), 0);
   const avgSale = totalSales > 0 ? totalRevenue / totalSales : 0;
+  const totalCommission = totalRevenue * (commissionRate / 100);
 
   // Calculate this month's stats
   const thisMonthStats = useMemo(() => {
@@ -117,11 +126,13 @@ export default function MySales() {
       return saleDate >= monthStart && saleDate <= monthEnd;
     });
     
+    const revenue = thisMonthSales.reduce((sum, t) => sum + (Number(t.total) || 0), 0);
     return {
       count: thisMonthSales.length,
-      revenue: thisMonthSales.reduce((sum, t) => sum + (Number(t.total) || 0), 0)
+      revenue,
+      commission: revenue * (commissionRate / 100)
     };
-  }, [mySales]);
+  }, [mySales, commissionRate]);
 
   // Calculate this week's stats
   const thisWeekStats = useMemo(() => {
@@ -134,11 +145,13 @@ export default function MySales() {
       return saleDate >= weekStart && saleDate <= weekEnd;
     });
     
+    const revenue = thisWeekSales.reduce((sum, t) => sum + (Number(t.total) || 0), 0);
     return {
       count: thisWeekSales.length,
-      revenue: thisWeekSales.reduce((sum, t) => sum + (Number(t.total) || 0), 0)
+      revenue,
+      commission: revenue * (commissionRate / 100)
     };
-  }, [mySales]);
+  }, [mySales, commissionRate]);
 
   const handleViewSale = (saleId: number) => {
     setSelectedSaleId(saleId);
@@ -397,7 +410,8 @@ export default function MySales() {
     >
       <div className="space-y-8">
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+          {/* Revenue Cards */}
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">This Week</CardTitle>
@@ -430,17 +444,58 @@ export default function MySales() {
               <p className="text-xs text-muted-foreground mt-1">in selected period</p>
             </CardContent>
           </Card>
-          
-          <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Avg Sale</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold font-luxury">£{avgSale.toFixed(2)}</div>
-              <p className="text-xs text-muted-foreground mt-1">per transaction</p>
-            </CardContent>
-          </Card>
+
+          {/* Commission Cards */}
+          {commissionEnabled && (
+            <>
+              <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Week Commission</CardTitle>
+                  <Coins className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold font-luxury text-green-700 dark:text-green-400">£{thisWeekStats.commission.toFixed(2)}</div>
+                  <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">at {commissionRate}% rate</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Month Commission</CardTitle>
+                  <Percent className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold font-luxury text-green-700 dark:text-green-400">£{thisMonthStats.commission.toFixed(2)}</div>
+                  <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">at {commissionRate}% rate</p>
+                </CardContent>
+              </Card>
+              
+              <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20">
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Est. Commission</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold font-luxury text-green-700 dark:text-green-400">£{totalCommission.toFixed(2)}</div>
+                  <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">filtered period</p>
+                </CardContent>
+              </Card>
+            </>
+          )}
+
+          {/* Avg Sale Card - only show if commission is disabled to keep grid even */}
+          {!commissionEnabled && (
+            <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-muted-foreground">Avg Sale</CardTitle>
+                <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold font-luxury">£{avgSale.toFixed(2)}</div>
+                <p className="text-xs text-muted-foreground mt-1">per transaction</p>
+              </CardContent>
+            </Card>
+          )}
         </div>
 
         {/* Filters */}

@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Settings as SettingsIcon, User, Building, ShoppingCart, Download, Upload, Smartphone, Sparkles, Filter, Clock, Package, Store, Plus, Pencil, Trash2, Watch, CircleDot, Gem, Star, Heart, Crown, Diamond, Zap, Tag } from 'lucide-react';
+import { Settings as SettingsIcon, User, Building, ShoppingCart, Download, Upload, Smartphone, Sparkles, Filter, Clock, Package, Store, Plus, Pencil, Trash2, Watch, CircleDot, Gem, Star, Heart, Crown, Diamond, Zap, Tag, Percent } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings, CustomFilter } from '@/contexts/SettingsContext';
 import { CustomFilterDialog } from '@/components/settings/CustomFilterDialog';
@@ -1005,6 +1005,98 @@ export default function Settings() {
                   onCheckedChange={(checked) => handleSettingChange('printAfterCheckout', checked)}
                   disabled={settingsLoading}
                 />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Commission Settings */}
+          <Card id="commission-settings">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Percent className="h-5 w-5" />
+                Commission Settings
+              </CardTitle>
+              <CardDescription>
+                Configure staff commission rates for sales tracking.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div className="space-y-0.5">
+                  <Label>Enable Commission Tracking</Label>
+                  <p className="text-sm text-muted-foreground">
+                    Show estimated commission on the My Sales page
+                  </p>
+                </div>
+                <Switch
+                  checked={localSettings.commissionSettings?.enabled ?? true}
+                  onCheckedChange={(checked) => handleSettingChange('commissionSettings', {
+                    ...localSettings.commissionSettings,
+                    enabled: checked
+                  })}
+                  disabled={settingsLoading}
+                />
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <Label htmlFor="commissionRate">Default Commission Rate</Label>
+                  <div className="relative mt-2">
+                    <Input
+                      id="commissionRate"
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.5"
+                      className="pr-8"
+                      value={localSettings.commissionSettings?.defaultRate ?? 5}
+                      onChange={(e) => {
+                        const value = parseFloat(e.target.value) || 0;
+                        handleSettingChange('commissionSettings', {
+                          ...localSettings.commissionSettings,
+                          defaultRate: Math.min(100, Math.max(0, value))
+                        });
+                      }}
+                      disabled={settingsLoading}
+                    />
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                      %
+                    </span>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Percentage of revenue paid as commission
+                  </p>
+                </div>
+
+                <div>
+                  <Label htmlFor="calculationBasis">Calculation Basis</Label>
+                  <Select 
+                    value={localSettings.commissionSettings?.calculationBasis ?? 'revenue'} 
+                    onValueChange={(value: 'revenue' | 'profit') => handleSettingChange('commissionSettings', {
+                      ...localSettings.commissionSettings,
+                      calculationBasis: value
+                    })}
+                    disabled={settingsLoading}
+                  >
+                    <SelectTrigger className="mt-2">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="revenue">Revenue (Sale Total)</SelectItem>
+                      <SelectItem value="profit">Profit (Revenue - Cost)</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Calculate commission on revenue or gross profit
+                  </p>
+                </div>
+              </div>
+
+              <div className="p-4 bg-muted/50 rounded-lg">
+                <h4 className="text-sm font-medium mb-2">Example Calculation</h4>
+                <p className="text-sm text-muted-foreground">
+                  A £1,000 sale at {localSettings.commissionSettings?.defaultRate ?? 5}% rate = <span className="font-mono font-medium text-green-600 dark:text-green-400">£{((localSettings.commissionSettings?.defaultRate ?? 5) * 10).toFixed(2)}</span> commission
+                </p>
               </div>
             </CardContent>
           </Card>

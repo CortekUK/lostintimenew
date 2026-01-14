@@ -23,6 +23,12 @@ export interface VIPTierThresholds {
   platinum: number;
 }
 
+export interface CommissionSettings {
+  defaultRate: number;
+  calculationBasis: 'revenue' | 'profit';
+  enabled: boolean;
+}
+
 export interface AppSettings {
   currency: string;
   taxInclusive: boolean;
@@ -37,6 +43,7 @@ export interface AppSettings {
   staffMembers: string[];
   customFilters: CustomFilter[];
   vipTierThresholds: VIPTierThresholds;
+  commissionSettings: CommissionSettings;
 }
 
 interface SettingsContextType {
@@ -63,6 +70,11 @@ const defaultSettings: AppSettings = {
     silver: 500,
     gold: 2000,
     platinum: 5000,
+  },
+  commissionSettings: {
+    defaultRate: 5,
+    calculationBasis: 'revenue',
+    enabled: true,
   },
 };
 
