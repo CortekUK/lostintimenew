@@ -34,7 +34,6 @@ import EnhancedAnalytics from "./pages/EnhancedAnalytics";
 import Consignments from "./pages/Consignments";
 import PartExchangeIntake from "./pages/PartExchangeIntake";
 import Settings from "./pages/Settings";
-import AuditLog from "./pages/AuditLog";
 import Auth from "./pages/Auth";
 import Receipt from "./pages/Receipt";
 import ReceiptPreview from "./pages/ReceiptPreview";
@@ -96,7 +95,6 @@ function AppInner() {
 
           {/* Owner-only Routes */}
           <Route path="/settings" element={<ProtectedRoute module="settings"><Settings /></ProtectedRoute>} />
-          <Route path="/audit-log" element={<ProtectedRoute module="settings"><AuditLog /></ProtectedRoute>} />
           
           {/* 404 Catch-all */}
           <Route path="*" element={<NotFound />} />

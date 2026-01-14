@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Repeat, Users, User, ClipboardList, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Repeat, Users, User, type LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from 'next-themes';
@@ -100,16 +100,11 @@ const managerPlusItems: NavigationItem[] = [{
   module: CRM_MODULES.ANALYTICS
 }];
 
-// Items only accessible by owner (Settings, Audit Log)
+// Items only accessible by owner (Settings)
 const ownerOnlyItems: NavigationItem[] = [{
   title: 'Settings',
   url: '/settings',
   icon: Settings,
-  module: CRM_MODULES.SETTINGS
-}, {
-  title: 'Audit Log',
-  url: '/audit-log',
-  icon: ClipboardList,
   module: CRM_MODULES.SETTINGS
 }];
 export function AppSidebar() {

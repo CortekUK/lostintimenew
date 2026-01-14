@@ -1,72 +1,104 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Database, RefreshCw, Download, Search, ExternalLink, Activity, Users, Clock, TrendingUp } from 'lucide-react';
-import { format, formatDistanceToNow } from 'date-fns';
+import { Database, RefreshCw, Download, Search } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { SimpleDatePicker } from '@/components/ui/simple-date-picker';
 import { toast } from '@/hooks/use-toast';
-import { Link } from 'react-router-dom';
-import { 
-  useAuditLog, 
-  getAuditDescription, 
-  getRecordUrl, 
-  getTableDisplayName,
-  AuditLogEntry 
-} from '@/hooks/useAuditLog';
+
+interface AuditLogEntry {
+  id: number;
+  table_name: string;
+  row_pk: string;
+  action: 'insert' | 'update' | 'delete';
+  old_data?: any;
+  new_data?: any;
+  actor?: string;
+  occurred_at: string;
+}
 
 interface AuditLogViewerProps {
   className?: string;
-  fullPage?: boolean;
 }
 
-export function AuditLogViewer({ className, fullPage = false }: AuditLogViewerProps) {
+export function AuditLogViewer({ className }: AuditLogViewerProps) {
   const [tableFilter, setTableFilter] = useState<string>('all');
   const [actionFilter, setActionFilter] = useState<string>('all');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
-  const [searchQuery, setSearchQuery] = useState('');
 
-  const { logs, isLoading, error, refetch, stats } = useAuditLog({
-    tableFilter,
-    actionFilter,
-    dateRange,
-    searchQuery,
-    limit: fullPage ? 500 : 200,
+  const { data: auditLogs, isLoading, error, refetch } = useQuery({
+    queryKey: ['audit-logs', tableFilter, actionFilter, dateRange],
+    queryFn: async () => {
+      let query = supabase
+        .from('audit_log')
+        .select('*')
+        .order('occurred_at', { ascending: false })
+        .limit(200);
+
+      if (tableFilter !== 'all') {
+        query = query.eq('table_name', tableFilter);
+      }
+      if (actionFilter !== 'all') {
+        query = query.eq('action', actionFilter);
+      }
+      if (dateRange?.from) {
+        query = query.gte('occurred_at', dateRange.from.toISOString());
+      }
+      if (dateRange?.to) {
+        query = query.lte('occurred_at', dateRange.to.toISOString());
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+      return data as AuditLogEntry[];
+    }
   });
 
-  const getActionVariant = (action: string): "default" | "secondary" | "destructive" | "outline" => {
+  const getActionVariant = (action: string): "default" | "secondary" | "destructive" => {
     switch (action) {
       case 'insert': return 'default';
       case 'update': return 'secondary';
       case 'delete': return 'destructive';
-      case 'void': return 'destructive';
-      default: return 'outline';
+      default: return 'secondary';
     }
   };
 
-  const getActionLabel = (action: string): string => {
-    switch (action) {
-      case 'insert': return 'CREATE';
-      case 'update': return 'UPDATE';
-      case 'delete': return 'DELETE';
-      case 'void': return 'VOID';
-      default: return action.toUpperCase();
-    }
+  const getTableDisplayName = (tableName: string) => {
+    return tableName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  const getActorDisplay = (entry: AuditLogEntry): string => {
-    if (entry.actor_name) return entry.actor_name;
-    if (entry.actor_email) return entry.actor_email.split('@')[0];
-    if (entry.actor) return 'Staff';
-    return 'System';
+  const getChangeSummary = (entry: AuditLogEntry): string => {
+    if (entry.action === 'insert') {
+      return 'Record created';
+    }
+    if (entry.action === 'delete') {
+      return 'Record deleted';
+    }
+    if (entry.action === 'update' && entry.old_data && entry.new_data) {
+      const changes: string[] = [];
+      const oldData = entry.old_data as Record<string, any>;
+      const newData = entry.new_data as Record<string, any>;
+      
+      for (const key of Object.keys(newData)) {
+        if (oldData[key] !== newData[key] && key !== 'updated_at') {
+          const oldVal = oldData[key] === null ? 'null' : String(oldData[key]);
+          const newVal = newData[key] === null ? 'null' : String(newData[key]);
+          changes.push(`${key}: ${oldVal} → ${newVal}`);
+        }
+      }
+      return changes.length > 0 ? changes.slice(0, 2).join(', ') : 'No significant changes';
+    }
+    return 'Unknown change';
   };
 
   const handleExportCSV = () => {
-    if (!logs || logs.length === 0) {
+    if (!auditLogs || auditLogs.length === 0) {
       toast({
         title: 'No Data',
         description: 'No audit logs to export',
@@ -77,22 +109,22 @@ export function AuditLogViewer({ className, fullPage = false }: AuditLogViewerPr
 
     try {
       const csvContent = [
-        ['Timestamp', 'Actor', 'Action', 'Table', 'Record ID', 'Description'],
-        ...logs.map(entry => [
+        ['Timestamp', 'Actor', 'Action', 'Table', 'Record ID', 'Changes'],
+        ...auditLogs.map(entry => [
           format(new Date(entry.occurred_at), 'yyyy-MM-dd HH:mm:ss'),
-          getActorDisplay(entry),
+          entry.actor || 'System',
           entry.action.toUpperCase(),
           getTableDisplayName(entry.table_name),
           entry.row_pk,
-          getAuditDescription(entry).replace(/,/g, ';')
+          getChangeSummary(entry).replace(/,/g, ';') // Replace commas in changes to avoid CSV issues
         ])
-      ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
+      ].map(row => row.join(',')).join('\n');
 
       const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `audit-log-${format(new Date(), 'yyyy-MM-dd-HHmm')}.csv`;
+      a.download = `audit-log-${format(new Date(), 'yyyy-MM-dd')}.csv`;
       document.body.appendChild(a);
       a.click();
       document.body.removeChild(a);
@@ -100,9 +132,9 @@ export function AuditLogViewer({ className, fullPage = false }: AuditLogViewerPr
 
       toast({
         title: 'Export Complete',
-        description: `Exported ${logs.length} audit entries`
+        description: 'Audit log exported successfully'
       });
-    } catch (err) {
+    } catch (error) {
       toast({
         title: 'Export Failed',
         description: 'Failed to export audit log',
@@ -116,9 +148,7 @@ export function AuditLogViewer({ className, fullPage = false }: AuditLogViewerPr
       <Card className={className}>
         <CardContent className="p-6">
           <div className="text-center text-muted-foreground">
-            <Database className="h-12 w-12 mx-auto mb-3 opacity-20" />
-            <p className="font-medium text-destructive">Error loading audit logs</p>
-            <p className="text-sm">{(error as Error).message}</p>
+            Error loading audit logs: {(error as Error).message}
           </div>
         </CardContent>
       </Card>
@@ -126,226 +156,148 @@ export function AuditLogViewer({ className, fullPage = false }: AuditLogViewerPr
   }
 
   return (
-    <div className={`space-y-4 ${className}`}>
-      {/* Summary Stats - Only show on full page */}
-      {fullPage && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Activity className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.totalCount}</p>
-                <p className="text-xs text-muted-foreground">Total Entries</p>
-              </div>
-            </div>
-          </Card>
-          
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-emerald-500/10 rounded-lg">
-                <TrendingUp className="h-5 w-5 text-emerald-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.todayCount}</p>
-                <p className="text-xs text-muted-foreground">Today</p>
-              </div>
-            </div>
-          </Card>
-          
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-blue-500/10 rounded-lg">
-                <Users className="h-5 w-5 text-blue-500" />
-              </div>
-              <div>
-                <p className="text-2xl font-bold">{stats.uniqueActorCount}</p>
-                <p className="text-xs text-muted-foreground">Active Users</p>
-              </div>
-            </div>
-          </Card>
-          
-          <Card className="p-4">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-amber-500/10 rounded-lg">
-                <Clock className="h-5 w-5 text-amber-500" />
-              </div>
-              <div>
-                <p className="text-sm font-medium">
-                  {stats.lastActivity 
-                    ? formatDistanceToNow(new Date(stats.lastActivity), { addSuffix: true })
-                    : 'No activity'
-                  }
-                </p>
-                <p className="text-xs text-muted-foreground">Last Activity</p>
-              </div>
-            </div>
-          </Card>
-        </div>
-      )}
-
-      {/* Filters */}
+    <div className={`space-y-6 ${className}`}>
+      {/* Header and Filters */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap gap-3 items-center">
-            <div className="relative flex-1 min-w-[200px] max-w-sm">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search logs..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Audit Trail</CardTitle>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+                Refresh
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isLoading}>
+                <Download className="h-4 w-4 mr-2" />
+                Export CSV
+              </Button>
             </div>
-
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div className="flex flex-wrap gap-3">
             <SimpleDatePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
             />
 
             <Select value={tableFilter} onValueChange={setTableFilter}>
-              <SelectTrigger className="w-[160px]">
+              <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="All tables" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Tables</SelectItem>
-                <SelectItem value="sales">Sales</SelectItem>
-                <SelectItem value="sale_items">Sale Items</SelectItem>
                 <SelectItem value="products">Products</SelectItem>
-                <SelectItem value="suppliers">Suppliers</SelectItem>
-                <SelectItem value="customers">Customers</SelectItem>
+                <SelectItem value="sales">Sales</SelectItem>
                 <SelectItem value="expenses">Expenses</SelectItem>
-                <SelectItem value="stock_movements">Stock</SelectItem>
-                <SelectItem value="consignment_settlements">Consignments</SelectItem>
+                <SelectItem value="suppliers">Suppliers</SelectItem>
+                <SelectItem value="stock_movements">Stock Movements</SelectItem>
                 <SelectItem value="part_exchanges">Part Exchanges</SelectItem>
-                <SelectItem value="cash_drawer_movements">Cash Drawer</SelectItem>
-                <SelectItem value="commission_payments">Commissions</SelectItem>
-                <SelectItem value="profiles">Profiles</SelectItem>
-                <SelectItem value="locations">Locations</SelectItem>
+                <SelectItem value="consignment_settlements">Consignments</SelectItem>
               </SelectContent>
             </Select>
 
             <Select value={actionFilter} onValueChange={setActionFilter}>
-              <SelectTrigger className="w-[130px]">
+              <SelectTrigger className="w-[140px]">
                 <SelectValue placeholder="All actions" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Actions</SelectItem>
-                <SelectItem value="insert">Create</SelectItem>
+                <SelectItem value="insert">Insert</SelectItem>
                 <SelectItem value="update">Update</SelectItem>
                 <SelectItem value="delete">Delete</SelectItem>
               </SelectContent>
             </Select>
-
-            <div className="flex gap-2 ml-auto">
-              <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
-                Refresh
-              </Button>
-              <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isLoading || !logs?.length}>
-                <Download className="h-4 w-4 mr-2" />
-                Export
-              </Button>
-            </div>
           </div>
         </CardContent>
       </Card>
 
       {/* Audit Log Table */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg">Activity Log</CardTitle>
+        <CardHeader>
+          <CardTitle>System Activity Log</CardTitle>
+          <p className="text-sm text-muted-foreground">
+            Complete record of all system changes and user actions
+          </p>
         </CardHeader>
-        <CardContent className="p-0">
+        <CardContent>
           {isLoading ? (
-            <div className="p-4 space-y-2">
+            <div className="space-y-2">
               {[...Array(10)].map((_, i) => (
-                <Skeleton key={i} className="h-14 w-full" />
+                <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
+          ) : error ? (
+            <div className="text-center py-12 text-destructive">
+              <Database className="h-12 w-12 mx-auto mb-3 opacity-20" />
+              <p className="font-medium">Error loading audit logs</p>
+              <p className="text-sm text-muted-foreground">{(error as Error).message}</p>
+            </div>
           ) : (
-            <div className="overflow-x-auto">
-              <table className="w-full text-sm">
-                <thead className="bg-muted/50 border-y">
-                  <tr>
-                    <th className="text-left p-3 font-semibold text-muted-foreground whitespace-nowrap">Time</th>
-                    <th className="text-left p-3 font-semibold text-muted-foreground whitespace-nowrap">User</th>
-                    <th className="text-left p-3 font-semibold text-muted-foreground whitespace-nowrap">Action</th>
-                    <th className="text-left p-3 font-semibold text-muted-foreground whitespace-nowrap">Type</th>
-                    <th className="text-left p-3 font-semibold text-muted-foreground">Description</th>
-                    <th className="text-left p-3 font-semibold text-muted-foreground w-10"></th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y">
-                  {logs && logs.length > 0 ? (
-                    logs.map((entry) => {
-                      const recordUrl = getRecordUrl(entry);
-                      return (
-                        <tr key={entry.id} className="hover:bg-muted/30 transition-colors">
-                          <td className="p-3 whitespace-nowrap">
-                            <div className="text-xs font-mono text-muted-foreground">
-                              {format(new Date(entry.occurred_at), 'MMM dd')}
-                            </div>
-                            <div className="text-xs font-mono text-muted-foreground/70">
-                              {format(new Date(entry.occurred_at), 'HH:mm:ss')}
-                            </div>
+            <div className="rounded-md border">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-muted/50">
+                    <tr className="border-b">
+                      <th className="text-left p-3 font-semibold text-muted-foreground">Timestamp</th>
+                      <th className="text-left p-3 font-semibold text-muted-foreground">Action</th>
+                      <th className="text-left p-3 font-semibold text-muted-foreground">Record Type</th>
+                      <th className="text-left p-3 font-semibold text-muted-foreground">Record ID</th>
+                      <th className="text-left p-3 font-semibold text-muted-foreground">Changes</th>
+                      <th className="text-left p-3 font-semibold text-muted-foreground">Actor</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {auditLogs && auditLogs.length > 0 ? (
+                      auditLogs.map((entry) => (
+                        <tr key={entry.id} className="border-b hover:bg-muted/30 transition-colors">
+                          <td className="p-3 text-muted-foreground font-mono text-xs">
+                            {format(new Date(entry.occurred_at), 'MMM dd, HH:mm:ss')}
                           </td>
                           <td className="p-3">
-                            <span className="font-medium text-sm">
-                              {getActorDisplay(entry)}
-                            </span>
-                          </td>
-                          <td className="p-3">
-                            <Badge 
-                              variant={getActionVariant(entry.action)} 
-                              className="text-[10px] font-semibold px-2"
-                            >
-                              {getActionLabel(entry.action)}
+                            <Badge variant={getActionVariant(entry.action)} className="text-xs">
+                              {entry.action.toUpperCase()}
                             </Badge>
                           </td>
                           <td className="p-3">
-                            <span className="text-muted-foreground text-sm">
+                            <span className="font-medium">
                               {getTableDisplayName(entry.table_name)}
                             </span>
                           </td>
+                          <td className="p-3 font-mono text-xs text-muted-foreground">
+                            {entry.row_pk}
+                          </td>
                           <td className="p-3 max-w-md">
-                            <span className="text-sm line-clamp-2">
-                              {getAuditDescription(entry)}
+                            <span className="text-sm text-muted-foreground line-clamp-2">
+                              {getChangeSummary(entry)}
                             </span>
                           </td>
-                          <td className="p-3">
-                            {recordUrl && (
-                              <Link to={recordUrl}>
-                                <Button variant="ghost" size="icon" className="h-7 w-7">
-                                  <ExternalLink className="h-3.5 w-3.5" />
-                                </Button>
-                              </Link>
-                            )}
+                          <td className="p-3 text-xs text-muted-foreground">
+                            {entry.actor ? entry.actor.substring(0, 8) + '...' : 'System'}
                           </td>
                         </tr>
-                      );
-                    })
-                  ) : (
-                    <tr>
-                      <td colSpan={6} className="text-center py-12">
-                        <Database className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-20" />
-                        <p className="text-muted-foreground font-medium">No audit logs found</p>
-                        <p className="text-sm text-muted-foreground">
-                          Try adjusting your filters or date range
-                        </p>
-                      </td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          )}
-          {logs && logs.length >= (fullPage ? 500 : 200) && (
-            <div className="border-t p-3 bg-muted/20 text-center">
-              <p className="text-xs text-muted-foreground">
-                Showing the {fullPage ? 500 : 200} most recent entries. Use filters to narrow results.
-              </p>
+                      ))
+                    ) : (
+                      <tr>
+                        <td colSpan={6} className="text-center py-12">
+                          <Database className="h-12 w-12 mx-auto mb-3 text-muted-foreground opacity-20" />
+                          <p className="text-muted-foreground font-medium">No audit logs found</p>
+                          <p className="text-sm text-muted-foreground">
+                            Try adjusting your filters or date range
+                          </p>
+                        </td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+              {auditLogs && auditLogs.length >= 200 && (
+                <div className="border-t p-3 bg-muted/20 text-center">
+                  <p className="text-xs text-muted-foreground">
+                    Showing the 200 most recent entries. Use filters to narrow results.
+                  </p>
+                </div>
+              )}
             </div>
           )}
         </CardContent>
