@@ -99,31 +99,98 @@ export const PERMISSION_MATRIX: PermissionMatrix = {
 };
 
 // ============================================
+// PERMISSION OVERRIDE TYPES
+// ============================================
+export interface ModulePermissionOverrides {
+  view?: boolean;
+  create?: boolean;
+  edit?: boolean;
+  delete?: boolean;
+}
+
+export interface RolePermissionOverrides {
+  manager: Partial<Record<CRMModule, ModulePermissionOverrides>>;
+  staff: Partial<Record<CRMModule, ModulePermissionOverrides>>;
+}
+
+// ============================================
 // PERMISSION CHECKING FUNCTIONS
 // ============================================
 
 /**
  * Check if a role has permission for a specific action on a module
+ * Supports custom overrides that take precedence over PERMISSION_MATRIX
  */
 export function hasPermission(
   role: UserRole,
   module: CRMModule,
-  action: Action
+  action: Action,
+  customOverrides?: RolePermissionOverrides
 ): boolean {
+  // Owner always has full access - not customizable
+  if (role === 'owner') {
+    return PERMISSION_MATRIX.owner[module]?.[action] ?? false;
+  }
+
+  // Check custom overrides first (for manager and staff)
+  if (customOverrides && (role === 'manager' || role === 'staff')) {
+    const roleOverrides = customOverrides[role];
+    const moduleOverrides = roleOverrides?.[module];
+    if (moduleOverrides && action in moduleOverrides) {
+      return moduleOverrides[action] ?? false;
+    }
+  }
+
+  // Fall back to default PERMISSION_MATRIX
   return PERMISSION_MATRIX[role]?.[module]?.[action] ?? false;
 }
 
 /**
  * Check if a role can access a module (has view permission)
  */
-export function canAccessModule(role: UserRole, module: CRMModule): boolean {
-  return hasPermission(role, module, ACTIONS.VIEW);
+export function canAccessModule(
+  role: UserRole, 
+  module: CRMModule,
+  customOverrides?: RolePermissionOverrides
+): boolean {
+  return hasPermission(role, module, ACTIONS.VIEW, customOverrides);
 }
 
 /**
- * Get all permissions for a role
+ * Get all permissions for a role, merging custom overrides with defaults
  */
-export function getRolePermissions(role: UserRole): RolePermissions {
+export function getRolePermissions(
+  role: UserRole,
+  customOverrides?: RolePermissionOverrides
+): RolePermissions {
+  const defaultPerms = PERMISSION_MATRIX[role];
+  
+  // Owner permissions are not customizable
+  if (role === 'owner' || !customOverrides) {
+    return defaultPerms;
+  }
+
+  const roleOverrides = customOverrides[role];
+  if (!roleOverrides) {
+    return defaultPerms;
+  }
+
+  // Merge overrides with defaults
+  const mergedPerms = { ...defaultPerms };
+  for (const module of Object.keys(roleOverrides) as CRMModule[]) {
+    const moduleOverrides = roleOverrides[module];
+    if (moduleOverrides) {
+      mergedPerms[module] = { ...mergedPerms[module], ...moduleOverrides };
+    }
+  }
+
+  return mergedPerms;
+}
+
+/**
+ * Get the default permissions from PERMISSION_MATRIX (ignoring overrides)
+ */
+export function getDefaultRolePermissions(role: UserRole): RolePermissions {
   return PERMISSION_MATRIX[role];
 }
 

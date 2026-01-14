@@ -1,5 +1,6 @@
 import { useMemo, useCallback } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSettings } from '@/contexts/SettingsContext';
 import {
   UserRole,
   CRMModule,
@@ -11,6 +12,7 @@ import {
   PERMISSION_MATRIX,
   CRM_MODULES,
   ACTIONS,
+  RolePermissionOverrides,
 } from '@/lib/permissions';
 
 export interface UsePermissionsReturn {
@@ -47,12 +49,16 @@ export interface UsePermissionsReturn {
   /** Check if user's role is at least the specified level */
   isAtLeast: (minimumRole: UserRole) => boolean;
 
-  /** All permissions for current role */
+  /** All permissions for current role (with overrides applied) */
   permissions: typeof PERMISSION_MATRIX[UserRole];
+
+  /** Custom role permission overrides from settings (if any) */
+  customOverrides: RolePermissionOverrides | undefined;
 }
 
 /**
  * Hook for checking user permissions
+ * Now supports custom permission overrides stored in app settings
  *
  * @example
  * const { can, canCreate, isOwner } = usePermissions();
@@ -69,16 +75,20 @@ export interface UsePermissionsReturn {
  */
 export function usePermissions(): UsePermissionsReturn {
   const { userRole } = useAuth();
+  const { settings } = useSettings();
 
   // Ensure we have a valid role, default to staff (most restrictive)
   const role: UserRole = (userRole as UserRole) || 'staff';
 
-  // Memoized permission checker
+  // Get custom permission overrides from settings
+  const customOverrides = settings.rolePermissions;
+
+  // Memoized permission checker with custom overrides
   const can = useCallback(
     (module: CRMModule, action: Action): boolean => {
-      return hasPermission(role, module, action);
+      return hasPermission(role, module, action, customOverrides);
     },
-    [role]
+    [role, customOverrides]
   );
 
   // Convenience methods for common actions
@@ -103,8 +113,8 @@ export function usePermissions(): UsePermissionsReturn {
   );
 
   const canAccess = useCallback(
-    (module: CRMModule): boolean => canAccessModule(role, module),
-    [role]
+    (module: CRMModule): boolean => canAccessModule(role, module, customOverrides),
+    [role, customOverrides]
   );
 
   // Role checking helpers
@@ -117,8 +127,11 @@ export function usePermissions(): UsePermissionsReturn {
     [role]
   );
 
-  // Get all permissions for current role
-  const permissions = useMemo(() => getRolePermissions(role), [role]);
+  // Get all permissions for current role (with overrides applied)
+  const permissions = useMemo(
+    () => getRolePermissions(role, customOverrides),
+    [role, customOverrides]
+  );
 
   return {
     role,
@@ -133,9 +146,10 @@ export function usePermissions(): UsePermissionsReturn {
     isStaff,
     isAtLeast,
     permissions,
+    customOverrides,
   };
 }
 
 // Re-export constants for convenience
 export { CRM_MODULES, ACTIONS } from '@/lib/permissions';
-export type { CRMModule, Action, UserRole } from '@/lib/permissions';
+export type { CRMModule, Action, UserRole, RolePermissionOverrides } from '@/lib/permissions';

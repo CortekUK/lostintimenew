@@ -19,6 +19,7 @@ import { CSVExportButton } from '@/components/csv/CSVExportButton';
 import { CSVImportModal } from '@/components/csv/CSVImportModal';
 import { UserManagement } from '@/components/settings/UserManagement';
 import { LocationsSettings } from '@/components/settings/LocationsSettings';
+import { RolePermissionsManager } from '@/components/settings/RolePermissionsManager';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { productCSVHeaders, supplierCSVHeaders, expenseCSVHeaders, productTypeCoercion, expenseTypeCoercion } from '@/utils/csvUtils';
@@ -637,6 +638,9 @@ export default function Settings() {
 
           {/* User Management */}
           <UserManagement />
+
+          {/* Role Permissions - Customize what managers and staff can access */}
+          <RolePermissionsManager />
 
           {/* Store Information */}
           <Card>
