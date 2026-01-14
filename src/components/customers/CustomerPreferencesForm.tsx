@@ -24,7 +24,7 @@ const STYLE_PREFERENCES = ['Classic', 'Modern', 'Vintage', 'Minimalist', 'Bold/S
 
 export function CustomerPreferencesForm({ preferences, onChange, disabled }: CustomerPreferencesFormProps) {
   const updatePreference = (key: keyof CustomerPreferences, value: string | null) => {
-    onChange({ ...preferences, [key]: value || null });
+    onChange({ ...preferences, [key]: value === 'none' ? null : value });
   };
 
   return (
@@ -32,7 +32,7 @@ export function CustomerPreferencesForm({ preferences, onChange, disabled }: Cus
       <div className="space-y-2">
         <Label htmlFor="ring_size">Ring Size</Label>
         <Select
-          value={preferences.ring_size || ''}
+          value={preferences.ring_size || 'none'}
           onValueChange={(value) => updatePreference('ring_size', value)}
           disabled={disabled}
         >
@@ -40,7 +40,7 @@ export function CustomerPreferencesForm({ preferences, onChange, disabled }: Cus
             <SelectValue placeholder="Select size" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Not specified</SelectItem>
+            <SelectItem value="none">Not specified</SelectItem>
             {RING_SIZES.map((size) => (
               <SelectItem key={size} value={size}>{size}</SelectItem>
             ))}
@@ -51,7 +51,7 @@ export function CustomerPreferencesForm({ preferences, onChange, disabled }: Cus
       <div className="space-y-2">
         <Label htmlFor="bracelet_size">Bracelet Size</Label>
         <Select
-          value={preferences.bracelet_size || ''}
+          value={preferences.bracelet_size || 'none'}
           onValueChange={(value) => updatePreference('bracelet_size', value)}
           disabled={disabled}
         >
@@ -59,7 +59,7 @@ export function CustomerPreferencesForm({ preferences, onChange, disabled }: Cus
             <SelectValue placeholder="Select size" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Not specified</SelectItem>
+            <SelectItem value="none">Not specified</SelectItem>
             {BRACELET_SIZES.map((size) => (
               <SelectItem key={size} value={size}>{size}</SelectItem>
             ))}
@@ -70,7 +70,7 @@ export function CustomerPreferencesForm({ preferences, onChange, disabled }: Cus
       <div className="space-y-2">
         <Label htmlFor="necklace_length">Necklace Length</Label>
         <Select
-          value={preferences.necklace_length || ''}
+          value={preferences.necklace_length || 'none'}
           onValueChange={(value) => updatePreference('necklace_length', value)}
           disabled={disabled}
         >
@@ -78,7 +78,7 @@ export function CustomerPreferencesForm({ preferences, onChange, disabled }: Cus
             <SelectValue placeholder="Select length" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Not specified</SelectItem>
+            <SelectItem value="none">Not specified</SelectItem>
             {NECKLACE_LENGTHS.map((length) => (
               <SelectItem key={length} value={length}>{length}</SelectItem>
             ))}
@@ -89,7 +89,7 @@ export function CustomerPreferencesForm({ preferences, onChange, disabled }: Cus
       <div className="space-y-2">
         <Label htmlFor="metal_preference">Metal Preference</Label>
         <Select
-          value={preferences.metal_preference || ''}
+          value={preferences.metal_preference || 'none'}
           onValueChange={(value) => updatePreference('metal_preference', value)}
           disabled={disabled}
         >
@@ -97,7 +97,7 @@ export function CustomerPreferencesForm({ preferences, onChange, disabled }: Cus
             <SelectValue placeholder="Select metal" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Not specified</SelectItem>
+            <SelectItem value="none">Not specified</SelectItem>
             {METAL_PREFERENCES.map((metal) => (
               <SelectItem key={metal} value={metal}>{metal}</SelectItem>
             ))}
@@ -108,7 +108,7 @@ export function CustomerPreferencesForm({ preferences, onChange, disabled }: Cus
       <div className="space-y-2 sm:col-span-2">
         <Label htmlFor="style_preference">Style Preference</Label>
         <Select
-          value={preferences.style_preference || ''}
+          value={preferences.style_preference || 'none'}
           onValueChange={(value) => updatePreference('style_preference', value)}
           disabled={disabled}
         >
@@ -116,7 +116,7 @@ export function CustomerPreferencesForm({ preferences, onChange, disabled }: Cus
             <SelectValue placeholder="Select style" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">Not specified</SelectItem>
+            <SelectItem value="none">Not specified</SelectItem>
             {STYLE_PREFERENCES.map((style) => (
               <SelectItem key={style} value={style}>{style}</SelectItem>
             ))}
