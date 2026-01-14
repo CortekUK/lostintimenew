@@ -13,6 +13,7 @@ import { RegisteredWatchSection } from '@/components/forms/RegisteredWatchSectio
 import { ProductCreationDocuments } from '@/components/documents/ProductCreationDocuments';
 import { useSuppliers } from '@/hooks/useSuppliers';
 import { useLocations } from '@/hooks/useLocations';
+import { useAllProductCategories, useAddCustomProductCategory } from '@/hooks/useProductCategories';
 import { InlineSupplierAdd } from '@/components/forms/InlineSupplierAdd';
 import { DocumentType } from '@/types';
 import {
@@ -26,7 +27,9 @@ import {
   Loader2,
   TrendingUp,
   Calendar as CalendarIcon,
-  MapPin
+  MapPin,
+  Plus,
+  X
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -75,6 +78,8 @@ interface AddProductFormProps {
 export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialData }: AddProductFormProps) {
   const { data: suppliers } = useSuppliers();
   const { data: locations } = useLocations();
+  const { all: allCategories, isLoading: categoriesLoading } = useAllProductCategories();
+  const addCategoryMutation = useAddCustomProductCategory();
 
   const [formData, setFormData] = useState({
     name: initialData?.name || '',
@@ -104,6 +109,8 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
   
   const [documents, setDocuments] = useState<DocumentUploadItem[]>([]);
   const [images, setImages] = useState<string[]>([]);
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
   
   // Generate SKU preview
   const generateSkuPreview = () => {
@@ -420,18 +427,91 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
                 <Label>Category</Label>
-                <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Rings">Rings</SelectItem>
-                    <SelectItem value="Necklaces">Necklaces</SelectItem>
-                    <SelectItem value="Earrings">Earrings</SelectItem>
-                    <SelectItem value="Bracelets">Bracelets</SelectItem>
-                    <SelectItem value="Watches">Watches</SelectItem>
-                  </SelectContent>
-                </Select>
+                {!showNewCategoryInput ? (
+                  <div className="space-y-2">
+                    <Select value={formData.category} onValueChange={(value) => {
+                      if (value === '__add_new__') {
+                        setShowNewCategoryInput(true);
+                      } else {
+                        setFormData({...formData, category: value});
+                      }
+                    }}>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select category" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {allCategories.map((category) => (
+                          <SelectItem key={category} value={category}>{category}</SelectItem>
+                        ))}
+                        <SelectItem value="__add_new__" className="text-primary font-medium">
+                          <span className="flex items-center gap-1">
+                            <Plus className="h-3 w-3" />
+                            Add new category...
+                          </span>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <Input
+                      placeholder="Enter new category name"
+                      value={newCategoryName}
+                      onChange={(e) => setNewCategoryName(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          if (newCategoryName.trim()) {
+                            addCategoryMutation.mutate(newCategoryName, {
+                              onSuccess: (category) => {
+                                setFormData({...formData, category});
+                                setNewCategoryName('');
+                                setShowNewCategoryInput(false);
+                              }
+                            });
+                          }
+                        } else if (e.key === 'Escape') {
+                          setNewCategoryName('');
+                          setShowNewCategoryInput(false);
+                        }
+                      }}
+                      autoFocus
+                    />
+                    <Button
+                      type="button"
+                      size="sm"
+                      disabled={!newCategoryName.trim() || addCategoryMutation.isPending}
+                      onClick={() => {
+                        if (newCategoryName.trim()) {
+                          addCategoryMutation.mutate(newCategoryName, {
+                            onSuccess: (category) => {
+                              setFormData({...formData, category});
+                              setNewCategoryName('');
+                              setShowNewCategoryInput(false);
+                            }
+                          });
+                        }
+                      }}
+                    >
+                      {addCategoryMutation.isPending ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Plus className="h-4 w-4" />
+                      )}
+                    </Button>
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      onClick={() => {
+                        setNewCategoryName('');
+                        setShowNewCategoryInput(false);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
@@ -443,7 +523,6 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                 />
               </div>
             </div>
-            
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
                 <Label>Karat</Label>

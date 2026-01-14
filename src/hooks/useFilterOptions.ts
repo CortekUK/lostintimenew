@@ -1,6 +1,7 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { PREDEFINED_PRODUCT_CATEGORIES } from '@/hooks/useProductCategories';
 
 export interface FilterOptions {
   categories: string[];
@@ -16,24 +17,35 @@ export const useFilterOptions = () => {
   return useQuery({
     queryKey: ['filter-options'],
     queryFn: async (): Promise<FilterOptions> => {
-      // Get distinct values for each filter field
-      const { data: products, error } = await supabase
-        .from('products')
-        .select('category, metal, karat, gemstone, unit_price')
-        .not('unit_price', 'is', null);
+      // Get distinct values for each filter field and custom categories from settings
+      const [productsResult, settingsResult] = await Promise.all([
+        supabase
+          .from('products')
+          .select('category, metal, karat, gemstone, unit_price')
+          .not('unit_price', 'is', null),
+        supabase
+          .from('app_settings')
+          .select('values')
+          .single()
+      ]);
 
-      if (error) throw error;
+      if (productsResult.error) throw productsResult.error;
+      const products = productsResult.data;
+      
+      // Get custom categories from settings
+      const customCategories = (settingsResult.data?.values as any)?.product_categories || [];
 
       // Extract unique values and filter out nulls/empty strings
-      const categories = [...new Set(products.map(p => p.category).filter(Boolean))].sort();
+      const categoriesFromProducts = [...new Set(products.map(p => p.category).filter(Boolean))];
       const metals = [...new Set(products.map(p => p.metal).filter(Boolean))].sort();
       const karats = [...new Set(products.map(p => p.karat).filter(Boolean))].sort();
       const gemstones = [...new Set(products.map(p => p.gemstone).filter(Boolean))].sort();
       
-      // Add common options that might not be in the database yet
+      // Combine predefined + custom + from products
       const allCategories = [...new Set([
-        ...categories,
-        'Rings', 'Necklaces', 'Earrings', 'Bracelets', 'Watches', 'Pendants', 'Brooches'
+        ...PREDEFINED_PRODUCT_CATEGORIES,
+        ...customCategories,
+        ...categoriesFromProducts
       ])].sort();
 
       const allMetals = [...new Set([
