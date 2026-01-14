@@ -23,90 +23,91 @@ interface NavigationItem {
     icon: LucideIcon;
   }>;
 }
-const navigationItems: NavigationItem[] = [{
-  title: 'Dashboard',
-  url: '/',
-  icon: LayoutDashboard,
-  module: CRM_MODULES.DASHBOARD
-}, {
-  title: 'Products',
-  url: '/products',
-  icon: Package,
-  module: CRM_MODULES.PRODUCTS,
-  subItems: [{
-    title: 'All Products',
+// Core Operations: Dashboard, Products, Suppliers, Customers, Consignments
+const coreOperationsItems: NavigationItem[] = [
+  {
+    title: 'Dashboard',
+    url: '/',
+    icon: LayoutDashboard,
+    module: CRM_MODULES.DASHBOARD
+  },
+  {
+    title: 'Products',
     url: '/products',
-    icon: Package
-  }, {
-    title: 'PX Intake',
-    url: '/products/intake',
-    icon: Repeat
-  }]
-}, {
-  title: 'Suppliers',
-  url: '/suppliers',
-  icon: Truck,
-  module: CRM_MODULES.SUPPLIERS
-}, {
-  title: 'Customers',
-  url: '/customers',
-  icon: Users,
-  module: CRM_MODULES.CUSTOMERS
-}, {
-  title: 'Consignments',
-  url: '/consignments',
-  icon: Handshake,
-  module: CRM_MODULES.CONSIGNMENTS
-}, {
-  title: 'Sales/POS',
-  url: '/sales',
-  icon: ShoppingCart,
-  module: CRM_MODULES.SALES,
-  subItems: [{
-    title: 'POS',
+    icon: Package,
+    module: CRM_MODULES.PRODUCTS,
+    subItems: [
+      { title: 'All Products', url: '/products', icon: Package },
+      { title: 'PX Intake', url: '/products/intake', icon: Repeat }
+    ]
+  },
+  {
+    title: 'Suppliers',
+    url: '/suppliers',
+    icon: Truck,
+    module: CRM_MODULES.SUPPLIERS
+  },
+  {
+    title: 'Customers',
+    url: '/customers',
+    icon: Users,
+    module: CRM_MODULES.CUSTOMERS
+  },
+  {
+    title: 'Consignments',
+    url: '/consignments',
+    icon: Handshake,
+    module: CRM_MODULES.CONSIGNMENTS
+  }
+];
+
+// Sales: POS, My Sales, Sold Items, Transactions
+const salesItems: NavigationItem[] = [
+  {
+    title: 'Sales',
     url: '/sales',
-    icon: CreditCard
-  }, {
-    title: 'My Sales',
-    url: '/sales/my-sales',
-    icon: User
-  }, {
-    title: 'Sold Items',
-    url: '/sales/items',
-    icon: Package
-  }]
-}, {
-  title: 'Expenses',
-  url: '/expenses',
-  icon: PoundSterling,
-  module: CRM_MODULES.EXPENSES
-}];
+    icon: ShoppingCart,
+    module: CRM_MODULES.SALES,
+    subItems: [
+      { title: 'POS', url: '/sales', icon: CreditCard },
+      { title: 'My Sales', url: '/sales/my-sales', icon: User },
+      { title: 'Sold Items', url: '/sales/items', icon: Package },
+      { title: 'Transactions', url: '/sales/transactions', icon: PoundSterling }
+    ]
+  }
+];
 
-// Items accessible by manager and owner (Reports, Analytics, Transactions)
-const managerPlusItems: NavigationItem[] = [{
-  title: 'Transactions',
-  url: '/sales/transactions',
-  icon: PoundSterling,
-  module: CRM_MODULES.REPORTS
-}, {
-  title: 'Reports',
-  url: '/reports',
-  icon: BarChart3,
-  module: CRM_MODULES.REPORTS
-}, {
-  title: 'Analytics',
-  url: '/analytics',
-  icon: Activity,
-  module: CRM_MODULES.ANALYTICS
-}];
+// Financial: Expenses, Reports, Analytics
+const financialItems: NavigationItem[] = [
+  {
+    title: 'Expenses',
+    url: '/expenses',
+    icon: PoundSterling,
+    module: CRM_MODULES.EXPENSES
+  },
+  {
+    title: 'Reports',
+    url: '/reports',
+    icon: BarChart3,
+    module: CRM_MODULES.REPORTS
+  },
+  {
+    title: 'Analytics',
+    url: '/analytics',
+    icon: Activity,
+    module: CRM_MODULES.ANALYTICS
+  }
+];
 
-// Items only accessible by owner (Settings)
-const ownerOnlyItems: NavigationItem[] = [{
-  title: 'Settings',
-  url: '/settings',
-  icon: Settings,
-  module: CRM_MODULES.SETTINGS
-}];
+// Admin: Settings (owner only)
+const adminItems: NavigationItem[] = [
+  {
+    title: 'Settings',
+    url: '/settings',
+    icon: Settings,
+    module: CRM_MODULES.SETTINGS
+  }
+];
 export function AppSidebar() {
   const {
     state
@@ -137,9 +138,10 @@ export function AppSidebar() {
 
   // Filter navigation items based on user permissions
   const allItems = [
-    ...navigationItems,
-    ...managerPlusItems,
-    ...ownerOnlyItems
+    ...coreOperationsItems,
+    ...salesItems,
+    ...financialItems,
+    ...adminItems
   ].filter(item => !item.module || canAccess(item.module));
   const isCollapsed = state === 'collapsed';
   return <TooltipProvider>
