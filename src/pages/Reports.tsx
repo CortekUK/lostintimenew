@@ -5,7 +5,8 @@ import { FinancialTab } from '@/components/reports/FinancialTab';
 import { ProductsTab } from '@/components/reports/ProductsTab';
 import { SuppliersTab } from '@/components/reports/SuppliersTab';
 import { PxConsignmentTab } from '@/components/reports/PxConsignmentTab';
-import { BarChart3, Building2, PoundSterling, Package } from 'lucide-react';
+import { StaffCommissionTab } from '@/components/reports/StaffCommissionTab';
+import { BarChart3, Building2, PoundSterling, Package, Coins } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
 
 export default function ConsolidatedReports() {
@@ -30,6 +31,14 @@ export default function ConsolidatedReports() {
                 <span className="sm:hidden">Finance</span>
               </TabsTrigger>
             )}
+            {/* Commission tab - Owner only */}
+            {isOwner && (
+              <TabsTrigger value="commission" className="flex items-center gap-2 flex-1 min-w-[100px]">
+                <Coins className="h-4 w-4" />
+                <span className="hidden sm:inline">Commission</span>
+                <span className="sm:hidden">Comm</span>
+              </TabsTrigger>
+            )}
             <TabsTrigger value="products" className="flex items-center gap-2 flex-1 min-w-[100px]">
               <Package className="h-4 w-4" />
               Products
@@ -49,6 +58,13 @@ export default function ConsolidatedReports() {
           {isOwner && (
             <TabsContent value="financial">
               <FinancialTab />
+            </TabsContent>
+          )}
+
+          {/* Commission reports - Owner only */}
+          {isOwner && (
+            <TabsContent value="commission">
+              <StaffCommissionTab />
             </TabsContent>
           )}
 
