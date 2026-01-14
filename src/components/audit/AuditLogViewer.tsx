@@ -1,70 +1,79 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Database, RefreshCw, Download, Search } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
-import { useQuery } from '@tanstack/react-query';
+import { Database, RefreshCw, Download, Search, Eye, ExternalLink } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { DateRange } from 'react-day-picker';
 import { SimpleDatePicker } from '@/components/ui/simple-date-picker';
 import { toast } from '@/hooks/use-toast';
-
-interface AuditLogEntry {
-  id: number;
-  table_name: string;
-  row_pk: string;
-  action: 'insert' | 'update' | 'delete';
-  old_data?: any;
-  new_data?: any;
-  actor?: string;
-  occurred_at: string;
-}
+import { useAuditLog, useAuditActors, EnhancedAuditEntry } from '@/hooks/useAuditLog';
+import { AuditDetailModal } from './AuditDetailModal';
+import { ActivitySummary } from './ActivitySummary';
+import { useNavigate } from 'react-router-dom';
 
 interface AuditLogViewerProps {
   className?: string;
 }
 
+const NAVIGABLE_TABLES: Record<string, (id: string) => string> = {
+  products: (id) => `/products?id=${id}`,
+  suppliers: (id) => `/suppliers/${id}`,
+  customers: (id) => `/customers/${id}`,
+  sales: (id) => `/sales/${id}`,
+};
+
+const TABLE_OPTIONS = [
+  { value: 'all', label: 'All Tables' },
+  { value: 'products', label: 'Products' },
+  { value: 'sales', label: 'Sales' },
+  { value: 'sale_items', label: 'Sale Items' },
+  { value: 'expenses', label: 'Expenses' },
+  { value: 'suppliers', label: 'Suppliers' },
+  { value: 'customers', label: 'Customers' },
+  { value: 'stock_movements', label: 'Stock Movements' },
+  { value: 'part_exchanges', label: 'Part Exchanges' },
+  { value: 'consignment_settlements', label: 'Consignments' },
+  { value: 'commission_payments', label: 'Commissions' },
+  { value: 'cash_drawer_movements', label: 'Cash Drawer' },
+  { value: 'profiles', label: 'User Profiles' },
+  { value: 'app_settings', label: 'Settings' },
+  { value: 'locations', label: 'Locations' },
+];
+
 export function AuditLogViewer({ className }: AuditLogViewerProps) {
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  
   const [tableFilter, setTableFilter] = useState<string>('all');
   const [actionFilter, setActionFilter] = useState<string>('all');
+  const [actorFilter, setActorFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [selectedEntry, setSelectedEntry] = useState<EnhancedAuditEntry | null>(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
-  const { data: auditLogs, isLoading, error, refetch } = useQuery({
-    queryKey: ['audit-logs', tableFilter, actionFilter, dateRange],
-    queryFn: async () => {
-      let query = supabase
-        .from('audit_log')
-        .select('*')
-        .order('occurred_at', { ascending: false })
-        .limit(200);
-
-      if (tableFilter !== 'all') {
-        query = query.eq('table_name', tableFilter);
-      }
-      if (actionFilter !== 'all') {
-        query = query.eq('action', actionFilter);
-      }
-      if (dateRange?.from) {
-        query = query.gte('occurred_at', dateRange.from.toISOString());
-      }
-      if (dateRange?.to) {
-        query = query.lte('occurred_at', dateRange.to.toISOString());
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-      return data as AuditLogEntry[];
-    }
+  const { data: auditLogs, isLoading, error, refetch, isFetching } = useAuditLog({
+    tableFilter,
+    actionFilter,
+    actorFilter,
+    searchQuery,
+    dateRange,
+    limit: 200
   });
+
+  const { data: actors } = useAuditActors();
 
   const getActionVariant = (action: string): "default" | "secondary" | "destructive" => {
     switch (action) {
       case 'insert': return 'default';
       case 'update': return 'secondary';
       case 'delete': return 'destructive';
+      case 'void': return 'destructive';
       default: return 'secondary';
     }
   };
@@ -73,23 +82,29 @@ export function AuditLogViewer({ className }: AuditLogViewerProps) {
     return tableName.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
   };
 
-  const getChangeSummary = (entry: AuditLogEntry): string => {
+  const getChangeSummary = (entry: EnhancedAuditEntry): string => {
     if (entry.action === 'insert') {
-      return 'Record created';
+      const name = entry.new_data?.name || entry.new_data?.title || '';
+      return name ? `Created: ${name}` : 'Record created';
     }
     if (entry.action === 'delete') {
-      return 'Record deleted';
+      const name = entry.old_data?.name || entry.old_data?.title || '';
+      return name ? `Deleted: ${name}` : 'Record deleted';
+    }
+    if (entry.action === 'void') {
+      return 'Sale voided';
     }
     if (entry.action === 'update' && entry.old_data && entry.new_data) {
       const changes: string[] = [];
-      const oldData = entry.old_data as Record<string, any>;
-      const newData = entry.new_data as Record<string, any>;
+      const oldData = entry.old_data;
+      const newData = entry.new_data;
       
       for (const key of Object.keys(newData)) {
-        if (oldData[key] !== newData[key] && key !== 'updated_at') {
+        if (JSON.stringify(oldData[key]) !== JSON.stringify(newData[key]) && 
+            !['updated_at', 'created_at'].includes(key)) {
           const oldVal = oldData[key] === null ? 'null' : String(oldData[key]);
           const newVal = newData[key] === null ? 'null' : String(newData[key]);
-          changes.push(`${key}: ${oldVal} → ${newVal}`);
+          changes.push(`${key.replace(/_/g, ' ')}: ${oldVal.substring(0, 20)} → ${newVal.substring(0, 20)}`);
         }
       }
       return changes.length > 0 ? changes.slice(0, 2).join(', ') : 'No significant changes';
@@ -109,16 +124,17 @@ export function AuditLogViewer({ className }: AuditLogViewerProps) {
 
     try {
       const csvContent = [
-        ['Timestamp', 'Actor', 'Action', 'Table', 'Record ID', 'Changes'],
+        ['Timestamp', 'Actor', 'Role', 'Action', 'Table', 'Record ID', 'Changes'],
         ...auditLogs.map(entry => [
           format(new Date(entry.occurred_at), 'yyyy-MM-dd HH:mm:ss'),
-          entry.actor || 'System',
+          entry.actor_name || 'System',
+          entry.actor_role || '',
           entry.action.toUpperCase(),
           getTableDisplayName(entry.table_name),
           entry.row_pk,
-          getChangeSummary(entry).replace(/,/g, ';') // Replace commas in changes to avoid CSV issues
+          getChangeSummary(entry).replace(/,/g, ';')
         ])
-      ].map(row => row.join(',')).join('\n');
+      ].map(row => row.map(cell => `"${cell}"`).join(',')).join('\n');
 
       const blob = new Blob([csvContent], { type: 'text/csv' });
       const url = URL.createObjectURL(blob);
@@ -132,7 +148,7 @@ export function AuditLogViewer({ className }: AuditLogViewerProps) {
 
       toast({
         title: 'Export Complete',
-        description: 'Audit log exported successfully'
+        description: `Exported ${auditLogs.length} audit entries`
       });
     } catch (error) {
       toast({
@@ -140,6 +156,24 @@ export function AuditLogViewer({ className }: AuditLogViewerProps) {
         description: 'Failed to export audit log',
         variant: 'destructive'
       });
+    }
+  };
+
+  const handleRefresh = () => {
+    queryClient.invalidateQueries({ queryKey: ['audit-logs-enhanced'] });
+    queryClient.invalidateQueries({ queryKey: ['audit-summary'] });
+    refetch();
+  };
+
+  const handleViewDetails = (entry: EnhancedAuditEntry) => {
+    setSelectedEntry(entry);
+    setDetailModalOpen(true);
+  };
+
+  const handleNavigateToRecord = (entry: EnhancedAuditEntry) => {
+    const getUrl = NAVIGABLE_TABLES[entry.table_name];
+    if (getUrl) {
+      navigate(getUrl(entry.row_pk));
     }
   };
 
@@ -157,14 +191,17 @@ export function AuditLogViewer({ className }: AuditLogViewerProps) {
 
   return (
     <div className={`space-y-6 ${className}`}>
+      {/* Activity Summary */}
+      <ActivitySummary />
+
       {/* Header and Filters */}
       <Card>
         <CardHeader>
           <div className="flex items-center justify-between">
             <CardTitle>Audit Trail</CardTitle>
             <div className="flex gap-2">
-              <Button variant="outline" size="sm" onClick={() => refetch()} disabled={isLoading}>
-                <RefreshCw className={`h-4 w-4 mr-2 ${isLoading ? 'animate-spin' : ''}`} />
+              <Button variant="outline" size="sm" onClick={handleRefresh} disabled={isFetching}>
+                <RefreshCw className={`h-4 w-4 mr-2 ${isFetching ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
               <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={isLoading}>
@@ -176,36 +213,56 @@ export function AuditLogViewer({ className }: AuditLogViewerProps) {
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-3">
+            {/* Search */}
+            <div className="relative flex-1 min-w-[200px]">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search changes, records, users..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+
             <SimpleDatePicker
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
             />
 
             <Select value={tableFilter} onValueChange={setTableFilter}>
-              <SelectTrigger className="w-[180px]">
+              <SelectTrigger className="w-[160px]">
                 <SelectValue placeholder="All tables" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Tables</SelectItem>
-                <SelectItem value="products">Products</SelectItem>
-                <SelectItem value="sales">Sales</SelectItem>
-                <SelectItem value="expenses">Expenses</SelectItem>
-                <SelectItem value="suppliers">Suppliers</SelectItem>
-                <SelectItem value="stock_movements">Stock Movements</SelectItem>
-                <SelectItem value="part_exchanges">Part Exchanges</SelectItem>
-                <SelectItem value="consignment_settlements">Consignments</SelectItem>
+                {TABLE_OPTIONS.map(opt => (
+                  <SelectItem key={opt.value} value={opt.value}>{opt.label}</SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
             <Select value={actionFilter} onValueChange={setActionFilter}>
-              <SelectTrigger className="w-[140px]">
+              <SelectTrigger className="w-[130px]">
                 <SelectValue placeholder="All actions" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Actions</SelectItem>
-                <SelectItem value="insert">Insert</SelectItem>
-                <SelectItem value="update">Update</SelectItem>
-                <SelectItem value="delete">Delete</SelectItem>
+                <SelectItem value="insert">Created</SelectItem>
+                <SelectItem value="update">Updated</SelectItem>
+                <SelectItem value="delete">Deleted</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={actorFilter} onValueChange={setActorFilter}>
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="All users" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Users</SelectItem>
+                {actors?.map(actor => (
+                  <SelectItem key={actor.id} value={actor.id}>
+                    {actor.name}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -227,12 +284,6 @@ export function AuditLogViewer({ className }: AuditLogViewerProps) {
                 <Skeleton key={i} className="h-12 w-full" />
               ))}
             </div>
-          ) : error ? (
-            <div className="text-center py-12 text-destructive">
-              <Database className="h-12 w-12 mx-auto mb-3 opacity-20" />
-              <p className="font-medium">Error loading audit logs</p>
-              <p className="text-sm text-muted-foreground">{(error as Error).message}</p>
-            </div>
           ) : (
             <div className="rounded-md border">
               <div className="overflow-x-auto">
@@ -240,40 +291,71 @@ export function AuditLogViewer({ className }: AuditLogViewerProps) {
                   <thead className="bg-muted/50">
                     <tr className="border-b">
                       <th className="text-left p-3 font-semibold text-muted-foreground">Timestamp</th>
+                      <th className="text-left p-3 font-semibold text-muted-foreground">User</th>
                       <th className="text-left p-3 font-semibold text-muted-foreground">Action</th>
                       <th className="text-left p-3 font-semibold text-muted-foreground">Record Type</th>
-                      <th className="text-left p-3 font-semibold text-muted-foreground">Record ID</th>
                       <th className="text-left p-3 font-semibold text-muted-foreground">Changes</th>
-                      <th className="text-left p-3 font-semibold text-muted-foreground">Actor</th>
+                      <th className="text-right p-3 font-semibold text-muted-foreground">Actions</th>
                     </tr>
                   </thead>
                   <tbody>
                     {auditLogs && auditLogs.length > 0 ? (
                       auditLogs.map((entry) => (
                         <tr key={entry.id} className="border-b hover:bg-muted/30 transition-colors">
-                          <td className="p-3 text-muted-foreground font-mono text-xs">
+                          <td className="p-3 text-muted-foreground font-mono text-xs whitespace-nowrap">
                             {format(new Date(entry.occurred_at), 'MMM dd, HH:mm:ss')}
                           </td>
                           <td className="p-3">
+                            <div className="flex flex-col">
+                              <span className="font-medium text-sm">{entry.actor_name}</span>
+                              {entry.actor_role && (
+                                <span className="text-xs text-muted-foreground capitalize">
+                                  {entry.actor_role}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td className="p-3">
                             <Badge variant={getActionVariant(entry.action)} className="text-xs">
-                              {entry.action.toUpperCase()}
+                              {entry.action === 'insert' ? 'CREATED' : 
+                               entry.action === 'delete' ? 'DELETED' :
+                               entry.action.toUpperCase()}
                             </Badge>
                           </td>
                           <td className="p-3">
                             <span className="font-medium">
                               {getTableDisplayName(entry.table_name)}
                             </span>
+                            <span className="text-xs text-muted-foreground ml-2">
+                              #{entry.row_pk}
+                            </span>
                           </td>
-                          <td className="p-3 font-mono text-xs text-muted-foreground">
-                            {entry.row_pk}
-                          </td>
-                          <td className="p-3 max-w-md">
-                            <span className="text-sm text-muted-foreground line-clamp-2">
+                          <td className="p-3 max-w-xs">
+                            <span className="text-sm text-muted-foreground line-clamp-1">
                               {getChangeSummary(entry)}
                             </span>
                           </td>
-                          <td className="p-3 text-xs text-muted-foreground">
-                            {entry.actor ? entry.actor.substring(0, 8) + '...' : 'System'}
+                          <td className="p-3 text-right">
+                            <div className="flex items-center justify-end gap-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleViewDetails(entry)}
+                                className="h-7 px-2"
+                              >
+                                <Eye className="h-3.5 w-3.5" />
+                              </Button>
+                              {NAVIGABLE_TABLES[entry.table_name] && entry.action !== 'delete' && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleNavigateToRecord(entry)}
+                                  className="h-7 px-2"
+                                >
+                                  <ExternalLink className="h-3.5 w-3.5" />
+                                </Button>
+                              )}
+                            </div>
                           </td>
                         </tr>
                       ))
@@ -302,6 +384,13 @@ export function AuditLogViewer({ className }: AuditLogViewerProps) {
           )}
         </CardContent>
       </Card>
+
+      {/* Detail Modal */}
+      <AuditDetailModal
+        entry={selectedEntry}
+        open={detailModalOpen}
+        onOpenChange={setDetailModalOpen}
+      />
     </div>
   );
 }
