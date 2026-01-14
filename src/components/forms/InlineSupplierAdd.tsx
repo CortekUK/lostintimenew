@@ -152,7 +152,9 @@ export function InlineSupplierAdd({
               onValueChange={(value) => setFormData({ ...formData, supplier_type: value as 'registered' | 'customer' })}
             >
               <SelectTrigger id="supplier_type">
-                <SelectValue />
+                <SelectValue>
+                  {formData.supplier_type === 'registered' ? 'Registered Supplier' : 'Customer Supplier'}
+                </SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="registered">
