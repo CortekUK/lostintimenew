@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './AuthContext';
+import type { CRMModule, Action } from '@/lib/permissions';
 
 export interface CustomFilter {
   id: string;
@@ -29,6 +30,19 @@ export interface CommissionSettings {
   enabled: boolean;
 }
 
+// Role permission overrides - allows owner to customize manager/staff permissions
+export interface ModulePermissionOverrides {
+  view?: boolean;
+  create?: boolean;
+  edit?: boolean;
+  delete?: boolean;
+}
+
+export interface RolePermissionOverrides {
+  manager: Partial<Record<CRMModule, ModulePermissionOverrides>>;
+  staff: Partial<Record<CRMModule, ModulePermissionOverrides>>;
+}
+
 export interface AppSettings {
   currency: string;
   taxInclusive: boolean;
@@ -43,6 +57,7 @@ export interface AppSettings {
   customFilters: CustomFilter[];
   vipTierThresholds: VIPTierThresholds;
   commissionSettings: CommissionSettings;
+  rolePermissions?: RolePermissionOverrides;
 }
 
 interface SettingsContextType {
@@ -74,6 +89,7 @@ const defaultSettings: AppSettings = {
     calculationBasis: 'revenue',
     enabled: true,
   },
+  rolePermissions: undefined, // Use defaults from PERMISSION_MATRIX when undefined
 };
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
