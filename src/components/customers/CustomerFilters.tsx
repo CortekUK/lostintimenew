@@ -177,7 +177,7 @@ export function CustomerFiltersComponent({
           </SheetHeader>
 
           <ScrollArea className="h-[calc(100vh-8rem)] pr-4">
-            <div className="space-y-6 pl-1">
+            <div className="space-y-6 px-3">
               {/* Spend Range */}
               <div className="space-y-3">
                 <Label className="text-sm font-medium">Lifetime Spend</Label>
