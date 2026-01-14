@@ -41,7 +41,6 @@ interface CheckoutFormProps {
   onSignatureChange?: (signature: string | null) => void;
   staffMember: string;
   onStaffMemberChange: (member: string) => void;
-  staffMembers?: string[]; // Now optional - kept for backwards compatibility
   locationId: number | null;
   onLocationChange: (locationId: number | null) => void;
 }

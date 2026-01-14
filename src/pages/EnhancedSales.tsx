@@ -408,7 +408,6 @@ export default function EnhancedSales() {
               onSignatureChange={setSignature}
               staffMember={staffMember}
               onStaffMemberChange={setStaffMember}
-              staffMembers={settings.staffMembers || []}
               locationId={locationId}
               onLocationChange={setLocationId}
             />

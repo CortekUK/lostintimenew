@@ -40,7 +40,6 @@ export interface AppSettings {
   reorderPointDefault: number;
   digitalReceiptDefault: 'email' | 'none';
   quickFilterPresets: string[];
-  staffMembers: string[];
   customFilters: CustomFilter[];
   vipTierThresholds: VIPTierThresholds;
   commissionSettings: CommissionSettings;
@@ -64,7 +63,6 @@ const defaultSettings: AppSettings = {
   reorderPointDefault: 5,
   digitalReceiptDefault: 'none',
   quickFilterPresets: ['watches', 'rings', 'gold', 'white-gold', 'rose-gold', 'silver', 'in-stock', 'low-stock'],
-  staffMembers: [],
   customFilters: [],
   vipTierThresholds: {
     silver: 500,
