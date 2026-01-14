@@ -2,11 +2,15 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
 import { EnhancedTable } from '@/components/ui/enhanced-table';
 import { DateRangePicker } from '@/components/reports/DateRangePicker';
+import { RecordCommissionPaymentModal } from '@/components/reports/RecordCommissionPaymentModal';
+import { CommissionPaymentHistory } from '@/components/reports/CommissionPaymentHistory';
 import { useToast } from '@/hooks/use-toast';
 import { useSoldItemsReport } from '@/hooks/useDatabase';
 import { useSettings } from '@/contexts/SettingsContext';
+import { useCommissionPayments } from '@/hooks/useCommissionPayments';
 import { exportCommissionCSV, StaffCommissionData } from '@/utils/commissionExport';
 import { 
   Download, 
@@ -15,9 +19,12 @@ import {
   Coins, 
   Percent,
   ExternalLink,
-  Users
+  Users,
+  CheckCircle,
+  AlertCircle,
+  History
 } from 'lucide-react';
-import { format, startOfDay, endOfDay, startOfMonth, endOfMonth } from 'date-fns';
+import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, parse } from 'date-fns';
 import type { DateRange } from '@/types';
 
 export function StaffCommissionTab() {
@@ -35,6 +42,26 @@ export function StaffCommissionTab() {
     from: format(startOfMonth(new Date()), 'yyyy-MM-dd'),
     to: format(endOfMonth(new Date()), 'yyyy-MM-dd')
   });
+
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [selectedStaff, setSelectedStaff] = useState<StaffCommissionData | null>(null);
+  const [showHistory, setShowHistory] = useState(false);
+
+  // Fetch payments for the current period
+  const { data: periodPayments = [] } = useCommissionPayments({
+    periodStart: dateRange.from,
+    periodEnd: dateRange.to,
+  });
+
+  // Calculate paid amounts by staff
+  const paidByStaff = useMemo(() => {
+    const map = new Map<string, number>();
+    periodPayments.forEach(payment => {
+      const current = map.get(payment.staff_id) || 0;
+      map.set(payment.staff_id, current + Number(payment.commission_amount));
+    });
+    return map;
+  }, [periodPayments]);
 
   // Filter items by date range and exclude trade-ins
   const filteredItems = useMemo(() => {
@@ -100,9 +127,9 @@ export function StaffCommissionTab() {
     })).sort((a, b) => b.commission - a.commission);
   }, [filteredItems, commissionRate, commissionBasis, commissionEnabled]);
 
-  // Calculate totals
+  // Calculate totals including payment status
   const totals = useMemo(() => {
-    return staffCommissions.reduce(
+    const base = staffCommissions.reduce(
       (acc, staff) => ({
         salesCount: acc.salesCount + staff.salesCount,
         revenue: acc.revenue + staff.revenue,
@@ -111,7 +138,15 @@ export function StaffCommissionTab() {
       }),
       { salesCount: 0, revenue: 0, profit: 0, commission: 0 }
     );
-  }, [staffCommissions]);
+
+    const totalPaid = Array.from(paidByStaff.values()).reduce((sum, v) => sum + v, 0);
+    
+    return {
+      ...base,
+      paid: totalPaid,
+      outstanding: base.commission - totalPaid
+    };
+  }, [staffCommissions, paidByStaff]);
 
   const handleExport = () => {
     if (staffCommissions.length === 0) {
@@ -143,6 +178,21 @@ export function StaffCommissionTab() {
     if (dateRange.to) params.set('to', dateRange.to);
     params.set('staff', staffId);
     navigate(`/sales/items?${params.toString()}`);
+  };
+
+  const handleRecordPayment = (staff: StaffCommissionData) => {
+    setSelectedStaff(staff);
+    setShowPaymentModal(true);
+  };
+
+  const getPaymentStatus = (staffId: string, owed: number) => {
+    const paid = paidByStaff.get(staffId) || 0;
+    if (paid >= owed) {
+      return { status: 'paid', paid, outstanding: 0 };
+    } else if (paid > 0) {
+      return { status: 'partial', paid, outstanding: owed - paid };
+    }
+    return { status: 'unpaid', paid: 0, outstanding: owed };
   };
 
   const columns = [
@@ -185,7 +235,7 @@ export function StaffCommissionTab() {
     },
     {
       key: 'commission',
-      title: 'Commission Owed',
+      title: 'Commission',
       sortable: true,
       align: 'right' as const,
       render: (value: number) => (
@@ -195,20 +245,68 @@ export function StaffCommissionTab() {
       )
     },
     {
+      key: 'status',
+      title: 'Status',
+      render: (_: any, row: StaffCommissionData) => {
+        const { status, paid, outstanding } = getPaymentStatus(row.staffId, row.commission);
+        
+        if (status === 'paid') {
+          return (
+            <Badge variant="default" className="bg-green-500/10 text-green-600 border-green-500/20">
+              <CheckCircle className="h-3 w-3 mr-1" />
+              Paid
+            </Badge>
+          );
+        } else if (status === 'partial') {
+          return (
+            <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+              <AlertCircle className="h-3 w-3 mr-1" />
+              £{outstanding.toFixed(2)} due
+            </Badge>
+          );
+        }
+        return (
+          <Badge variant="outline" className="text-muted-foreground">
+            Unpaid
+          </Badge>
+        );
+      }
+    },
+    {
       key: 'actions',
       title: '',
-      render: (_: any, row: StaffCommissionData) => (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => handleViewStaffSales(row.staffId)}
-          title="View Staff Sales"
-        >
-          <ExternalLink className="h-3 w-3" />
-        </Button>
-      )
+      render: (_: any, row: StaffCommissionData) => {
+        const { outstanding } = getPaymentStatus(row.staffId, row.commission);
+        return (
+          <div className="flex gap-1">
+            {outstanding > 0 && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => handleRecordPayment(row)}
+              >
+                Pay
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => handleViewStaffSales(row.staffId)}
+              title="View Staff Sales"
+            >
+              <ExternalLink className="h-3 w-3" />
+            </Button>
+          </div>
+        );
+      }
     }
   ];
+
+  // Parse dateRange for modal
+  const dateRangeForModal = {
+    from: dateRange.from ? parse(dateRange.from, 'yyyy-MM-dd', new Date()) : undefined,
+    to: dateRange.to ? parse(dateRange.to, 'yyyy-MM-dd', new Date()) : undefined,
+  };
 
   return (
     <div className="space-y-6">
@@ -218,14 +316,23 @@ export function StaffCommissionTab() {
           dateRange={dateRange}
           onDateRangeChange={setDateRange}
         />
-        <Button variant="outline" onClick={handleExport} disabled={isLoading || staffCommissions.length === 0}>
-          <Download className="h-4 w-4 mr-2" />
-          Export CSV
-        </Button>
+        <div className="flex gap-2">
+          <Button 
+            variant="outline" 
+            onClick={() => setShowHistory(!showHistory)}
+          >
+            <History className="h-4 w-4 mr-2" />
+            {showHistory ? 'Hide History' : 'Payment History'}
+          </Button>
+          <Button variant="outline" onClick={handleExport} disabled={isLoading || staffCommissions.length === 0}>
+            <Download className="h-4 w-4 mr-2" />
+            Export CSV
+          </Button>
+        </div>
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
@@ -269,27 +376,54 @@ export function StaffCommissionTab() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Commission Rate</CardTitle>
-            <Percent className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium">Paid</CardTitle>
+            <CheckCircle className="h-4 w-4 text-green-500" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{commissionRate}%</div>
+            <div className="text-2xl font-bold text-green-600">£{totals.paid.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">
-              of {commissionBasis === 'profit' ? 'gross profit' : 'revenue'}
+              Already paid out
+            </p>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
+            <AlertCircle className="h-4 w-4 text-yellow-500" />
+          </CardHeader>
+          <CardContent>
+            <div className={`text-2xl font-bold ${totals.outstanding > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+              £{totals.outstanding.toFixed(2)}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Still to pay
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Commission Disabled Warning */}
-      {!commissionEnabled && (
-        <Card className="border-warning bg-warning/5">
-          <CardContent className="py-4">
-            <p className="text-sm text-warning-foreground">
-              Commission tracking is currently disabled in settings. Enable it to see accurate commission calculations.
-            </p>
-          </CardContent>
-        </Card>
+      {/* Commission Rate Card */}
+      <Card>
+        <CardContent className="py-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Percent className="h-4 w-4 text-muted-foreground" />
+              <span className="text-sm text-muted-foreground">Commission Rate:</span>
+              <span className="font-medium">{commissionRate}% of {commissionBasis === 'profit' ? 'gross profit' : 'revenue'}</span>
+            </div>
+            {!commissionEnabled && (
+              <Badge variant="outline" className="text-yellow-600 border-yellow-500/30">
+                Commission Tracking Disabled
+              </Badge>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Payment History (toggleable) */}
+      {showHistory && (
+        <CommissionPaymentHistory />
       )}
 
       {/* Staff Table */}
@@ -309,6 +443,19 @@ export function StaffCommissionTab() {
           />
         </CardContent>
       </Card>
+
+      {/* Record Payment Modal */}
+      {selectedStaff && (
+        <RecordCommissionPaymentModal
+          open={showPaymentModal}
+          onOpenChange={setShowPaymentModal}
+          staffData={selectedStaff}
+          dateRange={dateRangeForModal}
+          commissionRate={commissionRate}
+          commissionBasis={commissionBasis}
+          alreadyPaid={paidByStaff.get(selectedStaff.staffId) || 0}
+        />
+      )}
     </div>
   );
 }
