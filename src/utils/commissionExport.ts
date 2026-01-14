@@ -1,4 +1,6 @@
 import { toCSV } from '@/utils/csvUtils';
+import { format } from 'date-fns';
+import type { CommissionPayment } from '@/hooks/useCommissionPayments';
 
 export interface StaffCommissionData {
   staffId: string;
@@ -53,7 +55,35 @@ export function exportCommissionCSV(
     : 'Period: All time\n';
   const csvWithHeader = periodInfo + csv;
 
-  const blob = new Blob([csvWithHeader], { type: 'text/csv;charset=utf-8' });
+  downloadCSV(csvWithHeader, filename);
+}
+
+export function exportCommissionPaymentsCSV(
+  payments: CommissionPayment[],
+  filename: string
+) {
+  const formattedData = payments.map(payment => ({
+    'Date': format(new Date(payment.paid_at), 'dd/MM/yyyy'),
+    'Staff Member': payment.staff?.full_name || payment.staff?.email || 'Unknown',
+    'Period Start': format(new Date(payment.period_start), 'dd/MM/yyyy'),
+    'Period End': format(new Date(payment.period_end), 'dd/MM/yyyy'),
+    'Sales Count': payment.sales_count,
+    'Revenue': `£${Number(payment.revenue_total).toFixed(2)}`,
+    'Profit': `£${Number(payment.profit_total).toFixed(2)}`,
+    'Commission Rate': `${payment.commission_rate}%`,
+    'Commission Basis': payment.commission_basis === 'profit' ? 'Gross Profit' : 'Revenue',
+    'Amount Paid': `£${Number(payment.commission_amount).toFixed(2)}`,
+    'Payment Method': payment.payment_method.replace('_', ' '),
+    'Paid By': payment.paid_by_profile?.full_name || 'Unknown',
+    'Notes': payment.notes || ''
+  }));
+
+  const csv = toCSV(formattedData);
+  downloadCSV(csv, filename);
+}
+
+function downloadCSV(csv: string, filename: string) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
   const url = URL.createObjectURL(blob);
   
   const link = document.createElement('a');

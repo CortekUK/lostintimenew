@@ -130,6 +130,75 @@ export type Database = {
           },
         ]
       }
+      commission_payments: {
+        Row: {
+          commission_amount: number
+          commission_basis: string
+          commission_rate: number
+          created_at: string
+          id: number
+          notes: string | null
+          paid_at: string
+          paid_by: string | null
+          payment_method: string
+          period_end: string
+          period_start: string
+          profit_total: number
+          revenue_total: number
+          sales_count: number
+          staff_id: string
+        }
+        Insert: {
+          commission_amount: number
+          commission_basis: string
+          commission_rate: number
+          created_at?: string
+          id?: never
+          notes?: string | null
+          paid_at?: string
+          paid_by?: string | null
+          payment_method?: string
+          period_end: string
+          period_start: string
+          profit_total?: number
+          revenue_total?: number
+          sales_count?: number
+          staff_id: string
+        }
+        Update: {
+          commission_amount?: number
+          commission_basis?: string
+          commission_rate?: number
+          created_at?: string
+          id?: never
+          notes?: string | null
+          paid_at?: string
+          paid_by?: string | null
+          payment_method?: string
+          period_end?: string
+          period_start?: string
+          profit_total?: number
+          revenue_total?: number
+          sales_count?: number
+          staff_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "commission_payments_paid_by_fkey"
+            columns: ["paid_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+          {
+            foreignKeyName: "commission_payments_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
       consignment_settlements: {
         Row: {
           agreed_price: number | null
