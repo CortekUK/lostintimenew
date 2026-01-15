@@ -463,6 +463,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
             }}
             defaultType={tradeInSource === 'supplier' ? 'registered' : 'customer'}
             triggerLabel=""
+            lockType
           />
         )}
       </DialogContent>

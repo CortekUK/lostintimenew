@@ -322,6 +322,7 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                     <InlineSupplierAdd 
                       onSupplierCreated={(supplierId) => setFormData({...formData, supplier_id: supplierId.toString()})}
                       triggerClassName="text-xs"
+                      lockType
                     />
                   </div>
                 </div>
@@ -451,6 +452,7 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                   <InlineSupplierAdd
                     defaultType="customer"
                     hideTrigger
+                    lockType
                     open={showNewCustomerModal}
                     onOpenChange={setShowNewCustomerModal}
                     onSupplierCreated={(supplierId) => {
@@ -539,6 +541,7 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                           <InlineSupplierAdd 
                             onSupplierCreated={(supplierId) => setFormData({...formData, consignment_supplier_id: supplierId})}
                             triggerClassName="text-xs"
+                            lockType
                           />
                         </div>
                       </div>

@@ -35,6 +35,8 @@ interface InlineSupplierAddProps {
   onOpenChange?: (open: boolean) => void;
   /** Hide the trigger button (useful when controlling externally) */
   hideTrigger?: boolean;
+  /** Lock the supplier type - prevents changing between registered/customer */
+  lockType?: boolean;
 }
 
 export function InlineSupplierAdd({ 
@@ -44,7 +46,8 @@ export function InlineSupplierAdd({
   triggerLabel,
   open: controlledOpen,
   onOpenChange: controlledOnOpenChange,
-  hideTrigger = false
+  hideTrigger = false,
+  lockType = false
 }: InlineSupplierAddProps) {
   const [internalOpen, setInternalOpen] = useState(false);
   
@@ -164,34 +167,40 @@ export function InlineSupplierAdd({
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="supplier_type">Supplier Type *</Label>
-            <Select
-              value={formData.supplier_type}
-              onValueChange={(value) => setFormData({ ...formData, supplier_type: value as 'registered' | 'customer' })}
-            >
-              <SelectTrigger id="supplier_type">
-                <SelectValue>
-                  {formData.supplier_type === 'registered' ? 'Registered Supplier' : 'Customer Supplier'}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="registered">
-                  <div>
-                    <div className="font-medium">Registered Supplier</div>
-                    <div className="text-xs text-muted-foreground">
-                      Business vendor or wholesale supplier
+            {lockType ? (
+              <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted/50 px-3 text-sm text-muted-foreground">
+                {formData.supplier_type === 'registered' ? 'Registered Supplier' : 'Customer Supplier'}
+              </div>
+            ) : (
+              <Select
+                value={formData.supplier_type}
+                onValueChange={(value) => setFormData({ ...formData, supplier_type: value as 'registered' | 'customer' })}
+              >
+                <SelectTrigger id="supplier_type">
+                  <SelectValue>
+                    {formData.supplier_type === 'registered' ? 'Registered Supplier' : 'Customer Supplier'}
+                  </SelectValue>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="registered">
+                    <div>
+                      <div className="font-medium">Registered Supplier</div>
+                      <div className="text-xs text-muted-foreground">
+                        Business vendor or wholesale supplier
+                      </div>
                     </div>
-                  </div>
-                </SelectItem>
-                <SelectItem value="customer">
-                  <div>
-                    <div className="font-medium">Customer Supplier</div>
-                    <div className="text-xs text-muted-foreground">
-                      Walk-in customer for trade-in or consignment
+                  </SelectItem>
+                  <SelectItem value="customer">
+                    <div>
+                      <div className="font-medium">Customer Supplier</div>
+                      <div className="text-xs text-muted-foreground">
+                        Walk-in customer for trade-in or consignment
+                      </div>
                     </div>
-                  </div>
-                </SelectItem>
-              </SelectContent>
-            </Select>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            )}
           </div>
 
           <div className="space-y-2">
