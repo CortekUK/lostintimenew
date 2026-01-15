@@ -78,11 +78,25 @@ export default function Expenses() {
         await updateExpense.mutateAsync(data.expense);
         toast({ title: 'Expense updated successfully' });
       } else {
-        await createExpense.mutateAsync(data.expense);
+        const createdExpense = await createExpense.mutateAsync(data.expense);
+
         if (data.recurring && data.template) {
-          await createTemplate(data.template);
+          const template = await createTemplate(data.template);
+
+          // Link the created expense to the template so the table can show "Recurring" + controls
+          if (template?.id && createdExpense?.id) {
+            await updateExpense.mutateAsync({
+              id: createdExpense.id,
+              updates: { template_id: template.id },
+            });
+          }
         }
-        toast({ title: data.recurring ? 'Expense recorded. Recurring template created.' : 'Expense recorded successfully' });
+
+        toast({
+          title: data.recurring
+            ? 'Expense recorded. Recurring template created.'
+            : 'Expense recorded successfully',
+        });
       }
       setShowModal(false);
       setEditingExpense(null);

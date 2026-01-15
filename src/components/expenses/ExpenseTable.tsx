@@ -1,4 +1,5 @@
 import { useState, useMemo, memo } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -23,7 +24,7 @@ import {
 import { Edit, Trash2, Check, X, ArrowUpDown, ChevronLeft, ChevronRight, RefreshCw, Pause, Play, Settings, XCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUpdateExpense, useDeleteExpense } from '@/hooks/useDatabase';
-import { useOwnerGuard } from '@/hooks/useOwnerGuard';
+import { usePermissions } from '@/hooks/usePermissions';
 import { useAllExpenseCategories, formatCategoryDisplay } from '@/hooks/useCustomCategories';
 import { useExpenseTemplates } from '@/hooks/useExpenseTemplates';
 import { EditExpenseModal } from './EditExpenseModal';
@@ -66,7 +67,8 @@ const ExpenseRow = memo(({
   onEditSchedule,
   onTogglePause,
   onStopRecurring,
-  isOwner,
+  canEditExpenses,
+  canDeleteExpenses,
   allCategories 
 }: any) => {
   const hasTemplate = !!expense.template;
@@ -177,130 +179,140 @@ const ExpenseRow = memo(({
           )}
         </div>
       </TableCell>
-      <TableCell className="text-right">
-        {isOwner && (
-          <div className="flex items-center justify-end gap-1">
-            {isEditing ? (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onSaveEdit(expense.id)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Check className="h-4 w-4 text-green-600" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={onCancelEdit}
-                  className="h-8 w-8 p-0"
-                >
-                  <X className="h-4 w-4 text-muted-foreground" />
-                </Button>
-              </>
-            ) : (
-              <>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onStartEdit(expense)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Edit className="h-4 w-4" />
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onOpenModal(expense)}
-                  className="h-8 px-2 text-xs"
-                >
-                  Full Edit
-                </Button>
-                {hasTemplate ? (
-                  <>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onEditSchedule(expense.template)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <Settings className="h-4 w-4 text-primary" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Edit Schedule</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onTogglePause(expense.template)}
-                            className="h-8 w-8 p-0"
-                          >
-                            {expense.template.is_active ? (
-                              <Pause className="h-4 w-4 text-amber-500" />
-                            ) : (
-                              <Play className="h-4 w-4 text-green-500" />
-                            )}
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          {expense.template.is_active ? 'Pause Schedule' : 'Resume Schedule'}
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => onStopRecurring(expense.template)}
-                            className="h-8 w-8 p-0"
-                          >
-                            <XCircle className="h-4 w-4 text-destructive" />
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Stop Recurring</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </>
-                ) : (
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => onMakeRecurring(expense)}
-                          className="h-8 w-8 p-0"
-                        >
-                          <RefreshCw className="h-4 w-4 text-primary" />
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent>Make Recurring</TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                )}
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  onClick={() => onDelete(expense.id)}
-                  className="h-8 w-8 p-0"
-                >
-                  <Trash2 className="h-4 w-4 text-destructive" />
-                </Button>
-              </>
-            )}
-          </div>
-        )}
-      </TableCell>
+        <TableCell className="text-right">
+          {(canEditExpenses || canDeleteExpenses) && (
+            <div className="flex items-center justify-end gap-1">
+              {isEditing ? (
+                <>
+                  {canEditExpenses && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onSaveEdit(expense.id)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Check className="h-4 w-4 text-green-600" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={onCancelEdit}
+                        className="h-8 w-8 p-0"
+                      >
+                        <X className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>
+                  {canEditExpenses && (
+                    <>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onStartEdit(expense)}
+                        className="h-8 w-8 p-0"
+                      >
+                        <Edit className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => onOpenModal(expense)}
+                        className="h-8 px-2 text-xs"
+                      >
+                        Full Edit
+                      </Button>
+                      {hasTemplate ? (
+                        <>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => onEditSchedule(expense.template)}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <Settings className="h-4 w-4 text-primary" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Edit Schedule</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => onTogglePause(expense.template)}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  {expense.template.is_active ? (
+                                    <Pause className="h-4 w-4 text-amber-500" />
+                                  ) : (
+                                    <Play className="h-4 w-4 text-green-500" />
+                                  )}
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {expense.template.is_active ? 'Pause Schedule' : 'Resume Schedule'}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => onStopRecurring(expense.template)}
+                                  className="h-8 w-8 p-0"
+                                >
+                                  <XCircle className="h-4 w-4 text-destructive" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Stop Recurring</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </>
+                      ) : (
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => onMakeRecurring(expense)}
+                                className="h-8 w-8 p-0"
+                              >
+                                <RefreshCw className="h-4 w-4 text-primary" />
+                              </Button>
+                            </TooltipTrigger>
+                            <TooltipContent>Make Recurring</TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      )}
+                    </>
+                  )}
+                  {canDeleteExpenses && (
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => onDelete(expense.id)}
+                      className="h-8 w-8 p-0"
+                    >
+                      <Trash2 className="h-4 w-4 text-destructive" />
+                    </Button>
+                  )}
+                </>
+              )}
+            </div>
+          )}
+        </TableCell>
     </TableRow>
   );
 });
@@ -320,12 +332,15 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
   const [editScheduleTemplate, setEditScheduleTemplate] = useState<any>(null);
   const [stopRecurringTemplate, setStopRecurringTemplate] = useState<any>(null);
   
+  const queryClient = useQueryClient();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
-  const isOwner = useOwnerGuard();
+  const { canEdit, canDelete } = usePermissions();
+  const canEditExpenses = canEdit('expenses');
+  const canDeleteExpenses = canDelete('expenses');
+  const canManageExpenses = canEditExpenses || canDeleteExpenses;
   const { all: allCategories } = useAllExpenseCategories();
   const { createTemplate, updateTemplate, deleteTemplate } = useExpenseTemplates();
-
   // Pagination
   const totalPages = Math.ceil(expenses.length / pageSize);
   const startIndex = (currentPage - 1) * pageSize;
@@ -483,7 +498,7 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
                 <TableHead>Payment</TableHead>
                 <TableHead>Supplier</TableHead>
                 <TableHead>Type</TableHead>
-                {isOwner && <TableHead className="text-right">Actions</TableHead>}
+                {canManageExpenses && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -505,8 +520,8 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
                   onEditSchedule={setEditScheduleTemplate}
                   onTogglePause={handleTogglePause}
                   onStopRecurring={setStopRecurringTemplate}
-                  isOwner={isOwner}
-                  allCategories={allCategories}
+                  canEditExpenses={canEditExpenses}
+                  canDeleteExpenses={canDeleteExpenses}
                 />
               ))}
             </TableBody>
@@ -638,15 +653,17 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
               frequency: frequency as 'weekly' | 'monthly' | 'quarterly' | 'annually',
               next_due_date: nextDueDate.toISOString().split('T')[0],
             });
-            
+
             // Link expense to template
             if (template?.id) {
-              await updateExpense.mutateAsync({ 
-                id: recurringExpense.id, 
-                updates: { template_id: template.id } 
+              await updateExpense.mutateAsync({
+                id: recurringExpense.id,
+                updates: { template_id: template.id },
               });
             }
-            
+
+            await queryClient.invalidateQueries({ queryKey: ['expenses', 'filtered'] });
+
             toast.success('Recurring template created');
             setRecurringExpense(null);
           } catch (error) {
