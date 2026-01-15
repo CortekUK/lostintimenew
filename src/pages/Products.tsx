@@ -609,12 +609,10 @@ export default function Products() {
                 <LayoutGrid className="h-4 w-4" />
               </ToggleGroupItem>
             </ToggleGroup>
-            {canCreate(CRM_MODULES.PRODUCTS) && (
-              <Button variant="premium" onClick={() => setShowAddProduct(true)}>
-                <Plus className="h-4 w-4 mr-2" />
-                Add Product
-              </Button>
-            )}
+            <Button variant="premium" onClick={() => setShowAddProduct(true)}>
+              <Plus className="h-4 w-4 mr-2" />
+              Add Product
+            </Button>
           </div>
         </div>
 
@@ -781,12 +779,12 @@ export default function Products() {
                 }}>
                   Clear All Filters
                 </Button>
-              ) : canCreate(CRM_MODULES.PRODUCTS) ? (
+              ) : (
                 <Button variant="premium" onClick={() => setShowAddProduct(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Add Product
                 </Button>
-              ) : null}
+              )}
             </CardContent>
           </Card>
         )}
