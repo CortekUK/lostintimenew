@@ -125,6 +125,12 @@ export function useRecordCommissionPayment() {
       if (error) throw error;
 
       // 2. Also create an expense entry for P&L tracking
+      // Map commission payment methods to expenses payment_method enum
+      const expensePaymentMethod = params.paymentMethod === 'bank_transfer' ? 'transfer' 
+        : params.paymentMethod === 'cheque' ? 'other'
+        : params.paymentMethod === 'cash' ? 'cash'
+        : 'other';
+      
       const { error: expenseError } = await supabase
         .from('expenses')
         .insert({
@@ -133,7 +139,7 @@ export function useRecordCommissionPayment() {
           amount: params.commissionAmount,
           amount_inc_vat: params.commissionAmount,
           is_cogs: false,
-          payment_method: params.paymentMethod,
+          payment_method: expensePaymentMethod,
           incurred_at: new Date().toISOString(),
           staff_id: userData.user.id
         });
