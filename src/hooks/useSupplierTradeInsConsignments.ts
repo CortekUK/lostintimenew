@@ -113,6 +113,7 @@ interface ConsignmentItem {
   product_id: number;
   product_name: string;
   internal_sku: string;
+  consignment_terms?: string | null;
   agreed_payout: number;
   status: 'active' | 'sold' | 'settled';
   sale_id?: number;
@@ -141,12 +142,12 @@ export function isPaymentOverdue(soldAt: string | null): boolean {
 
 export function useSupplierConsignments(supplierId: number, startDate?: Date, endDate?: Date, statusFilter?: string) {
   return useQuery({
-    queryKey: ['supplier-consignments', supplierId, startDate, endDate, statusFilter],
+    queryKey: ['supplier-consignments', supplierId, startDate, endDate, statusFilter, 'v2'],
     queryFn: async () => {
       // Get all consignment products for this customer supplier
       const { data: products, error: productsError } = await supabase
         .from('products')
-        .select('id, name, internal_sku')
+        .select('id, name, internal_sku, consignment_terms')
         .eq('consignment_supplier_id', supplierId)
         .eq('is_consignment', true);
 
@@ -184,10 +185,10 @@ export function useSupplierConsignments(supplierId: number, startDate?: Date, en
       const result: ConsignmentItem[] = products.map(product => {
         const settlement = settlements?.find(s => s.product_id === product.id);
         const saleItem = saleItems?.find(si => si.product_id === product.id);
-        
+
         const agreedPayout = settlement?.payout_amount || settlement?.agreed_price || 0;
         const soldPrice = saleItem ? saleItem.unit_price * saleItem.quantity : null;
-        
+
         let status: 'active' | 'sold' | 'settled' = 'active';
         if (settlement?.paid_at) {
           status = 'settled';
@@ -202,6 +203,7 @@ export function useSupplierConsignments(supplierId: number, startDate?: Date, en
           product_id: product.id,
           product_name: product.name,
           internal_sku: product.internal_sku,
+          consignment_terms: product.consignment_terms,
           agreed_payout: Number(agreedPayout),
           status,
           sale_id: saleItem?.sale_id || settlement?.sale_id,
@@ -222,7 +224,7 @@ export function useSupplierConsignments(supplierId: number, startDate?: Date, en
 
       if (startDate || endDate) {
         filtered = filtered.filter(item => {
-          if (!item.sold_at) return status === 'active';
+          if (!item.sold_at) return item.status === 'active';
           const itemDate = new Date(item.sold_at);
           if (startDate && itemDate < startDate) return false;
           if (endDate && itemDate > endDate) return false;

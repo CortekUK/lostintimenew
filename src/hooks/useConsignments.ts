@@ -92,7 +92,7 @@ export const useConsignmentSettlements = (filter?: ConsignmentFilter) => {
   const { user, session } = useAuth();
   
   return useQuery({
-    queryKey: ['consignment-settlements', filter],
+    queryKey: ['consignment-settlements', filter, 'v2'],
     queryFn: async () => {
       let query = supabase
         .from('consignment_settlements')
