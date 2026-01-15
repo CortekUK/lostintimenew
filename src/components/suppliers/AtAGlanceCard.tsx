@@ -137,9 +137,9 @@ export function AtAGlanceCard({ supplierId, tags }: AtAGlanceCardProps) {
         </div>
 
         {/* Tags */}
-        {tags && tags.length > 0 && (
-          <div>
-            <p className="text-sm font-medium text-muted-foreground mb-2">Tags</p>
+        <div>
+          <p className="text-sm font-medium text-muted-foreground mb-2">Tags</p>
+          {tags && tags.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {tags.map((tag, idx) => (
                 <Badge key={idx} variant="outline">
@@ -147,8 +147,10 @@ export function AtAGlanceCard({ supplierId, tags }: AtAGlanceCardProps) {
                 </Badge>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <p className="text-sm text-muted-foreground italic">No tags</p>
+          )}
+        </div>
 
         {/* Top Margin Product Insight */}
         {topMarginProduct && topMarginProduct.gross_profit > 0 && (

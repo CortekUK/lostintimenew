@@ -44,6 +44,48 @@ export function SupplierKPICards({
     enabled: supplierType === 'customer',
   });
 
+  // Fetch unsold products count for registered suppliers
+  const { data: unsoldProducts } = useQuery({
+    queryKey: ['supplier-unsold-products', supplierId],
+    queryFn: async () => {
+      if (supplierType === 'customer') return null;
+
+      // Get products from this supplier that are still in stock
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select('id')
+        .eq('supplier_id', supplierId);
+
+      if (productsError) throw productsError;
+      if (!products?.length) return { count: 0, value: 0 };
+
+      const productIds = products.map(p => p.id);
+
+      // Get stock on hand for these products
+      const { data: stockData, error: stockError } = await supabase
+        .from('v_stock_on_hand')
+        .select('product_id, qty_on_hand')
+        .in('product_id', productIds)
+        .gt('qty_on_hand', 0);
+
+      if (stockError) throw stockError;
+
+      // Get inventory values
+      const { data: inventoryData } = await supabase
+        .from('v_inventory_value')
+        .select('product_id, inventory_value')
+        .in('product_id', stockData?.map(s => s.product_id) || []);
+
+      const totalValue = inventoryData?.reduce((sum, item) => sum + Number(item.inventory_value || 0), 0) || 0;
+
+      return {
+        count: stockData?.length || 0,
+        value: totalValue,
+      };
+    },
+    enabled: supplierType !== 'customer',
+  });
+
   const totalPayouts = inventorySpend + expenseSpend;
 
   return (
@@ -98,13 +140,13 @@ export function SupplierKPICards({
         </CardContent>
       </Card>
 
-      {/* Card 3: Open Items */}
+      {/* Card 3: Open Items / Unsold Products */}
       <Card>
         <CardContent className="pt-6">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
-                {supplierType === 'customer' ? 'Active Consignments' : 'Open Items'}
+                {supplierType === 'customer' ? 'Active Consignments' : 'In Stock'}
               </p>
               {supplierType === 'customer' ? (
                 <>
@@ -120,9 +162,14 @@ export function SupplierKPICards({
                 </>
               ) : (
                 <>
-                  <p className="text-3xl font-luxury font-bold mt-1">—</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    Purchase orders placeholder
+                  <p className="text-3xl font-luxury font-bold mt-1">
+                    {unsoldProducts?.count || 0}
+                  </p>
+                  <p className="text-sm text-muted-foreground">
+                    £{(unsoldProducts?.value || 0).toLocaleString(undefined, { 
+                      minimumFractionDigits: 2, 
+                      maximumFractionDigits: 2 
+                    })} value
                   </p>
                 </>
               )}
