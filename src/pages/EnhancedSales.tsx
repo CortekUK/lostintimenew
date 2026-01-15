@@ -376,13 +376,25 @@ export default function EnhancedSales() {
       return { sale, items: cart, partExchanges, signature };
     },
     onSuccess: ({ sale, items, partExchanges: pxItems, signature: sig }) => {
-      queryClient.invalidateQueries({ queryKey: ['products'] });
+      // Invalidate all product-related caches for immediate UI updates
+      queryClient.invalidateQueries({ queryKey: ['products-base'] });
+      queryClient.invalidateQueries({ queryKey: ['products-with-stock'] });
+      queryClient.invalidateQueries({ queryKey: ['enhanced-products'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-data'] });
+      queryClient.invalidateQueries({ queryKey: ['inventory-values'] });
+      
+      // Invalidate related data
       queryClient.invalidateQueries({ queryKey: ['part-exchanges'] });
       queryClient.invalidateQueries({ queryKey: ['consignment-settlements'] });
       queryClient.invalidateQueries({ queryKey: ['consignment-products'] });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
       queryClient.invalidateQueries({ queryKey: ['cash-drawer-balances'] });
       queryClient.invalidateQueries({ queryKey: ['cash-drawer-history'] });
+      queryClient.invalidateQueries({ queryKey: ['sales'] });
+      queryClient.invalidateQueries({ queryKey: ['transactions'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard'] });
+      queryClient.invalidateQueries({ queryKey: ['today-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['sold-items'] });
       // Store completed sale data for modal
       setCompletedSale({ 
         sale, 
