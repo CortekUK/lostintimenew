@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useTheme } from 'next-themes';
-import { Printer, Mail, X, AlertCircle, Eye, Ban, Edit } from 'lucide-react';
+import { Printer, Mail, X, AlertCircle, Eye, Ban, Edit, Coins } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
 import { QuickSettlementModal } from '@/components/consignments/QuickSettlementModal';
@@ -21,7 +21,9 @@ import { printHtml } from '@/utils/printUtils';
 import { EmailService } from '@/components/integrations/EmailService';
 import { VoidSaleModal } from './VoidSaleModal';
 import { EditSaleModal } from './EditSaleModal';
+import { EditSaleCommissionModal } from '@/components/reports/EditSaleCommissionModal';
 import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
+import { useStaffCommissionOverride } from '@/hooks/useStaffCommissionOverrides';
 
 interface SaleDetailModalProps {
   saleId: number | null;
@@ -46,11 +48,47 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
   const [selectedConsignment, setSelectedConsignment] = useState<any>(null);
   const [voidModalOpen, setVoidModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
+  const [commissionModalOpen, setCommissionModalOpen] = useState(false);
 
   const items = data?.items || [];
   const partExchanges = data?.partExchanges || [];
   const settlements = data?.settlements || [];
   const sale = items[0]?.sales;
+  const staffId = sale?.staff_id;
+  
+  // Get staff override for commission calculation
+  const { data: staffOverride } = useStaffCommissionOverride(staffId);
+  
+  // Calculate commission
+  const commissionDetails = useMemo(() => {
+    if (!sale || !settings.commissionSettings?.enabled) {
+      return { calculated: 0, hasOverride: false, current: 0, reason: null };
+    }
+    
+    const rate = staffOverride?.commission_rate ?? settings.commissionSettings?.defaultRate ?? 5;
+    const basis = staffOverride?.commission_basis ?? settings.commissionSettings?.calculationBasis ?? 'revenue';
+    
+    // Calculate based on items
+    const totalRevenue = items.reduce((sum, item) => {
+      return sum + ((item.quantity * item.unit_price) - item.discount);
+    }, 0);
+    const totalCost = items.reduce((sum, item) => sum + (item.quantity * item.unit_cost), 0);
+    const totalProfit = totalRevenue - totalCost;
+    
+    const calculated = basis === 'profit' 
+      ? totalProfit * (rate / 100)
+      : totalRevenue * (rate / 100);
+    
+    const hasOverride = (sale as any).commission_override !== null && (sale as any).commission_override !== undefined;
+    const current = hasOverride ? Number((sale as any).commission_override) : calculated;
+    
+    return {
+      calculated,
+      hasOverride,
+      current,
+      reason: (sale as any).commission_override_reason,
+    };
+  }, [sale, items, settings.commissionSettings, staffOverride]);
   
   // Auto-scroll and highlight focused item
   useEffect(() => {
@@ -513,6 +551,44 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
               </div>
             </div>
 
+            {/* Commission Section (Owner only) */}
+            {userRole === 'owner' && settings.commissionSettings?.enabled && !sale.is_voided && (
+              <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground mb-1">
+                      <Coins className="h-4 w-4" />
+                      Staff Commission
+                      {commissionDetails.hasOverride && (
+                        <Badge variant="outline" className="text-xs border-warning text-warning">
+                          Overridden
+                        </Badge>
+                      )}
+                    </div>
+                    <div className="font-mono text-lg font-bold text-primary">
+                      £{commissionDetails.current.toFixed(2)}
+                    </div>
+                    {commissionDetails.hasOverride && (
+                      <div className="text-xs text-muted-foreground mt-1">
+                        Calculated: £{commissionDetails.calculated.toFixed(2)}
+                        {commissionDetails.reason && (
+                          <span className="ml-2">• {commissionDetails.reason}</span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setCommissionModalOpen(true)}
+                  >
+                    <Edit className="h-3 w-3 mr-1" />
+                    Edit
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Notes */}
             {sale.notes && (
               <div className="p-4 bg-muted/20 rounded-lg">
@@ -643,6 +719,19 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
             // Also invalidate the transactions list so it updates
             await queryClient.invalidateQueries({ queryKey: ['transactions'] });
           }}
+        />
+      )}
+
+      {/* Edit Commission Modal */}
+      {saleId && sale && (
+        <EditSaleCommissionModal
+          open={commissionModalOpen}
+          onClose={() => setCommissionModalOpen(false)}
+          saleId={saleId}
+          currentCommission={commissionDetails.current}
+          calculatedCommission={commissionDetails.calculated}
+          hasOverride={commissionDetails.hasOverride}
+          overrideReason={commissionDetails.reason}
         />
       )}
     </>
