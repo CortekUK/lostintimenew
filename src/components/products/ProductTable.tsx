@@ -302,7 +302,7 @@ export function ProductTable({
 
                     {/* Stock Status */}
                     <TableCell className={cellPadding}>
-                      <Badge variant="outline" className={`text-xs ${stockBadge.className}`}>
+                      <Badge variant="outline" className={`text-xs whitespace-nowrap ${stockBadge.className}`}>
                         {stockBadge.text}
                       </Badge>
                     </TableCell>
