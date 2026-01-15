@@ -25,7 +25,7 @@ import {
   Filter,
   RefreshCw,
   ArrowLeft,
-  ExternalLink,
+  Eye,
   Printer,
   X
 } from 'lucide-react';
@@ -357,7 +357,7 @@ export default function SoldItemsReport() {
             onClick={() => setSelectedSaleId(row.sale_id)}
             title="View Transaction"
           >
-            <ExternalLink className="h-3 w-3" />
+            <Eye className="h-3 w-3" />
           </Button>
           <Button
             variant="ghost"
