@@ -3,7 +3,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
-import { ExternalLink, User, Clock, Database, ArrowRight } from 'lucide-react';
+import { ExternalLink, User, Clock, Database, ArrowRight, PoundSterling, AlertTriangle } from 'lucide-react';
 import { EnhancedAuditEntry } from '@/hooks/useAuditLog';
 import { useNavigate } from 'react-router-dom';
 
@@ -22,6 +22,33 @@ const NAVIGABLE_TABLES: Record<string, (id: string) => string> = {
 };
 
 const EXCLUDED_FIELDS = ['updated_at', 'created_at', 'id'];
+
+// Financial fields that require prominent display for fraud prevention
+const SENSITIVE_FINANCIAL_FIELDS = [
+  'unit_price', 'unit_cost', 'sell_price', 'cost_price',
+  'total', 'subtotal', 'discount', 'discount_total', 'tax_amount', 'tax_total',
+  'allowance', 'payout_amount', 'settlement_amount', 'agreed_price', 'sale_price',
+  'amount', 'price', 'cost', 'value',
+  'commission_amount', 'commission_rate', 'profit_total', 'revenue_total'
+];
+
+// Check if a field is financial
+const isFinancialField = (fieldName: string): boolean => {
+  const lowerField = fieldName.toLowerCase();
+  return SENSITIVE_FINANCIAL_FIELDS.some(f => lowerField.includes(f) || lowerField === f);
+};
+
+// Format currency value
+const formatCurrencyValue = (value: any): string => {
+  const num = parseFloat(value);
+  if (isNaN(num)) return String(value ?? '—');
+  return num.toLocaleString('en-GB', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+};
+
+// Format field name for display
+const formatFieldName = (field: string): string => {
+  return field.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+};
 
 export function AuditDetailModal({ entry, open, onOpenChange }: AuditDetailModalProps) {
   const navigate = useNavigate();
@@ -50,6 +77,25 @@ export function AuditDetailModal({ entry, open, onOpenChange }: AuditDetailModal
     }
   };
 
+  // Get financial changes for prominent display
+  const getFinancialChanges = () => {
+    if (entry.action !== 'update') return [];
+    const changes: { field: string; oldValue: any; newValue: any }[] = [];
+    const oldData = entry.old_data || {};
+    const newData = entry.new_data || {};
+    
+    for (const key of Object.keys(newData)) {
+      if (isFinancialField(key) && JSON.stringify(oldData[key]) !== JSON.stringify(newData[key])) {
+        changes.push({
+          field: key,
+          oldValue: oldData[key],
+          newValue: newData[key]
+        });
+      }
+    }
+    return changes;
+  };
+
   const getChangedFields = () => {
     if (entry.action === 'insert') {
       return Object.entries(entry.new_data || {})
@@ -58,7 +104,8 @@ export function AuditDetailModal({ entry, open, onOpenChange }: AuditDetailModal
           field: key,
           oldValue: null,
           newValue: value,
-          changed: true
+          changed: true,
+          isFinancial: isFinancialField(key)
         }));
     }
 
@@ -69,7 +116,8 @@ export function AuditDetailModal({ entry, open, onOpenChange }: AuditDetailModal
           field: key,
           oldValue: value,
           newValue: null,
-          changed: true
+          changed: true,
+          isFinancial: isFinancialField(key)
         }));
     }
 
@@ -85,9 +133,14 @@ export function AuditDetailModal({ entry, open, onOpenChange }: AuditDetailModal
         const oldValue = entry.old_data?.[key];
         const newValue = entry.new_data?.[key];
         const changed = JSON.stringify(oldValue) !== JSON.stringify(newValue);
-        return { field: key, oldValue, newValue, changed };
+        return { field: key, oldValue, newValue, changed, isFinancial: isFinancialField(key) };
       })
-      .sort((a, b) => (b.changed ? 1 : 0) - (a.changed ? 1 : 0));
+      // Sort: changed fields first, then financial fields, then alphabetically
+      .sort((a, b) => {
+        if (a.changed !== b.changed) return b.changed ? 1 : -1;
+        if (a.isFinancial !== b.isFinancial) return b.isFinancial ? 1 : -1;
+        return a.field.localeCompare(b.field);
+      });
   };
 
   const formatValue = (value: any): string => {
@@ -99,6 +152,12 @@ export function AuditDetailModal({ entry, open, onOpenChange }: AuditDetailModal
 
   const canNavigate = NAVIGABLE_TABLES[entry.table_name];
   const changes = getChangedFields();
+  const financialChanges = getFinancialChanges();
+  
+  // Filter out financial fields from regular changes if we're showing them prominently
+  const nonFinancialChanges = financialChanges.length > 0 
+    ? changes.filter(c => !c.isFinancial || !c.changed)
+    : changes;
 
   const handleViewRecord = () => {
     if (canNavigate) {
@@ -152,11 +211,38 @@ export function AuditDetailModal({ entry, open, onOpenChange }: AuditDetailModal
             )}
           </div>
 
-          {/* Changes */}
+          {/* Financial Changes Alert - Shown prominently at top */}
+          {financialChanges.length > 0 && (
+            <div className="p-4 rounded-lg bg-amber-500/10 border border-amber-500/30">
+              <div className="flex items-center gap-2 mb-3">
+                <AlertTriangle className="h-5 w-5 text-amber-600" />
+                <span className="font-semibold text-amber-700 dark:text-amber-500">Financial Changes Detected</span>
+              </div>
+              <div className="space-y-2">
+                {financialChanges.map(change => (
+                  <div key={change.field} className="flex items-center justify-between p-2 rounded bg-amber-500/10">
+                    <span className="text-sm text-muted-foreground">{formatFieldName(change.field)}</span>
+                    <div className="flex items-center gap-2 font-mono text-sm">
+                      <span className="text-muted-foreground line-through">
+                        £{formatCurrencyValue(change.oldValue)}
+                      </span>
+                      <ArrowRight className="h-4 w-4 text-amber-500" />
+                      <span className="font-semibold text-amber-700 dark:text-amber-500">
+                        £{formatCurrencyValue(change.newValue)}
+                      </span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Other Changes */}
           <div className="flex-1 overflow-hidden flex flex-col">
             <h4 className="font-medium mb-2 text-sm text-muted-foreground uppercase tracking-wide">
               {entry.action === 'insert' ? 'Created Values' : 
-               entry.action === 'delete' ? 'Deleted Values' : 'Changes'}
+               entry.action === 'delete' ? 'Deleted Values' : 
+               financialChanges.length > 0 ? 'Other Changes' : 'Changes'}
             </h4>
             <ScrollArea className="flex-1 rounded-lg border">
               <div className="p-1">
@@ -173,33 +259,39 @@ export function AuditDetailModal({ entry, open, onOpenChange }: AuditDetailModal
                     </tr>
                   </thead>
                   <tbody>
-                    {changes.map(({ field, oldValue, newValue, changed }) => (
+                    {nonFinancialChanges.map(({ field, oldValue, newValue, changed, isFinancial }) => (
                       <tr 
                         key={field} 
                         className={`border-b last:border-0 ${changed ? 'bg-amber-500/5' : ''}`}
                       >
                         <td className="p-2 font-mono text-xs">
-                          {field.replace(/_/g, ' ')}
-                          {changed && entry.action === 'update' && (
-                            <ArrowRight className="inline h-3 w-3 ml-1 text-amber-500" />
-                          )}
+                          <span className="flex items-center gap-1">
+                            {isFinancial && <PoundSterling className="h-3 w-3 text-amber-500" />}
+                            {field.replace(/_/g, ' ')}
+                            {changed && entry.action === 'update' && (
+                              <ArrowRight className="h-3 w-3 text-amber-500" />
+                            )}
+                          </span>
                         </td>
                         {entry.action === 'update' && (
                           <td className="p-2 font-mono text-xs text-muted-foreground max-w-[200px] truncate">
-                            {formatValue(oldValue)}
+                            {isFinancial ? `£${formatCurrencyValue(oldValue)}` : formatValue(oldValue)}
                           </td>
                         )}
                         <td className={`p-2 font-mono text-xs max-w-[200px] truncate ${
                           changed && entry.action === 'update' ? 'text-amber-600 font-medium' : ''
                         }`}>
-                          {entry.action === 'delete' ? formatValue(oldValue) : formatValue(newValue)}
+                          {entry.action === 'delete' 
+                            ? (isFinancial ? `£${formatCurrencyValue(oldValue)}` : formatValue(oldValue))
+                            : (isFinancial ? `£${formatCurrencyValue(newValue)}` : formatValue(newValue))
+                          }
                         </td>
                       </tr>
                     ))}
-                    {changes.length === 0 && (
+                    {nonFinancialChanges.length === 0 && (
                       <tr>
                         <td colSpan={3} className="p-4 text-center text-muted-foreground">
-                          No field changes recorded
+                          {financialChanges.length > 0 ? 'No other field changes' : 'No field changes recorded'}
                         </td>
                       </tr>
                     )}
