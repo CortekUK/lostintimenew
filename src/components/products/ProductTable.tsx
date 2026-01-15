@@ -352,7 +352,7 @@ export function ProductTable({
 
                     {/* Actions */}
                     <TableCell className={`${cellPadding} text-right`}>
-                      <div className="flex items-center justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+                      <div className="flex items-center justify-end gap-1">
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>
@@ -360,7 +360,10 @@ export function ProductTable({
                                 variant="ghost"
                                 size="icon"
                                 className="h-8 w-8"
-                                onClick={() => onView(product)}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  onView(product);
+                                }}
                               >
                                 <Eye className="h-4 w-4" />
                               </Button>
@@ -378,7 +381,10 @@ export function ProductTable({
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8"
-                                    onClick={() => onEdit(product)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onEdit(product);
+                                    }}
                                   >
                                     <Edit className="h-4 w-4" />
                                   </Button>
@@ -394,7 +400,10 @@ export function ProductTable({
                                     variant="ghost"
                                     size="icon"
                                     className="h-8 w-8"
-                                    onClick={() => onDuplicate(product)}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      onDuplicate(product);
+                                    }}
                                   >
                                     <Copy className="h-4 w-4" />
                                   </Button>
