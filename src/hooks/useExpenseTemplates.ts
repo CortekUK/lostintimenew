@@ -57,6 +57,7 @@ export function useExpenseTemplates() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expense-templates'] });
       queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses', 'filtered'] });
     },
     onError: (error: Error) => {
       toast({
@@ -79,6 +80,7 @@ export function useExpenseTemplates() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expense-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses', 'filtered'] });
       toast({
         title: 'Template updated',
         description: 'Recurring expense template has been updated.',
@@ -105,6 +107,7 @@ export function useExpenseTemplates() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expense-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses', 'filtered'] });
       toast({
         title: 'Template deactivated',
         description: 'Recurring expense template has been deactivated.',
