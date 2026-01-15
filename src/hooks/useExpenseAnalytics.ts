@@ -26,7 +26,8 @@ export const useFilteredExpenses = (filters?: ExpenseFilters) => {
         .select(`
           *,
           staff:profiles(full_name, email),
-          supplier:suppliers(name)
+          supplier:suppliers(name),
+          template:expense_templates(id, frequency, next_due_date)
         `)
         .order('incurred_at', { ascending: false });
 

@@ -19,7 +19,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Edit, Trash2, Check, X, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Edit, Trash2, Check, X, ArrowUpDown, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUpdateExpense, useDeleteExpense } from '@/hooks/useDatabase';
 import { useOwnerGuard } from '@/hooks/useOwnerGuard';
 import { useAllExpenseCategories, formatCategoryDisplay } from '@/hooks/useCustomCategories';
@@ -122,9 +123,38 @@ const ExpenseRow = memo(({
         {expense.supplier?.name || '-'}
       </TableCell>
       <TableCell>
-        {expense.is_cogs && (
-          <Badge variant="default" className="text-xs">COGS</Badge>
-        )}
+        <div className="flex flex-col gap-1">
+          {expense.is_cogs && (
+            <Badge variant="default" className="text-xs w-fit">COGS</Badge>
+          )}
+          {expense.template && (
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className="flex flex-col gap-0.5">
+                    <Badge variant="outline" className="text-xs w-fit gap-1">
+                      <RefreshCw className="h-3 w-3" />
+                      {formatCategoryDisplay(expense.template.frequency)}
+                    </Badge>
+                    {expense.template.next_due_date && (
+                      <span className="text-[10px] text-muted-foreground">
+                        Next: {format(new Date(expense.template.next_due_date), 'dd MMM')}
+                      </span>
+                    )}
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Recurring {expense.template.frequency} expense</p>
+                  {expense.template.next_due_date && (
+                    <p className="text-xs text-muted-foreground">
+                      Next due: {format(new Date(expense.template.next_due_date), 'PPP')}
+                    </p>
+                  )}
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          )}
+        </div>
       </TableCell>
       <TableCell className="text-right">
         {isOwner && (

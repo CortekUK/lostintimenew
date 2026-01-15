@@ -554,6 +554,7 @@ export type Database = {
           payment_method: string | null
           staff_id: string | null
           supplier_id: number | null
+          template_id: number | null
           vat_amount: number | null
           vat_rate: number | null
         }
@@ -572,6 +573,7 @@ export type Database = {
           payment_method?: string | null
           staff_id?: string | null
           supplier_id?: number | null
+          template_id?: number | null
           vat_amount?: number | null
           vat_rate?: number | null
         }
@@ -590,6 +592,7 @@ export type Database = {
           payment_method?: string | null
           staff_id?: string | null
           supplier_id?: number | null
+          template_id?: number | null
           vat_amount?: number | null
           vat_rate?: number | null
         }
@@ -628,6 +631,13 @@ export type Database = {
             isOneToOne: false
             referencedRelation: "v_supplier_spend"
             referencedColumns: ["supplier_id"]
+          },
+          {
+            foreignKeyName: "expenses_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "expense_templates"
+            referencedColumns: ["id"]
           },
         ]
       }

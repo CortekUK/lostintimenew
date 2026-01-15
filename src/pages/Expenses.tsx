@@ -34,7 +34,6 @@ import { ExpenseFiltersEnhanced } from '@/components/expenses/ExpenseFiltersEnha
 import { useFilteredExpenses } from '@/hooks/useExpenseAnalytics';
 import { generateExpenseCSV, generateExpensePDF } from '@/utils/expenseExport';
 import { ExpenseModal } from '@/components/expenses/ExpenseModal';
-import { RecurringTemplatesBanner } from '@/components/expenses/RecurringTemplatesBanner';
 import { useExpenseTemplates } from '@/hooks/useExpenseTemplates';
 import {
   DropdownMenu,
@@ -178,8 +177,6 @@ export default function Expenses() {
   return (
     <AppLayout title="Expenses" subtitle="Track and manage business expenses">
       <div className="space-y-6">
-        <RecurringTemplatesBanner />
-        
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           {/* Left group: Search and Filters */}
