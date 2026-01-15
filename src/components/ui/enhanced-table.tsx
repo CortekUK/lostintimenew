@@ -85,6 +85,11 @@ export function EnhancedTable<T>({
 
   const totalPages = Math.ceil(sortedData.length / pageSize);
 
+  // Calculate total table width based on column widths
+  const tableMinWidth = useMemo(() => {
+    return columns.reduce((sum, col) => sum + (col.width || 150), 0);
+  }, [columns]);
+
   const handleSort = (column: Column<T>) => {
     if (!column.sortable) return;
 
@@ -105,11 +110,11 @@ export function EnhancedTable<T>({
     
     if (sortConfig?.key === column.key) {
       return sortConfig.direction === 'asc' ? 
-        <ChevronUp className="h-4 w-4 ml-1" /> : 
-        <ChevronDown className="h-4 w-4 ml-1" />;
+        <ChevronUp className="h-4 w-4 ml-1 flex-shrink-0" /> : 
+        <ChevronDown className="h-4 w-4 ml-1 flex-shrink-0" />;
     }
     
-    return <ChevronUp className="h-4 w-4 ml-1 opacity-30" />;
+    return <ChevronUp className="h-4 w-4 ml-1 opacity-30 flex-shrink-0" />;
   };
 
   if (loading) {
@@ -152,61 +157,71 @@ export function EnhancedTable<T>({
         </div>
       </div>
 
-      {/* Header */}
-      <div className="flex bg-muted/30 sticky top-0 z-10 border-b">
-        {columns.map((column, index) => (
-          <div
-            key={index}
-            className={cn(
-              'flex items-center px-4 py-3 font-medium text-sm border-r last:border-r-0',
-              column.sortable ? 'cursor-pointer hover:bg-muted/50' : '',
-              column.align === 'right' ? 'justify-end' : 
-              column.align === 'center' ? 'justify-center' : 'justify-start'
-            )}
-            style={{ width: column.width || 150, minWidth: column.width || 150 }}
-            onClick={() => handleSort(column)}
-          >
-            <span className="truncate">{column.title}</span>
-            {getSortIcon(column)}
-          </div>
-        ))}
-      </div>
-
-      {/* Body */}
+      {/* Single scroll container with table */}
       <div className="overflow-auto" style={{ maxHeight }}>
-        {paginatedData.map((row, index) => (
-          <div
-            key={index}
-            className={cn(
-              'flex border-b hover:bg-muted/50 transition-colors',
-              isDense ? 'text-sm py-1' : 'py-2',
-              onRowClick ? 'cursor-pointer' : ''
-            )}
-            onClick={() => onRowClick?.(row, index)}
-          >
-            {columns.map((column, colIndex) => {
-              const value = typeof column.key === 'string' && column.key.includes('.') 
-                ? column.key.split('.').reduce((obj, key) => obj?.[key], row)
-                : row[column.key as keyof T];
-              
-              const content = column.render ? column.render(value, row, index) : String(value || '');
-              
-              return (
-                <div
-                  key={colIndex}
+        <table className="w-full border-collapse" style={{ minWidth: tableMinWidth }}>
+          <thead className="sticky top-0 z-10 bg-muted/30">
+            <tr className="border-b">
+              {columns.map((column, index) => (
+                <th
+                  key={index}
                   className={cn(
-                    'flex items-center px-4 py-2 overflow-hidden',
-                    column.align === 'right' ? 'justify-end' : 
-                    column.align === 'center' ? 'justify-center' : 'justify-start'
+                    'px-4 py-3 font-medium text-sm border-r last:border-r-0 text-left',
+                    column.sortable ? 'cursor-pointer hover:bg-muted/50' : '',
+                    column.align === 'right' ? 'text-right' : 
+                    column.align === 'center' ? 'text-center' : 'text-left'
                   )}
                   style={{ width: column.width || 150, minWidth: column.width || 150 }}
+                  onClick={() => handleSort(column)}
                 >
-                  <div className="truncate">{content}</div>
-                </div>
-              );
-            })}
-          </div>
-        ))}
+                  <div className={cn(
+                    'flex items-center',
+                    column.align === 'right' ? 'justify-end' : 
+                    column.align === 'center' ? 'justify-center' : 'justify-start'
+                  )}>
+                    <span className="truncate">{column.title}</span>
+                    {getSortIcon(column)}
+                  </div>
+                </th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {paginatedData.map((row, rowIndex) => (
+              <tr
+                key={rowIndex}
+                className={cn(
+                  'border-b hover:bg-muted/50 transition-colors',
+                  onRowClick ? 'cursor-pointer' : ''
+                )}
+                onClick={() => onRowClick?.(row, rowIndex)}
+              >
+                {columns.map((column, colIndex) => {
+                  const value = typeof column.key === 'string' && column.key.includes('.') 
+                    ? column.key.split('.').reduce((obj, key) => obj?.[key], row)
+                    : row[column.key as keyof T];
+                  
+                  const content = column.render ? column.render(value, row, rowIndex) : String(value || '');
+                  
+                  return (
+                    <td
+                      key={colIndex}
+                      className={cn(
+                        'px-4 overflow-hidden',
+                        isDense ? 'py-1 text-sm' : 'py-2',
+                        column.align === 'right' ? 'text-right' : 
+                        column.align === 'center' ? 'text-center' : 'text-left'
+                      )}
+                      style={{ width: column.width || 150, minWidth: column.width || 150 }}
+                    >
+                      <div className="truncate">{content}</div>
+                    </td>
+                  );
+                })}
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
 
       {/* Page Totals */}
