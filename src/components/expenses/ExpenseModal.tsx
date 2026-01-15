@@ -82,6 +82,7 @@ export function ExpenseModal({
     all: allCategories
   } = useAllExpenseCategories();
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [stagedReceipts, setStagedReceipts] = useState<File[]>([]);
   const [formData, setFormData] = useState<ExpenseFormData>({
     description: '',
     amount: '',
@@ -134,6 +135,7 @@ export function ExpenseModal({
         frequency: 'monthly',
         next_due_date: new Date()
       });
+      setStagedReceipts([]);
     }
     setErrors({});
   }, [mode, expense, open]);
@@ -221,7 +223,8 @@ export function ExpenseModal({
         notes: formData.notes || null,
         frequency: formData.frequency,
         next_due_date: formData.next_due_date.toISOString().split('T')[0]
-      } : null
+      } : null,
+      receiptFiles: stagedReceipts
     });
   };
   const handleDelete = () => {
@@ -439,7 +442,10 @@ export function ExpenseModal({
             {/* Receipts */}
             <div className="space-y-2">
               <Label>Receipt Upload (Optional)</Label>
-              <ReceiptUpload expenseId={mode === 'edit' ? expense?.id : undefined} />
+              <ReceiptUpload 
+                expenseId={mode === 'edit' ? expense?.id : undefined}
+                onStagedFilesChange={setStagedReceipts}
+              />
             </div>
 
             {/* Recurring Expenses */}

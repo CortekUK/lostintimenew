@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -76,7 +77,7 @@ export default function Expenses() {
     );
   }, [expenses, searchQuery]);
 
-  const handleSave = async (data: { expense: any; recurring: boolean; template: any }) => {
+  const handleSave = async (data: { expense: any; recurring: boolean; template: any; receiptFiles?: File[] }) => {
     try {
       if (editingExpense) {
         const { id, ...updates } = data.expense;
@@ -84,6 +85,38 @@ export default function Expenses() {
         toast({ title: 'Expense updated successfully' });
       } else {
         const createdExpense = await createExpense.mutateAsync(data.expense);
+
+        // Upload staged receipt files
+        if (data.receiptFiles && data.receiptFiles.length > 0 && createdExpense?.id) {
+          for (const file of data.receiptFiles) {
+            try {
+              const fileExt = file.name.split('.').pop();
+              const fileName = `${createdExpense.id}/${crypto.randomUUID()}.${fileExt}`;
+              const filePath = `expense-receipts/${fileName}`;
+
+              const { error: uploadError } = await supabase.storage
+                .from('expense-receipts')
+                .upload(filePath, file);
+
+              if (uploadError) throw uploadError;
+
+              // Create receipt record
+              const { error: dbError } = await supabase
+                .from('expense_receipts')
+                .insert({
+                  expense_id: createdExpense.id,
+                  file_path: filePath,
+                  file_name: file.name,
+                  file_size: file.size,
+                  file_type: file.type.includes('pdf') ? 'pdf' : 'image',
+                });
+
+              if (dbError) throw dbError;
+            } catch (uploadErr) {
+              console.error('Failed to upload receipt:', uploadErr);
+            }
+          }
+        }
 
         if (data.recurring && data.template) {
           const template = await createTemplate(data.template);
