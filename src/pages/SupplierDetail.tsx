@@ -114,49 +114,35 @@ export default function SupplierDetail() {
     >
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => navigate('/suppliers')} className="shrink-0">
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => navigate('/suppliers')}>
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <div className="flex items-center gap-2">
-              {supplier.supplier_type === 'customer' ? (
-                <User className="h-5 w-5 text-muted-foreground" />
-              ) : (
-                <Building2 className="h-5 w-5 text-muted-foreground" />
-              )}
-            </div>
+            {supplier.supplier_type === 'customer' && (
+              <Badge variant="customer">Customer</Badge>
+            )}
+            <Badge variant={supplier.status === 'active' ? 'default' : 'secondary'}>
+              {supplier.status === 'active' ? 'Active' : 'Inactive'}
+            </Badge>
           </div>
-          <div className="flex items-center gap-4">
-            {/* Badges Group */}
-            <div className="flex items-center gap-2">
-              {supplier.supplier_type === 'customer' && (
-                <Badge variant="customer">Customer</Badge>
-              )}
-              <Badge variant={supplier.status === 'active' ? 'default' : 'secondary'}>
-                {supplier.status === 'active' ? 'Active' : 'Inactive'}
-              </Badge>
-            </div>
-            
-            {/* Buttons Group */}
-            <div className="flex items-center gap-2">
-              {supplier.supplier_type === 'customer' && (
-                <Button 
-                  onClick={() => setActiveTab('px-history')} 
-                  variant="outline" 
-                  size="sm"
-                >
-                  <Repeat className="h-4 w-4 mr-2" />
-                  Part-Exchange History
-                </Button>
-              )}
-              {isOwner && (
-                <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
-                  <Edit className="h-4 w-4 mr-2" />
-                  Edit
-                </Button>
-              )}
-            </div>
+          <div className="flex items-center gap-2">
+            {supplier.supplier_type === 'customer' && (
+              <Button 
+                onClick={() => setActiveTab('px-history')} 
+                variant="outline" 
+                size="sm"
+              >
+                <Repeat className="h-4 w-4 mr-2" />
+                Part-Exchange History
+              </Button>
+            )}
+            {isOwner && (
+              <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
+                <Edit className="h-4 w-4 mr-2" />
+                Edit
+              </Button>
+            )}
           </div>
         </div>
 
