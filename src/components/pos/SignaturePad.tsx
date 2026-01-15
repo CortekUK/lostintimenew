@@ -53,8 +53,10 @@ export const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>(
       canvas.height = rect.height * dpr;
       ctx.scale(dpr, dpr);
 
-      // Set drawing style
-      ctx.strokeStyle = 'hsl(var(--foreground))';
+      // Set drawing style - use computed foreground color for dark mode support
+      const computedStyle = getComputedStyle(document.documentElement);
+      const foregroundHsl = computedStyle.getPropertyValue('--foreground').trim();
+      ctx.strokeStyle = `hsl(${foregroundHsl})`;
       ctx.lineWidth = 2;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';
@@ -151,8 +153,7 @@ export const SignaturePad = forwardRef<SignaturePadRef, SignaturePadProps>(
     return (
       <Card className={`p-4 ${className}`}>
         <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <label className="text-sm font-medium">Customer Signature</label>
+          <div className="flex items-center justify-end">
             <Button
               type="button"
               variant="ghost"
