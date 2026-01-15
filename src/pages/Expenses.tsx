@@ -95,7 +95,7 @@ export default function Expenses() {
 
         toast({
           title: data.recurring
-            ? 'Expense recorded. Recurring template created.'
+            ? 'Expense recorded. Recurring expense created.'
             : 'Expense recorded successfully',
         });
       }

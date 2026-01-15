@@ -84,7 +84,7 @@ export function MakeRecurringDialog({
             Make Recurring
           </DialogTitle>
           <DialogDescription>
-            Create a recurring template from this expense. Future occurrences will be tracked automatically.
+            Create a recurring expense from this one. Future occurrences will be tracked automatically.
           </DialogDescription>
         </DialogHeader>
 

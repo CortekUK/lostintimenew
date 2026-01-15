@@ -644,10 +644,10 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
 
             await queryClient.invalidateQueries({ queryKey: ['expenses', 'filtered'] });
 
-            toast.success('Recurring template created');
+            toast.success('Recurring expense created');
             setRecurringExpense(null);
           } catch (error) {
-            toast.error('Failed to create recurring template');
+            toast.error('Failed to create recurring expense');
           }
         }}
       />
