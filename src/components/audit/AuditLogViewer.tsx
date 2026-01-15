@@ -47,11 +47,31 @@ const TABLE_OPTIONS = [
 
 // Financial fields that require prominent display for fraud prevention
 const SENSITIVE_FINANCIAL_FIELDS = [
+  // Core pricing fields
   'unit_price', 'unit_cost', 'sell_price', 'cost_price',
-  'total', 'subtotal', 'discount', 'discount_total', 'tax_amount', 'tax_total',
-  'allowance', 'payout_amount', 'settlement_amount', 'agreed_price', 'sale_price',
-  'amount', 'price', 'cost', 'value',
-  'commission_amount', 'commission_rate', 'profit_total', 'revenue_total'
+  'price', 'cost', 'value', 'amount',
+  
+  // Pricing variations - margin/markup manipulation
+  'margin', 'markup', 'rrp', 'trade_price',
+  
+  // Sale totals
+  'total', 'subtotal', 'discount', 'discount_total',
+  'tax_amount', 'tax_total', 'tax_rate',
+  'original_total', 'part_exchange_total',
+  
+  // Consignment & payouts
+  'allowance', 'payout_amount', 'settlement_amount',
+  'agreed_price', 'sale_price',
+  
+  // Commission tracking
+  'commission_amount', 'commission_rate', 'commission_override',
+  'profit_total', 'revenue_total',
+  
+  // Customer financial tracking
+  'lifetime_spend',
+  
+  // Expense tracking
+  'amount_ex_vat', 'amount_inc_vat', 'vat_amount', 'vat_rate'
 ];
 
 // Fields that contain financial keywords but are NOT currency values
