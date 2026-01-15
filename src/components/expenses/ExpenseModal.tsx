@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { format } from 'date-fns';
+import { format, addWeeks, addMonths, addYears } from 'date-fns';
 import { Calendar, CalendarIcon, Plus } from 'lucide-react';
 import {
   Dialog,
@@ -55,7 +55,7 @@ interface ExpenseFormData {
   notes: string;
   is_cogs: boolean;
   recurring: boolean;
-  frequency: 'monthly' | 'quarterly' | 'annually';
+  frequency: 'weekly' | 'monthly' | 'quarterly' | 'annually';
   next_due_date: Date;
 }
 
@@ -509,7 +509,32 @@ export function ExpenseModal({
                 <Switch
                   id="recurring"
                   checked={formData.recurring}
-                  onCheckedChange={(checked) => setFormData({ ...formData, recurring: checked })}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      // Auto-calculate next due date based on current frequency when enabling
+                      const baseDate = formData.date || new Date();
+                      let nextDate: Date;
+                      switch (formData.frequency) {
+                        case 'weekly':
+                          nextDate = addWeeks(baseDate, 1);
+                          break;
+                        case 'monthly':
+                          nextDate = addMonths(baseDate, 1);
+                          break;
+                        case 'quarterly':
+                          nextDate = addMonths(baseDate, 3);
+                          break;
+                        case 'annually':
+                          nextDate = addYears(baseDate, 1);
+                          break;
+                        default:
+                          nextDate = addMonths(baseDate, 1);
+                      }
+                      setFormData({ ...formData, recurring: checked, next_due_date: nextDate });
+                    } else {
+                      setFormData({ ...formData, recurring: checked });
+                    }
+                  }}
                 />
                 <Label htmlFor="recurring" className="cursor-pointer font-semibold">
                   Make this a recurring expense
@@ -523,14 +548,34 @@ export function ExpenseModal({
                       <Label htmlFor="frequency">Frequency</Label>
                       <Select
                         value={formData.frequency}
-                        onValueChange={(value: any) =>
-                          setFormData({ ...formData, frequency: value })
-                        }
+                        onValueChange={(value: 'weekly' | 'monthly' | 'quarterly' | 'annually') => {
+                          // Calculate next due date based on frequency
+                          const baseDate = formData.date || new Date();
+                          let nextDate: Date;
+                          switch (value) {
+                            case 'weekly':
+                              nextDate = addWeeks(baseDate, 1);
+                              break;
+                            case 'monthly':
+                              nextDate = addMonths(baseDate, 1);
+                              break;
+                            case 'quarterly':
+                              nextDate = addMonths(baseDate, 3);
+                              break;
+                            case 'annually':
+                              nextDate = addYears(baseDate, 1);
+                              break;
+                            default:
+                              nextDate = addMonths(baseDate, 1);
+                          }
+                          setFormData({ ...formData, frequency: value, next_due_date: nextDate });
+                        }}
                       >
                         <SelectTrigger id="frequency">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
+                          <SelectItem value="weekly">Weekly</SelectItem>
                           <SelectItem value="monthly">Monthly</SelectItem>
                           <SelectItem value="quarterly">Quarterly</SelectItem>
                           <SelectItem value="annually">Annually</SelectItem>
