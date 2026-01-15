@@ -19,7 +19,8 @@ import {
   TrendingUp,
   TrendingDown,
   FileText,
-  Download
+  Download,
+  Search
 } from 'lucide-react';
 import { 
   useExpenseStats, 
@@ -52,12 +53,25 @@ export default function Expenses() {
   const [filters, setFilters] = useState<ExpenseFilters>({});
   const [showModal, setShowModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState<any>(null);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const { data: expenses = [], isLoading: expensesLoading, error, refetch } = useFilteredExpenses(filters);
   const { data: suppliers = [] } = useSuppliers();
   const stats = useExpenseStats(filters);
   const { data: largestExpense } = useLargestExpense('month');
   const { data: yoyComparison } = useYearOverYearComparison();
+
+  // Filter expenses by search query
+  const filteredExpenses = useMemo(() => {
+    if (!searchQuery.trim()) return expenses;
+    const query = searchQuery.toLowerCase();
+    return expenses.filter((expense: any) => 
+      expense.description?.toLowerCase().includes(query) ||
+      expense.category?.toLowerCase().includes(query) ||
+      expense.supplier?.name?.toLowerCase().includes(query) ||
+      expense.notes?.toLowerCase().includes(query)
+    );
+  }, [expenses, searchQuery]);
 
   const handleSave = async (data: { expense: any; recurring: boolean; template: any }) => {
     try {
@@ -168,13 +182,24 @@ export default function Expenses() {
         
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          {/* Left group: Filters */}
-          <ExpenseFiltersEnhanced
-            filters={filters}
-            onFiltersChange={setFilters}
-            suppliers={suppliers}
-            staffMembers={staffMembers}
-          />
+          {/* Left group: Search and Filters */}
+          <div className="flex items-center gap-3 flex-1 max-w-xl">
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search expenses..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9"
+              />
+            </div>
+            <ExpenseFiltersEnhanced
+              filters={filters}
+              onFiltersChange={setFilters}
+              suppliers={suppliers}
+              staffMembers={staffMembers}
+            />
+          </div>
 
           {/* Right group: Actions */}
           <div className="flex items-center gap-2">
@@ -282,8 +307,8 @@ export default function Expenses() {
         </div>
 
         {/* Expenses Table */}
-        {expenses.length > 0 ? (
-          <ExpenseTable expenses={expenses} onEdit={setEditingExpense} />
+        {filteredExpenses.length > 0 ? (
+          <ExpenseTable expenses={filteredExpenses} onEdit={setEditingExpense} />
         ) : (
           <Card className="shadow-card">
             <CardContent className="py-12">
@@ -291,15 +316,19 @@ export default function Expenses() {
                 <PoundSterling className="h-12 w-12 text-muted-foreground mb-4" />
                 <h3 className="text-lg font-semibold mb-2">No expenses found</h3>
                 <p className="text-muted-foreground text-center mb-4">
-                  {Object.keys(filters).length > 0 
-                    ? 'Try adjusting your filters'
-                    : 'Add your first expense to start tracking your business costs'
+                  {searchQuery.trim() 
+                    ? 'No expenses match your search'
+                    : Object.keys(filters).length > 0 
+                      ? 'Try adjusting your filters'
+                      : 'Add your first expense to start tracking your business costs'
                   }
                 </p>
-                <Button onClick={() => { setShowModal(true); setEditingExpense(null); }}>
-                  <Plus className="mr-2 h-4 w-4" />
-                  Record Expense
-                </Button>
+                {!searchQuery.trim() && (
+                  <Button onClick={() => { setShowModal(true); setEditingExpense(null); }}>
+                    <Plus className="mr-2 h-4 w-4" />
+                    Record Expense
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
