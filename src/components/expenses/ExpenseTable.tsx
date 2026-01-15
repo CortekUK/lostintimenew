@@ -139,7 +139,7 @@ const ExpenseRow = memo(({
           {expense.is_cogs && (
             <Badge variant="default" className="text-xs w-fit">COGS</Badge>
           )}
-          {expense.template && (
+          {expense.template ? (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -176,6 +176,8 @@ const ExpenseRow = memo(({
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
+          ) : (
+            <span className="text-xs text-muted-foreground">One-time</span>
           )}
         </div>
       </TableCell>
