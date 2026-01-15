@@ -27,7 +27,7 @@ export const useFilteredExpenses = (filters?: ExpenseFilters) => {
           *,
           staff:profiles(full_name, email),
           supplier:suppliers(name),
-          template:expense_templates(id, frequency, next_due_date)
+          template:expense_templates(id, frequency, next_due_date, is_active)
         `)
         .order('incurred_at', { ascending: false });
 
