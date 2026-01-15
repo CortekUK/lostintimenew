@@ -33,6 +33,9 @@ import { SupplierConsignmentTabs } from '@/components/suppliers/SupplierConsignm
 import { useSupplierConsignments } from '@/hooks/useSupplierTradeInsConsignments';
 import { EditSupplierDialog } from '@/components/suppliers/EditSupplierDialog';
 import { CustomerPXHistoryTab } from '@/components/suppliers/CustomerPXHistoryTab';
+import { SupplierActivityFeed } from '@/components/suppliers/SupplierActivityFeed';
+import { SupplierQuickNotesCard } from '@/components/suppliers/SupplierQuickNotesCard';
+import { MiniSpendChart } from '@/components/suppliers/MiniSpendChart';
 
 export default function SupplierDetail() {
   const { id } = useParams<{ id: string }>();
@@ -111,17 +114,41 @@ export default function SupplierDetail() {
     >
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <Button variant="outline" onClick={() => navigate('/suppliers')}>
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div className="flex items-start gap-4">
+            <Button variant="outline" onClick={() => navigate('/suppliers')} className="shrink-0">
               <ArrowLeft className="h-4 w-4" />
             </Button>
-            <div className="flex items-center gap-3">
+            <div className="flex items-start gap-3">
               {supplier.supplier_type === 'customer' ? (
-                <User className="h-5 w-5 text-muted-foreground" />
+                <User className="h-5 w-5 text-muted-foreground mt-1" />
               ) : (
-                <Building2 className="h-5 w-5 text-muted-foreground" />
+                <Building2 className="h-5 w-5 text-muted-foreground mt-1" />
               )}
+              <div>
+                <h1 className="text-xl font-luxury font-bold">{supplier.name}</h1>
+                {/* Inline contact info */}
+                <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-sm text-muted-foreground">
+                  {supplier.email && (
+                    <a href={`mailto:${supplier.email}`} className="flex items-center gap-1.5 hover:text-primary transition-colors">
+                      <Mail className="h-3.5 w-3.5" />
+                      {supplier.email}
+                    </a>
+                  )}
+                  {supplier.phone && (
+                    <a href={`tel:${supplier.phone}`} className="flex items-center gap-1.5 hover:text-primary transition-colors">
+                      <Phone className="h-3.5 w-3.5" />
+                      {supplier.phone}
+                    </a>
+                  )}
+                  {supplier.address && (
+                    <span className="flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5" />
+                      <span className="truncate max-w-[200px]">{supplier.address.split('\n')[0]}</span>
+                    </span>
+                  )}
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -181,77 +208,96 @@ export default function SupplierDetail() {
 
           {/* Overview Tab */}
           <TabsContent value="overview" className="space-y-4">
+            {/* Row 1: Contact & At-a-glance */}
             <div className="grid md:grid-cols-2 gap-4">
-              <Card className="md:col-span-1">
-              <CardHeader>
-                <CardTitle className="font-luxury">
-                  {supplier.supplier_type === 'customer' ? 'Customer Details' : 'Contact & Company'}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-4">
-                  {supplier.contact_name && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Contact Person</p>
-                      <p className="font-medium">{supplier.contact_name}</p>
-                    </div>
-                  )}
-                  {supplier.email && (
+              <Card>
+                <CardHeader>
+                  <CardTitle className="font-luxury">
+                    {supplier.supplier_type === 'customer' ? 'Customer Details' : 'Contact & Company'}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-4">
+                    {supplier.contact_name ? (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Contact Person</p>
+                        <p className="font-medium">{supplier.contact_name}</p>
+                      </div>
+                    ) : (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Contact Person</p>
+                        <p className="text-sm text-muted-foreground italic">Not specified</p>
+                      </div>
+                    )}
                     <div className="flex items-center gap-2">
                       <Mail className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Email</p>
-                        <a href={`mailto:${supplier.email}`} className="font-medium hover:text-primary">
-                          {supplier.email}
-                        </a>
+                        {supplier.email ? (
+                          <a href={`mailto:${supplier.email}`} className="font-medium hover:text-primary">
+                            {supplier.email}
+                          </a>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic">Not specified</p>
+                        )}
                       </div>
                     </div>
-                  )}
-                  {supplier.phone && (
                     <div className="flex items-center gap-2">
                       <Phone className="h-4 w-4 text-muted-foreground" />
                       <div>
                         <p className="text-sm text-muted-foreground">Phone</p>
-                        <a href={`tel:${supplier.phone}`} className="font-medium hover:text-primary">
-                          {supplier.phone}
-                        </a>
+                        {supplier.phone ? (
+                          <a href={`tel:${supplier.phone}`} className="font-medium hover:text-primary">
+                            {supplier.phone}
+                          </a>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic">Not specified</p>
+                        )}
                       </div>
                     </div>
-                  )}
-                  {supplier.address && (
                     <div className="flex items-start gap-2">
                       <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
                       <div>
                         <p className="text-sm text-muted-foreground">Address</p>
-                        <p className="font-medium whitespace-pre-line">{supplier.address}</p>
+                        {supplier.address ? (
+                          <p className="font-medium whitespace-pre-line">{supplier.address}</p>
+                        ) : (
+                          <p className="text-sm text-muted-foreground italic">Not specified</p>
+                        )}
                       </div>
                     </div>
-                  )}
-                  {supplier.notes && (
-                    <div>
-                      <p className="text-sm text-muted-foreground">Notes</p>
-                      <p className="text-sm whitespace-pre-line">{supplier.notes}</p>
-                    </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                  </div>
+                </CardContent>
+              </Card>
 
-            {/* Source Summary Card (Customer Suppliers Only) */}
-            {supplier.supplier_type === 'customer' ? (
-              <SourceSummaryCard supplierId={supplierId} />
-            ) : (
-              <AtAGlanceCard supplierId={supplierId} tags={supplier.tags} />
-            )}
-          </div>
-
-          {/* Consignment Summary Cards for Customer Suppliers */}
-          {hasConsignments && (
-            <div className="mt-6">
-              <h3 className="font-luxury text-lg font-semibold mb-4">Consignment Overview</h3>
-              <ConsignmentSummaryCards supplierId={supplierId} />
+              {/* Source Summary Card (Customer Suppliers Only) */}
+              {supplier.supplier_type === 'customer' ? (
+                <SourceSummaryCard supplierId={supplierId} />
+              ) : (
+                <AtAGlanceCard supplierId={supplierId} tags={supplier.tags} />
+              )}
             </div>
-          )}
+
+            {/* Row 2: Notes + Mini Spend Chart (for registered suppliers) */}
+            {supplier.supplier_type !== 'customer' && (
+              <div className="grid md:grid-cols-2 gap-4">
+                <SupplierQuickNotesCard supplierId={supplierId} notes={supplier.notes} />
+                <MiniSpendChart spendTrend={spendTrend} months={6} />
+              </div>
+            )}
+
+            {/* Row 3: Recent Activity (for registered suppliers) */}
+            {supplier.supplier_type !== 'customer' && (
+              <SupplierActivityFeed supplierId={supplierId} />
+            )}
+
+            {/* Consignment Summary Cards for Customer Suppliers */}
+            {hasConsignments && (
+              <div className="mt-6">
+                <h3 className="font-luxury text-lg font-semibold mb-4">Consignment Overview</h3>
+                <ConsignmentSummaryCards supplierId={supplierId} />
+              </div>
+            )}
           </TabsContent>
 
           {/* Inventory Tab */}
