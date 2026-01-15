@@ -1,8 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useSupplier, useUpdateSupplier } from '@/hooks/useSuppliers';
 import { useSupplierMetrics } from '@/hooks/useSupplierMetrics';
-import { useSupplierProducts, useSupplierTransactions, useSupplierSpendTrend } from '@/hooks/useSupplierDetails';
+import { useSupplierProducts, useSupplierTransactions, useSupplierSpendTrend, SupplierProduct } from '@/hooks/useSupplierDetails';
 import { useFilteredExpenses } from '@/hooks/useExpenseAnalytics';
 import { useSupplierDocuments, useUploadSupplierDocument, useDeleteSupplierDocument } from '@/hooks/useSupplierDocuments';
 import { useBusinessFinancialKPIs } from '@/hooks/useBusinessFinancials';
@@ -36,6 +36,10 @@ import { CustomerPXHistoryTab } from '@/components/suppliers/CustomerPXHistoryTa
 import { SupplierActivityFeed } from '@/components/suppliers/SupplierActivityFeed';
 import { SupplierQuickNotesCard } from '@/components/suppliers/SupplierQuickNotesCard';
 import { MiniSpendChart } from '@/components/suppliers/MiniSpendChart';
+import { ToggleChip } from '@/components/ui/toggle-chip';
+import { format } from 'date-fns';
+
+type InventoryFilter = 'all' | 'in-stock' | 'sold';
 
 export default function SupplierDetail() {
   const { id } = useParams<{ id: string }>();
@@ -44,6 +48,7 @@ export default function SupplierDetail() {
   
   const [editDialogOpen, setEditDialogOpen] = useState(false);
   const [productsFilter, setProductsFilter] = useState('all');
+  const [inventoryFilter, setInventoryFilter] = useState<InventoryFilter>('all');
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const inventoryRef = useRef<HTMLDivElement>(null);
@@ -63,17 +68,36 @@ export default function SupplierDetail() {
   const uploadMutation = useUploadSupplierDocument();
   const deleteMutation = useDeleteSupplierDocument();
 
-  const filteredProducts = products?.filter(product => {
-    if (productsFilter === 'all') return true;
-    if (productsFilter === 'consignment') return product.is_consignment;
-    if (productsFilter === 'normal') return !product.is_consignment && !product.is_trade_in;
-    return false;
-  }) || [];
+  // Inventory filter counts
+  const inventoryCounts = useMemo(() => {
+    if (!products) return { all: 0, inStock: 0, sold: 0 };
+    return {
+      all: products.length,
+      inStock: products.filter(p => p.currentStock > 0).length,
+      sold: products.filter(p => p.isSold).length,
+    };
+  }, [products]);
 
-  const getStockStatus = (product: any) => {
-    // This would typically come from a stock view, but for now we'll use a placeholder
-    return 'In Stock'; // Could be 'Low Stock', 'Out of Stock'
-  };
+  // Apply both type filter and inventory filter
+  const filteredProducts = useMemo(() => {
+    let filtered = products ?? [];
+    
+    // First apply type filter (normal/consignment)
+    if (productsFilter === 'consignment') {
+      filtered = filtered.filter(p => p.is_consignment);
+    } else if (productsFilter === 'normal') {
+      filtered = filtered.filter(p => !p.is_consignment && !p.is_trade_in);
+    }
+    
+    // Then apply inventory status filter
+    if (inventoryFilter === 'in-stock') {
+      filtered = filtered.filter(p => p.currentStock > 0);
+    } else if (inventoryFilter === 'sold') {
+      filtered = filtered.filter(p => p.isSold);
+    }
+    
+    return filtered;
+  }, [products, productsFilter, inventoryFilter]);
 
   if (supplierLoading) {
     return (
@@ -275,82 +299,151 @@ export default function SupplierDetail() {
                   <CustomerInventoryTabs supplierId={supplierId} />
                 ) : (
                   <>
-                    <div className="flex items-center justify-between mb-4">
+                    {/* Filter Controls */}
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
+                      <div className="flex items-center gap-2 flex-wrap">
+                        <span className="text-sm text-muted-foreground">Show:</span>
+                        <ToggleChip
+                          selected={inventoryFilter === 'all'}
+                          onToggle={() => setInventoryFilter('all')}
+                        >
+                          All ({inventoryCounts.all})
+                        </ToggleChip>
+                        <ToggleChip
+                          selected={inventoryFilter === 'in-stock'}
+                          onToggle={() => setInventoryFilter('in-stock')}
+                        >
+                          In Stock ({inventoryCounts.inStock})
+                        </ToggleChip>
+                        <ToggleChip
+                          selected={inventoryFilter === 'sold'}
+                          onToggle={() => setInventoryFilter('sold')}
+                        >
+                          Sold ({inventoryCounts.sold})
+                        </ToggleChip>
+                      </div>
                       <div className="flex items-center gap-2">
                         <Select value={productsFilter} onValueChange={setProductsFilter}>
-                          <SelectTrigger className="w-[150px]">
+                          <SelectTrigger className="w-[130px]">
                             <SelectValue />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="all">All Products</SelectItem>
+                            <SelectItem value="all">All Types</SelectItem>
                             <SelectItem value="normal">Normal</SelectItem>
                             <SelectItem value="consignment">Consignment</SelectItem>
                           </SelectContent>
                         </Select>
-                        <Button variant="outline" onClick={() => navigate(`/products?supplier=${supplierId}`)}>
+                        <Button variant="outline" size="sm" onClick={() => navigate(`/products?supplier=${supplierId}`)}>
                           <ExternalLink className="h-4 w-4 mr-2" />
                           View in Products
                         </Button>
                       </div>
                     </div>
+                    
                     {productsLoading ? (
-              <div className="text-center py-8">
-                <Loader2 className="h-6 w-6 animate-spin mx-auto" />
-              </div>
-            ) : filteredProducts.length === 0 ? (
-              <div className="text-center py-12">
-                <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                <p className="text-muted-foreground font-medium">No products linked to this supplier</p>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Products will appear here when linked to this supplier
-                </p>
-              </div>
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="text-left py-2">Product Name</th>
-                      <th className="text-left py-2">SKU</th>
-                      <th className="text-left py-2">Category</th>
-                      <th className="text-left py-2">Metal/Karat</th>
-                      <th className="text-right py-2">Unit Cost</th>
-                      <th className="text-center py-2">Type</th>
-                      <th className="text-center py-2">Stock Status</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredProducts.map((product) => (
-                      <tr key={product.id} className="border-b hover:bg-muted/50">
-                        <td className="py-2 font-medium">
-                          <button
-                            onClick={() => navigate(`/products?id=${product.id}`)}
-                            className="hover:text-primary text-left"
-                          >
-                            {product.name}
-                          </button>
-                        </td>
-                        <td className="py-2 font-mono text-xs">{product.internal_sku}</td>
-                        <td className="py-2">{product.category || '-'}</td>
-                        <td className="py-2">{product.metal ? `${product.metal}${product.karat ? ` ${product.karat}` : ''}` : '-'}</td>
-                        <td className="py-2 text-right font-mono">£{(product.unit_cost || 0).toLocaleString()}</td>
-                        <td className="py-2 text-center">
-                          {product.is_consignment ? (
-                            <Badge variant="outline">Consignment</Badge>
-                          ) : product.is_trade_in ? (
-                            <Badge variant="secondary">Trade-In</Badge>
-                          ) : (
-                            <Badge variant="default">Normal</Badge>
-                          )}
-                        </td>
-                        <td className="py-2 text-center">
-                          <Badge variant="secondary">{getStockStatus(product)}</Badge>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
+                      <div className="text-center py-8">
+                        <Loader2 className="h-6 w-6 animate-spin mx-auto" />
+                      </div>
+                    ) : filteredProducts.length === 0 ? (
+                      <div className="text-center py-12">
+                        <Package className="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                        <p className="text-muted-foreground font-medium">
+                          {inventoryFilter === 'sold' 
+                            ? 'No sold products from this supplier' 
+                            : inventoryFilter === 'in-stock'
+                            ? 'No products currently in stock'
+                            : 'No products linked to this supplier'}
+                        </p>
+                        <p className="text-sm text-muted-foreground mt-2">
+                          {inventoryFilter === 'all' && 'Products will appear here when linked to this supplier'}
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead>
+                            <tr className="border-b">
+                              <th className="text-left py-2">Product Name</th>
+                              <th className="text-left py-2">SKU</th>
+                              <th className="text-left py-2">Category</th>
+                              <th className="text-right py-2">Cost</th>
+                              <th className="text-center py-2">Type</th>
+                              {inventoryFilter === 'sold' ? (
+                                <>
+                                  <th className="text-left py-2">Sold Date</th>
+                                  <th className="text-right py-2">Sale Price</th>
+                                  <th className="text-right py-2">Margin</th>
+                                </>
+                              ) : (
+                                <th className="text-center py-2">Stock</th>
+                              )}
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {filteredProducts.map((product) => {
+                              const margin = product.lastSale 
+                                ? product.lastSale.sale_price - product.unit_cost 
+                                : null;
+                              
+                              return (
+                                <tr key={product.id} className="border-b hover:bg-muted/50">
+                                  <td className="py-2 font-medium">
+                                    <button
+                                      onClick={() => navigate(`/products?id=${product.id}`)}
+                                      className="hover:text-primary text-left"
+                                    >
+                                      {product.name}
+                                    </button>
+                                  </td>
+                                  <td className="py-2 font-mono text-xs">{product.internal_sku}</td>
+                                  <td className="py-2">{product.category || '-'}</td>
+                                  <td className="py-2 text-right font-mono">£{(product.unit_cost || 0).toLocaleString()}</td>
+                                  <td className="py-2 text-center">
+                                    {product.is_consignment ? (
+                                      <Badge variant="outline">Consignment</Badge>
+                                    ) : product.is_trade_in ? (
+                                      <Badge variant="secondary">Trade-In</Badge>
+                                    ) : (
+                                      <Badge variant="default">Normal</Badge>
+                                    )}
+                                  </td>
+                                  {inventoryFilter === 'sold' ? (
+                                    <>
+                                      <td className="py-2 text-muted-foreground">
+                                        {product.lastSale?.sold_at 
+                                          ? format(new Date(product.lastSale.sold_at), 'dd MMM yyyy')
+                                          : '-'}
+                                      </td>
+                                      <td className="py-2 text-right font-mono">
+                                        {product.lastSale?.sale_price 
+                                          ? `£${product.lastSale.sale_price.toLocaleString()}`
+                                          : '-'}
+                                      </td>
+                                      <td className="py-2 text-right font-mono">
+                                        {margin !== null ? (
+                                          <span className={margin >= 0 ? 'text-green-600' : 'text-red-600'}>
+                                            {margin >= 0 ? '+' : ''}£{margin.toLocaleString()}
+                                          </span>
+                                        ) : '-'}
+                                      </td>
+                                    </>
+                                  ) : (
+                                    <td className="py-2 text-center">
+                                      {product.currentStock > 0 ? (
+                                        <Badge variant="secondary">{product.currentStock}</Badge>
+                                      ) : product.isSold ? (
+                                        <Badge variant="outline" className="text-muted-foreground">Sold</Badge>
+                                      ) : (
+                                        <Badge variant="secondary">0</Badge>
+                                      )}
+                                    </td>
+                                  )}
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
                     )}
                   </>
                 )}
