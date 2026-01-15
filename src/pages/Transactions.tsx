@@ -222,6 +222,7 @@ export default function Transactions() {
     {
       key: 'expand',
       title: '',
+      width: 50,
       render: (value, row, index) => (
         <Button
           variant="ghost"
@@ -244,6 +245,7 @@ export default function Transactions() {
       key: 'sold_at',
       title: 'Date/Time',
       sortable: true,
+      width: 140,
       render: (value, row, index) => {
         if (!row.sold_at) {
           return <div className="text-sm text-muted-foreground">No date</div>;
@@ -268,6 +270,7 @@ export default function Transactions() {
       key: 'id',
       title: 'Sale ID',
       sortable: true,
+      width: 120,
       render: (value, row, index) => (
         <div className="flex items-center gap-2">
           <Badge variant={row.is_voided ? "destructive" : "outline"} className={row.is_voided ? "line-through" : ""}>
@@ -282,6 +285,7 @@ export default function Transactions() {
     {
       key: 'items',
       title: 'Items',
+      width: 80,
       render: (value, row, index) => (
         <div className="text-sm flex items-center gap-1">
           <Package2 className="h-3 w-3" />
@@ -357,7 +361,7 @@ export default function Transactions() {
     {
       key: 'actions',
       title: 'Actions',
-      width: 200,
+      width: 160,
       render: (value, row, index) => (
         <div className="flex gap-1">
           <Button
@@ -382,20 +386,9 @@ export default function Transactions() {
           >
             <Printer className="h-3 w-3" />
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              handleEmailReceipt(row);
-            }}
-            title="Email Receipt"
-          >
-            <Mail className="h-3 w-3" />
-          </Button>
           
-          {/* Edit button - Owners and Managers */}
-          {canEditSales && !row.is_voided && (
+          {/* Edit button - Owners and Managers, only for sales with items */}
+          {canEditSales && !row.is_voided && row.sale_items?.length > 0 && (
             <Button
               variant="ghost"
               size="sm"
@@ -691,22 +684,17 @@ export default function Transactions() {
       )}
       
       {/* Edit Sale Modal */}
-      {editingSaleId && (() => {
-        const editingSale = transactionsData.find((t: any) => t.id === editingSaleId);
-        if (!editingSale?.sale_items?.length) return null;
-        return (
-          <EditSaleModal
-            open={!!editingSaleId}
-            onOpenChange={(open) => !open && setEditingSaleId(null)}
-            saleId={editingSaleId}
-            items={editingSale.sale_items as any}
-            onSuccess={async () => {
-              setEditingSaleId(null);
-              await queryClient.invalidateQueries({ queryKey: ['transactions'] });
-            }}
-          />
-        );
-      })()}
+      {editingSaleId && (
+        <EditSaleModal
+          open={!!editingSaleId}
+          onOpenChange={(open) => !open && setEditingSaleId(null)}
+          saleId={editingSaleId}
+          onSuccess={async () => {
+            setEditingSaleId(null);
+            await queryClient.invalidateQueries({ queryKey: ['transactions'] });
+          }}
+        />
+      )}
       
       {/* Void Sale Modal */}
       {voidingSaleId && (() => {

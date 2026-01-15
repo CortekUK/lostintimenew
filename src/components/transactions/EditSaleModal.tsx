@@ -13,8 +13,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Edit, Save, AlertTriangle } from 'lucide-react';
+import { Edit, Save, AlertTriangle, Loader2 } from 'lucide-react';
 import { useUpdateSaleItem } from '@/hooks/useSaleActions';
+import { useTransactionDetails } from '@/hooks/useDatabase';
 import { formatCurrency } from '@/lib/utils';
 
 interface SaleItem {
@@ -35,7 +36,6 @@ interface EditSaleModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   saleId: number;
-  items: SaleItem[];
   onSuccess?: () => void;
 }
 
@@ -54,9 +54,11 @@ export function EditSaleModal({
   open,
   onOpenChange,
   saleId,
-  items,
   onSuccess
 }: EditSaleModalProps) {
+  // Fetch complete sale details when modal opens
+  const { data: details, isLoading } = useTransactionDetails(open ? saleId : undefined);
+  const items: SaleItem[] = details?.items || [];
   const [editedItems, setEditedItems] = useState<EditedItem[]>([]);
   const [reason, setReason] = useState('');
   const updateSaleItem = useUpdateSaleItem();
@@ -99,14 +101,22 @@ export function EditSaleModal({
   const hasAnyChanges = editedItems.some(item => item.hasChanges);
 
   const calculateNewTotal = () => {
+    if (editedItems.length === 0) return 0;
     return editedItems.reduce((sum, item) => {
-      return sum + (item.quantity * item.unitPrice) - item.discount;
+      const qty = Number(item.quantity) || 0;
+      const price = Number(item.unitPrice) || 0;
+      const discount = Number(item.discount) || 0;
+      return sum + (qty * price) - discount;
     }, 0);
   };
 
   const calculateOriginalTotal = () => {
+    if (items.length === 0) return 0;
     return items.reduce((sum, item) => {
-      return sum + (item.quantity * item.unit_price) - item.discount;
+      const qty = Number(item.quantity) || 0;
+      const price = Number(item.unit_price) || 0;
+      const discount = Number(item.discount) || 0;
+      return sum + (qty * price) - discount;
     }, 0);
   };
 
@@ -145,6 +155,49 @@ export function EditSaleModal({
   const originalTotal = calculateOriginalTotal();
   const newTotal = calculateNewTotal();
   const difference = newTotal - originalTotal;
+
+  // Loading state
+  if (open && isLoading) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <div className="flex items-center justify-center py-8">
+            <Loader2 className="h-6 w-6 animate-spin text-muted-foreground" />
+            <span className="ml-2 text-muted-foreground">Loading sale details...</span>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Empty state - sale has no items
+  if (open && !isLoading && items.length === 0) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Cannot Edit Sale #{saleId}
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-muted-foreground">
+              This sale has no items to edit. This may be an incomplete or orphaned transaction.
+            </p>
+            <p className="text-sm text-muted-foreground mt-2">
+              Consider voiding this sale instead.
+            </p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => onOpenChange(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    );
+  }
 
   return (
     <Dialog open={open} onOpenChange={(isOpen) => {

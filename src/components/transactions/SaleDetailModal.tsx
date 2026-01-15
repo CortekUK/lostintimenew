@@ -632,12 +632,11 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
       )}
 
       {/* Edit Sale Modal */}
-      {saleId && items.length > 0 && (
+      {saleId && (
         <EditSaleModal
           open={editModalOpen}
           onOpenChange={setEditModalOpen}
           saleId={saleId}
-          items={items}
           onSuccess={async () => {
             // Refetch the current sale details
             await refetch();
