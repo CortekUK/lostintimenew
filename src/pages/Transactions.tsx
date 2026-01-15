@@ -34,7 +34,8 @@ import {
   Mail,
   ExternalLink,
   Edit,
-  Ban
+  Ban,
+  X
 } from 'lucide-react';
 import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { VoidSaleModal } from '@/components/transactions/VoidSaleModal';
@@ -471,30 +472,6 @@ export default function Transactions() {
             </Card>
           </div>
           
-          {/* Payment Method Breakdown */}
-          {Object.keys(paymentBreakdown).length > 0 && (
-            <div className="flex gap-2 flex-wrap items-center">
-              <span className="text-sm text-muted-foreground mr-2">Payment Methods:</span>
-              {Object.entries(paymentBreakdown).map(([method, count]) => (
-                <Badge
-                  key={method}
-                  variant="outline"
-                  className="cursor-pointer hover:bg-primary/10 transition-colors px-3 py-1"
-                  onClick={() => setFilters(prev => ({ ...prev, paymentMethod: method }))}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
-                      setFilters(prev => ({ ...prev, paymentMethod: method }));
-                    }
-                  }}
-                  aria-label={`Filter by ${method} payment method`}
-                >
-                  {method.charAt(0).toUpperCase() + method.slice(1)}: <strong className="ml-1">{count}</strong>
-                </Badge>
-              ))}
-            </div>
-          )}
         </div>
 
         {/* Filters */}
@@ -628,6 +605,22 @@ export default function Transactions() {
                 aria-label="Show last 30 days transactions"
               >
                 30 Days
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setFilters({
+                  dateRange: { from: '', to: '' },
+                  paymentMethod: 'all',
+                  staffId: 'all',
+                  searchQuery: ''
+                })}
+                aria-label="Reset all filters"
+                className="text-muted-foreground hover:text-foreground"
+              >
+                <X className="h-4 w-4 mr-1" />
+                Reset
               </Button>
               
               {userRole === 'owner' && (
