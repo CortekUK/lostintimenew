@@ -22,7 +22,7 @@ import {
 import { Edit, Trash2, Check, X, ArrowUpDown, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useUpdateExpense, useDeleteExpense } from '@/hooks/useDatabase';
 import { useOwnerGuard } from '@/hooks/useOwnerGuard';
-import { useAllExpenseCategories } from '@/hooks/useCustomCategories';
+import { useAllExpenseCategories, formatCategoryDisplay } from '@/hooks/useCustomCategories';
 import { EditExpenseModal } from './EditExpenseModal';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
 import {
@@ -42,12 +42,7 @@ interface ExpenseTableProps {
   onEdit?: (expense: any) => void;
 }
 
-const formatCategoryName = (category: string) => {
-  return category
-    .split('_')
-    .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
-};
+// Use formatCategoryDisplay from useCustomCategories for consistent formatting
 
 const ExpenseRow = memo(({ 
   expense, 
@@ -98,13 +93,13 @@ const ExpenseRow = memo(({
             <SelectContent>
               {allCategories.map((cat: string) => (
                 <SelectItem key={cat} value={cat}>
-                  {formatCategoryName(cat)}
+                  {formatCategoryDisplay(cat)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
         ) : (
-          <Badge variant="secondary">{formatCategoryName(expense.category)}</Badge>
+          <Badge variant="secondary">{formatCategoryDisplay(expense.category)}</Badge>
         )}
       </TableCell>
       <TableCell className="text-right font-mono">
@@ -121,7 +116,7 @@ const ExpenseRow = memo(({
         )}
       </TableCell>
       <TableCell>
-        <Badge variant="outline">{formatCategoryName(expense.payment_method || 'cash')}</Badge>
+        <Badge variant="outline">{formatCategoryDisplay(expense.payment_method || 'cash')}</Badge>
       </TableCell>
       <TableCell className="text-sm text-muted-foreground">
         {expense.supplier?.name || '-'}

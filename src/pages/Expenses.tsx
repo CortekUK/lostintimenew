@@ -13,7 +13,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCreateExpense, useUpdateExpense, useDeleteExpense, useSuppliers, useCreateSupplier } from '@/hooks/useDatabase';
 import { ExpenseCategory } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
-import { useAllExpenseCategories, useAddCustomCategory } from '@/hooks/useCustomCategories';
+import { useAllExpenseCategories, useAddCustomCategory, formatCategoryDisplay } from '@/hooks/useCustomCategories';
 import { ExpenseHelpTooltips } from '@/components/expenses/ExpenseHelpTooltips';
 import { ExpenseCardSkeleton, StatsCardSkeleton } from '@/components/ui/loading-states';
 import { QueryErrorHandler } from '@/components/ui/error-states';
@@ -56,7 +56,7 @@ const ExpenseCard = ({ expense }: { expense: any }) => (
         <div>
           <CardTitle className="text-lg font-semibold">{expense.description}</CardTitle>
           <CardDescription>
-            {expense.supplier?.name} • {expense.category}
+            {expense.supplier?.name} • {formatCategoryDisplay(expense.category)}
           </CardDescription>
         </div>
         <Badge variant={expense.is_cogs ? 'default' : 'outline'}>

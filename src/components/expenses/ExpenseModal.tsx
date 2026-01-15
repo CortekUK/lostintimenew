@@ -28,7 +28,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { ReceiptUpload } from './ReceiptUpload';
 import { useSuppliers } from '@/hooks/useSuppliers';
-import { useAllExpenseCategories } from '@/hooks/useCustomCategories';
+import { useAllExpenseCategories, formatCategoryDisplay } from '@/hooks/useCustomCategories';
 import { useAuth } from '@/contexts/AuthContext';
 import { useOwnerGuard } from '@/hooks/useOwnerGuard';
 import { cn } from '@/lib/utils';
@@ -90,7 +90,7 @@ export function ExpenseModal({
     description: '',
     amount: '',
     date: new Date(),
-    category: 'Miscellaneous',
+    category: 'other',
     supplier_id: null,
     payment_method: 'Cash',
     include_vat: false,
@@ -111,7 +111,7 @@ export function ExpenseModal({
         description: expense.description || '',
         amount: expense.amount_inc_vat || expense.amount || '',
         date: expense.incurred_at ? new Date(expense.incurred_at) : new Date(),
-        category: expense.category || 'Miscellaneous',
+        category: expense.category || 'other',
         supplier_id: expense.supplier_id || null,
         payment_method: expense.payment_method || 'Cash',
         include_vat: !!expense.vat_rate,
@@ -128,7 +128,7 @@ export function ExpenseModal({
         description: '',
         amount: '',
         date: new Date(),
-        category: 'Miscellaneous',
+        category: 'other',
         supplier_id: null,
         payment_method: 'Cash',
         include_vat: false,
@@ -407,7 +407,7 @@ export function ExpenseModal({
                   <SelectContent>
                     {allCategories.map((cat) => (
                       <SelectItem key={cat} value={cat}>
-                        {cat}
+                        {formatCategoryDisplay(cat)}
                       </SelectItem>
                     ))}
                   </SelectContent>

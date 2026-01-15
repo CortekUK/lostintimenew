@@ -4,14 +4,13 @@ import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const PREDEFINED_CATEGORIES = [
-  'Rent',
-  'Utilities',
-  'Marketing',
-  'Insurance',
-  'Shipping',
-  'Repairs',
-  'Packaging',
-  'Other'
+  'rent',
+  'utilities',
+  'marketing',
+  'fees',
+  'wages',
+  'repairs',
+  'other'
 ] as const;
 
 // Helper to format category for display (capitalize first letter)
