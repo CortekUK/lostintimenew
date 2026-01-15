@@ -234,7 +234,7 @@ export default function EnhancedAnalytics() {
                     <div className="space-y-2">
                       {overviewData?.recentAudit && overviewData.recentAudit.length > 0 ? (
                         overviewData.recentAudit.map((entry: any) => (
-                          <div key={entry.id} className="border rounded p-3 hover:bg-muted/50 transition-colors">
+                          <div key={entry.id} className="border border-border rounded p-3 hover:bg-muted/50 transition-colors">
                             <div className="flex items-center justify-between">
                               <div className="flex items-center gap-2">
                                 <Badge variant={

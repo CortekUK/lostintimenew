@@ -109,7 +109,7 @@ export function SimpleTable<T>({
 
   if (loading) {
     return (
-      <div className={cn('border rounded-lg', className)}>
+      <div className={cn('border border-border rounded-lg', className)}>
         <div className="flex items-center justify-center h-32">
           <div className="text-muted-foreground">Loading...</div>
         </div>
@@ -119,7 +119,7 @@ export function SimpleTable<T>({
 
   if (sortedData.length === 0) {
     return (
-      <div className={cn('border rounded-lg', className)}>
+      <div className={cn('border border-border rounded-lg', className)}>
         <div className="flex items-center justify-center h-32">
           <div className="text-muted-foreground">{emptyMessage}</div>
         </div>
@@ -128,9 +128,9 @@ export function SimpleTable<T>({
   }
 
   return (
-    <div className={cn('border rounded-lg overflow-hidden', className)}>
+    <div className={cn('border border-border rounded-lg overflow-hidden', className)}>
       {/* Controls */}
-      <div className="p-4 border-b bg-muted/50 flex items-center justify-between">
+      <div className="p-4 border-b border-border bg-muted/50 flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
           {sortedData.length} items total
           {showPagination && totalPages > 1 && (
@@ -218,7 +218,7 @@ export function SimpleTable<T>({
 
       {/* Pagination */}
       {showPagination && totalPages > 1 && (
-        <div className="p-4 border-t bg-muted/50 flex items-center justify-between">
+        <div className="p-4 border-t border-border bg-muted/50 flex items-center justify-between">
           <Button
             variant="outline"
             size="sm"

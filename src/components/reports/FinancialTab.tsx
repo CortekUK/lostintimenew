@@ -217,7 +217,7 @@ export function FinancialTab() {
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="space-y-3">
-            <div className="flex justify-between items-center py-2 border-b">
+            <div className="flex justify-between items-center py-2 border-b border-border">
               <span className="font-semibold">Total Sales Revenue</span>
               <span className="font-mono font-semibold">{formatCurrency(revenue)}</span>
             </div>
@@ -268,7 +268,7 @@ export function FinancialTab() {
                 </div>
               )}
               
-              <div className="flex justify-between items-center font-semibold pt-1 border-t">
+              <div className="flex justify-between items-center font-semibold pt-1 border-t border-border">
                 <span>Total Operating Expenses</span>
                 <span className="font-mono text-muted-foreground">-{formatCurrency(operatingExpenses)}</span>
               </div>
