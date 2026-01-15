@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ShoppingCartComponent } from '@/components/pos/ShoppingCart';
 import { CheckoutForm, DiscountType } from '@/components/pos/CheckoutForm';
@@ -23,6 +24,7 @@ export default function EnhancedSales() {
   const queryClient = useQueryClient();
   const isOwner = useOwnerGuard();
   const recordCashMovement = useRecordCashMovement();
+  const [searchParams, setSearchParams] = useSearchParams();
   
   const [cart, setCart] = useState<CartItem[]>([]);
   const [partExchanges, setPartExchanges] = useState<PartExchangeItem[]>([]);
@@ -78,6 +80,35 @@ export default function EnhancedSales() {
       return data as Product[];
     }
   });
+
+  // Handle productId from URL (coming from Products page)
+  useEffect(() => {
+    const productId = searchParams.get('productId');
+    if (productId && products && products.length > 0) {
+      const product = products.find(p => p.id === parseInt(productId, 10));
+      if (product) {
+        // Check if not already in cart
+        const alreadyInCart = cart.find(item => item.product.id === product.id);
+        if (!alreadyInCart) {
+          const newItem: CartItem = {
+            product,
+            quantity: 1,
+            unit_price: product.unit_price,
+            unit_cost: product.unit_cost,
+            tax_rate: product.tax_rate,
+            discount: 0
+          };
+          setCart(prev => [...prev, newItem]);
+          toast({
+            title: 'Added to cart',
+            description: `${product.name}`,
+          });
+        }
+        // Clear the param to prevent re-adding on refresh
+        setSearchParams({}, { replace: true });
+      }
+    }
+  }, [searchParams, products]);
 
   // Get Customer Trade-In supplier ID
   const { data: tradeInSupplier } = useQuery({

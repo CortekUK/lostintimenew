@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Eye, Edit, Copy, ChevronUp, ChevronDown, ChevronsUpDown, MapPin, Repeat } from 'lucide-react';
+import { Eye, Edit, Copy, ChevronUp, ChevronDown, ChevronsUpDown, MapPin, Repeat, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -26,6 +26,7 @@ interface ProductTableProps {
   onView: (product: any) => void;
   onEdit: (product: any) => void;
   onDuplicate: (product: any) => void;
+  onSell?: (product: any) => void;
   onImageClick?: (product: any) => void;
   stockStatusMap?: Map<number, any>;
   partExchangeMap?: Record<number, any>;
@@ -40,6 +41,7 @@ export function ProductTable({
   onView,
   onEdit,
   onDuplicate,
+  onSell,
   onImageClick,
   stockStatusMap,
   partExchangeMap,
@@ -353,6 +355,30 @@ export function ProductTable({
                     {/* Actions */}
                     <TableCell className={`${cellPadding} text-right`}>
                       <div className="flex items-center justify-end gap-1">
+                        {onSell && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8 text-primary hover:text-primary hover:bg-primary/10"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onSell(product);
+                                  }}
+                                  disabled={(product.qty_on_hand || 0) <= 0}
+                                >
+                                  <ShoppingCart className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                {(product.qty_on_hand || 0) > 0 ? 'Sell Product' : 'Out of Stock'}
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
+
                         <TooltipProvider>
                           <Tooltip>
                             <TooltipTrigger asChild>

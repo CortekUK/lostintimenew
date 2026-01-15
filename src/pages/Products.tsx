@@ -468,6 +468,10 @@ export default function Products() {
       setSearchParams({});
     }
   };
+
+  const handleSellProduct = (product: any) => {
+    navigate(`/sales?productId=${product.id}`);
+  };
   
   const handleCloseViewModal = () => {
     setViewModalOpen(false);
@@ -715,6 +719,7 @@ export default function Products() {
               setProductToDuplicate(product);
               setDuplicateModalOpen(true);
             }}
+            onSell={handleSellProduct}
             onImageClick={handleImageClick}
             stockStatusMap={stockStatusMap}
             partExchangeMap={partExchangeMap}
