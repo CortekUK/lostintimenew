@@ -108,17 +108,17 @@ export function ExpenseFiltersEnhanced({
   };
 
   return (
-    <div className="space-y-4">
-      <div className="flex items-center gap-2">
+    <div className="space-y-3">
+      <div className="flex items-center gap-3">
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="sm">
-              <Filter className="h-4 w-4 mr-2" />
+            <Button variant="outline" size="sm" className="gap-2">
+              <Filter className="h-4 w-4" />
               Filters
               {activeFilterCount > 0 && (
-                <Badge variant="default" className="ml-2 h-5 min-w-5 rounded-full px-1">
+                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[11px] font-medium text-primary-foreground">
                   {activeFilterCount}
-                </Badge>
+                </span>
               )}
             </Button>
           </PopoverTrigger>
@@ -358,8 +358,8 @@ export function ExpenseFiltersEnhanced({
         </Popover>
 
         {activeFilterCount > 0 && (
-          <Button variant="ghost" size="sm" onClick={clearAllFilters}>
-            Clear all filters
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground" onClick={clearAllFilters}>
+            Clear all
           </Button>
         )}
       </div>
