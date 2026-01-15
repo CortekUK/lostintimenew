@@ -226,7 +226,7 @@ export default function SoldItemsReport() {
       key: 'sold_at',
       title: 'Date',
       sortable: true,
-      width: 120,
+      width: 130,
       render: (value: any, row: any, index: number) => {
         const date = new Date(row.sold_at);
         const isValidDate = !isNaN(date.getTime());
@@ -247,7 +247,7 @@ export default function SoldItemsReport() {
       key: 'product',
       title: 'Product',
       sortable: true,
-      width: 220,
+      width: 280,
       render: (value: any, row: any, index: number) => (
         <div>
           <div className="font-medium">{row?.products?.name || 'Unknown Product'}</div>
@@ -257,9 +257,6 @@ export default function SoldItemsReport() {
             )}
             {row?.products?.sku && (
               <div>SKU: {row.products.sku}</div>
-            )}
-            {row?.serial && (
-              <div>SKU: {row.serial}</div>
             )}
           </div>
           <div className="flex gap-1 mt-1.5 flex-wrap">
@@ -275,89 +272,40 @@ export default function SoldItemsReport() {
       )
     },
     {
-      key: 'supplier',
-      title: 'Supplier',
+      key: 'serial',
+      title: 'Serial Number',
       width: 140,
-      render: (value: any, row: any, index: number) => {
-        const supplierName = row?.supplier_name || row?.supplier?.name || '-';
-        const isCustomerSupplier = row?.products?.is_trade_in && row?.supplier?.supplier_type === 'customer';
-        
-        return (
-          <div>
-            <div className="text-sm">{supplierName}</div>
-            {isCustomerSupplier && (
-              <div className="text-xs text-muted-foreground">Customer</div>
-            )}
-          </div>
-        );
-      }
-    },
-    {
-      key: 'metal',
-      title: 'Metal',
-      width: 80,
       render: (value: any, row: any, index: number) => (
-        <div className="text-sm">
-          {row?.products?.metal || '-'}
-        </div>
+        <span className="font-mono text-sm">{row.serial || '-'}</span>
       )
     },
     {
-      key: 'quantity',
-      title: 'Qty',
+      key: 'unit_cost',
+      title: 'Unit Cost',
       sortable: true,
-      width: 60,
+      width: 110,
       render: (value: any, row: any, index: number) => (
-        <span className="font-mono">{row.quantity || 0}</span>
-      )
-    },
-    {
-      key: 'unit_price',
-      title: 'Unit Price',
-      sortable: true,
-      width: 100,
-      render: (value: any, row: any, index: number) => (
-        <span className="font-mono">£{(row.unit_price || 0).toFixed(2)}</span>
+        <span className="font-mono">£{(row.unit_cost || 0).toFixed(2)}</span>
       )
     },
     {
       key: 'line_revenue',
       title: 'Revenue',
       sortable: true,
-      width: 110,
+      width: 120,
       render: (value: any, row: any, index: number) => (
         <span className="font-mono font-bold">£{(row.line_revenue || 0).toFixed(2)}</span>
       )
     },
     {
-      key: 'line_cogs',
-      title: 'COGS',
-      sortable: true,
-      width: 100,
-      render: (value: any, row: any, index: number) => (
-        <span className="font-mono text-muted-foreground">£{(row.line_cogs || 0).toFixed(2)}</span>
-      )
-    },
-    {
-      key: 'line_gross_profit',
-      title: 'Gross Profit',
+      key: 'margin',
+      title: 'Profit Margin',
       sortable: true,
       width: 110,
-      render: (value: any, row: any, index: number) => (
-        <span className={`font-mono font-bold ${(row.line_gross_profit || 0) >= 0 ? 'text-success' : 'text-destructive'}`}>
-          £{(row.line_gross_profit || 0).toFixed(2)}
-        </span>
-      )
-    },
-    {
-      key: 'margin',
-      title: 'Margin %',
-      sortable: true,
-      width: 90,
       render: (value: any, row: any, index: number) => {
         const margin = row.line_revenue > 0 ? (row.line_gross_profit / row.line_revenue) * 100 : 0;
         return (
-          <span className={`font-mono ${margin >= 0 ? 'text-success' : 'text-destructive'}`}>
+          <span className={`font-mono font-bold ${margin >= 0 ? 'text-success' : 'text-destructive'}`}>
             {margin.toFixed(1)}%
           </span>
         );
@@ -366,11 +314,19 @@ export default function SoldItemsReport() {
     {
       key: 'staff',
       title: 'Staff',
-      width: 100,
+      width: 130,
       render: (value: any, row: any, index: number) => (
         <div className="text-sm">
-          {(row?.sales as any)?.staff_member_name || row?.sales?.profiles?.full_name || 'Unknown'}
+          {(row?.sales as any)?.staff_member_name || row?.sales?.profiles?.full_name || '-'}
         </div>
+      )
+    },
+    {
+      key: 'customer',
+      title: 'Customer',
+      width: 150,
+      render: (value: any, row: any, index: number) => (
+        <div className="text-sm">{(row?.sales as any)?.customer_name || '-'}</div>
       )
     },
     {
