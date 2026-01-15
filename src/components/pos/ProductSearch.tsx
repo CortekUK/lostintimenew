@@ -20,6 +20,7 @@ import {
 interface ProductSearchResult extends Product {
   supplier?: { name: string } | null;
   consignment_supplier?: { name: string } | null;
+  location?: { id: number; name: string } | null;
   stock_on_hand: number;
 }
 
@@ -57,7 +58,8 @@ export function ProductSearch({ onAddToCart, cartItems }: ProductSearchProps) {
         ...product,
         stock_on_hand: product.qty_on_hand || 0,
         supplier: product.supplier,
-        consignment_supplier: product.consignment_supplier
+        consignment_supplier: product.consignment_supplier,
+        location: product.location
       }));
   }, [searchQuery, searchResults, allProducts]);
   

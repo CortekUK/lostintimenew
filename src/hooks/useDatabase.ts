@@ -35,7 +35,8 @@ export const useProducts = () => {
         .select(`
           *,
           supplier:suppliers!supplier_id(name),
-          consignment_supplier:suppliers!consignment_supplier_id(name)
+          consignment_supplier:suppliers!consignment_supplier_id(name),
+          location:locations(id, name)
         `)
         .order('name');
       
