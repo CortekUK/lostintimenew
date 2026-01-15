@@ -88,6 +88,7 @@ export function RecordCommissionPaymentModal({
     try {
       await recordPayment.mutateAsync({
         staffId: staffData.staffId,
+        staffName: staffData.staffName,
         periodStart: format(dateRange.from, 'yyyy-MM-dd'),
         periodEnd: format(dateRange.to, 'yyyy-MM-dd'),
         salesCount: staffData.salesCount,

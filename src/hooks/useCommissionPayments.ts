@@ -81,6 +81,7 @@ export function usePeriodPaymentTotal(staffId: string, periodStart: string, peri
 
 interface RecordPaymentParams {
   staffId: string;
+  staffName: string;
   periodStart: string;
   periodEnd: string;
   salesCount: number;
@@ -101,6 +102,7 @@ export function useRecordCommissionPayment() {
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error('Not authenticated');
 
+      // 1. Record the commission payment
       const { data, error } = await supabase
         .from('commission_payments')
         .insert({
@@ -121,11 +123,32 @@ export function useRecordCommissionPayment() {
         .single();
 
       if (error) throw error;
+
+      // 2. Also create an expense entry for P&L tracking
+      const { error: expenseError } = await supabase
+        .from('expenses')
+        .insert({
+          description: `Commission payment: ${params.staffName} (${params.periodStart} to ${params.periodEnd})`,
+          category: 'commission',
+          amount: params.commissionAmount,
+          amount_inc_vat: params.commissionAmount,
+          is_cogs: false,
+          payment_method: params.paymentMethod,
+          incurred_at: new Date().toISOString(),
+          staff_id: userData.user.id
+        });
+
+      if (expenseError) {
+        console.error('Failed to create expense for commission:', expenseError);
+      }
+
       return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['commission-payments'] });
       queryClient.invalidateQueries({ queryKey: ['commission-payment-total'] });
+      queryClient.invalidateQueries({ queryKey: ['consolidated-pnl'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
     }
   });
 }
@@ -135,16 +158,36 @@ export function useDeleteCommissionPayment() {
 
   return useMutation({
     mutationFn: async (paymentId: number) => {
+      // Get the payment details first to find the matching expense
+      const { data: payment } = await supabase
+        .from('commission_payments')
+        .select('*')
+        .eq('id', paymentId)
+        .single();
+
+      // Delete the commission payment
       const { error } = await supabase
         .from('commission_payments')
         .delete()
         .eq('id', paymentId);
 
       if (error) throw error;
+
+      // Try to delete the matching expense (best effort)
+      if (payment) {
+        await supabase
+          .from('expenses')
+          .delete()
+          .eq('category', 'commission')
+          .eq('amount', payment.commission_amount)
+          .ilike('description', `%${payment.period_start}%`);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['commission-payments'] });
       queryClient.invalidateQueries({ queryKey: ['commission-payment-total'] });
+      queryClient.invalidateQueries({ queryKey: ['consolidated-pnl'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
     }
   });
 }

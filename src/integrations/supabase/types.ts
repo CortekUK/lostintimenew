@@ -1982,6 +1982,7 @@ export type Database = {
         | "wages"
         | "repairs"
         | "other"
+        | "commission"
       payment_method: "cash" | "card" | "transfer" | "other"
       product_document_type:
         | "registration"
@@ -2135,6 +2136,7 @@ export const Constants = {
         "wages",
         "repairs",
         "other",
+        "commission",
       ],
       payment_method: ["cash", "card", "transfer", "other"],
       product_document_type: [
