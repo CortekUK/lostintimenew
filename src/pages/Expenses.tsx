@@ -1,5 +1,4 @@
 import { useState, useMemo } from 'react';
-import { Link } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -21,8 +20,7 @@ import {
   TrendingDown,
   FileText,
   Download,
-  Search,
-  RefreshCw
+  Search
 } from 'lucide-react';
 import { 
   useExpenseStats, 
@@ -202,13 +200,6 @@ export default function Expenses() {
 
           {/* Right group: Actions */}
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" asChild>
-              <Link to="/expenses/recurring">
-                <RefreshCw className="mr-2 h-4 w-4" />
-                Recurring
-              </Link>
-            </Button>
-            
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" size="sm">

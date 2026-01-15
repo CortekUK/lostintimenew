@@ -29,7 +29,6 @@ import SoldItemsReport from "./pages/SoldItemsReport";
 import SalesHistory from "./pages/SalesHistory";
 import SoldItems from "./pages/SoldItems";
 import Expenses from "./pages/Expenses";
-import RecurringExpenses from "./pages/RecurringExpenses";
 import Reports from "./pages/Reports";
 import EnhancedAnalytics from "./pages/EnhancedAnalytics";
 import Consignments from "./pages/Consignments";
@@ -88,7 +87,6 @@ function AppInner() {
           <Route path="/receipt/:id" element={<ProtectedRoute><Receipt /></ProtectedRoute>} />
           <Route path="/pos/receipt/:saleId" element={<ProtectedRoute><ReceiptPreview /></ProtectedRoute>} />
           <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
-          <Route path="/expenses/recurring" element={<ProtectedRoute><RecurringExpenses /></ProtectedRoute>} />
           
           {/* Manager+ Routes (Reports & Analytics) */}
           <Route path="/reports" element={<ProtectedRoute module="reports"><Reports /></ProtectedRoute>} />

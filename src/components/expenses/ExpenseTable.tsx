@@ -1,4 +1,5 @@
 import { useState, useMemo, memo } from 'react';
+import { cn } from '@/lib/utils';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -19,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Edit, Trash2, Check, X, ArrowUpDown, ChevronLeft, ChevronRight, RefreshCw } from 'lucide-react';
+import { Edit, Trash2, Check, X, ArrowUpDown, ChevronLeft, ChevronRight, RefreshCw, Pause, Play, Settings, XCircle } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUpdateExpense, useDeleteExpense } from '@/hooks/useDatabase';
 import { useOwnerGuard } from '@/hooks/useOwnerGuard';
@@ -28,6 +29,7 @@ import { useExpenseTemplates } from '@/hooks/useExpenseTemplates';
 import { EditExpenseModal } from './EditExpenseModal';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
 import { MakeRecurringDialog } from './MakeRecurringDialog';
+import { EditScheduleDialog } from './EditScheduleDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -61,6 +63,9 @@ const ExpenseRow = memo(({
   onOpenModal,
   onDelete,
   onMakeRecurring,
+  onEditSchedule,
+  onTogglePause,
+  onStopRecurring,
   isOwner,
   allCategories 
 }: any) => {
@@ -137,11 +142,18 @@ const ExpenseRow = memo(({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <div className="flex flex-col gap-0.5">
-                    <Badge variant="outline" className="text-xs w-fit gap-1">
+                    <Badge 
+                      variant={expense.template.is_active ? "outline" : "secondary"} 
+                      className={cn(
+                        "text-xs w-fit gap-1",
+                        !expense.template.is_active && "opacity-60"
+                      )}
+                    >
                       <RefreshCw className="h-3 w-3" />
                       {formatCategoryDisplay(expense.template.frequency)}
+                      {!expense.template.is_active && " (Paused)"}
                     </Badge>
-                    {expense.template.next_due_date && (
+                    {expense.template.is_active && expense.template.next_due_date && (
                       <span className="text-[10px] text-muted-foreground">
                         Next: {format(new Date(expense.template.next_due_date), 'dd MMM')}
                       </span>
@@ -150,10 +162,14 @@ const ExpenseRow = memo(({
                 </TooltipTrigger>
                 <TooltipContent>
                   <p>Recurring {expense.template.frequency} expense</p>
-                  {expense.template.next_due_date && (
-                    <p className="text-xs text-muted-foreground">
-                      Next due: {format(new Date(expense.template.next_due_date), 'PPP')}
-                    </p>
+                  {expense.template.is_active ? (
+                    expense.template.next_due_date && (
+                      <p className="text-xs text-muted-foreground">
+                        Next due: {format(new Date(expense.template.next_due_date), 'PPP')}
+                      </p>
+                    )
+                  ) : (
+                    <p className="text-xs text-muted-foreground">Schedule is paused</p>
                   )}
                 </TooltipContent>
               </Tooltip>
@@ -201,7 +217,61 @@ const ExpenseRow = memo(({
                 >
                   Full Edit
                 </Button>
-                {!hasTemplate && (
+                {hasTemplate ? (
+                  <>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onEditSchedule(expense.template)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <Settings className="h-4 w-4 text-primary" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Edit Schedule</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onTogglePause(expense.template)}
+                            className="h-8 w-8 p-0"
+                          >
+                            {expense.template.is_active ? (
+                              <Pause className="h-4 w-4 text-amber-500" />
+                            ) : (
+                              <Play className="h-4 w-4 text-green-500" />
+                            )}
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          {expense.template.is_active ? 'Pause Schedule' : 'Resume Schedule'}
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => onStopRecurring(expense.template)}
+                            className="h-8 w-8 p-0"
+                          >
+                            <XCircle className="h-4 w-4 text-destructive" />
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>Stop Recurring</TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </>
+                ) : (
                   <TooltipProvider>
                     <Tooltip>
                       <TooltipTrigger asChild>
@@ -247,12 +317,14 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
   const [pageSize, setPageSize] = useState(25);
   const [editModalExpense, setEditModalExpense] = useState<any>(null);
   const [recurringExpense, setRecurringExpense] = useState<any>(null);
+  const [editScheduleTemplate, setEditScheduleTemplate] = useState<any>(null);
+  const [stopRecurringTemplate, setStopRecurringTemplate] = useState<any>(null);
   
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
   const isOwner = useOwnerGuard();
   const { all: allCategories } = useAllExpenseCategories();
-  const { createTemplate } = useExpenseTemplates();
+  const { createTemplate, updateTemplate, deleteTemplate } = useExpenseTemplates();
 
   // Pagination
   const totalPages = Math.ceil(expenses.length / pageSize);
@@ -356,6 +428,20 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
     await deleteExpense.mutateAsync(id);
   };
 
+  const handleTogglePause = (template: any) => {
+    updateTemplate({
+      id: template.id,
+      updates: { is_active: !template.is_active }
+    });
+  };
+
+  const handleStopRecurring = () => {
+    if (stopRecurringTemplate) {
+      deleteTemplate(stopRecurringTemplate.id);
+      setStopRecurringTemplate(null);
+    }
+  };
+
   if (expenses.length === 0) {
     return (
       <Card>
@@ -416,6 +502,9 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
                   onOpenModal={onEdit || setEditModalExpense}
                   onDelete={setDeleteId}
                   onMakeRecurring={setRecurringExpense}
+                  onEditSchedule={setEditScheduleTemplate}
+                  onTogglePause={handleTogglePause}
+                  onStopRecurring={setStopRecurringTemplate}
                   isOwner={isOwner}
                   allCategories={allCategories}
                 />
@@ -565,6 +654,30 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
           }
         }}
       />
+
+      <EditScheduleDialog
+        open={!!editScheduleTemplate}
+        onOpenChange={(open) => !open && setEditScheduleTemplate(null)}
+        template={editScheduleTemplate}
+      />
+
+      <AlertDialog open={!!stopRecurringTemplate} onOpenChange={() => setStopRecurringTemplate(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Stop Recurring Schedule?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently remove the recurring schedule for this expense. 
+              Future expenses will no longer be auto-generated.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={handleStopRecurring} className="bg-destructive text-destructive-foreground">
+              Stop Recurring
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
