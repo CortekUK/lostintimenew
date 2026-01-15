@@ -24,8 +24,10 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { useUpdateExpense, useDeleteExpense } from '@/hooks/useDatabase';
 import { useOwnerGuard } from '@/hooks/useOwnerGuard';
 import { useAllExpenseCategories, formatCategoryDisplay } from '@/hooks/useCustomCategories';
+import { useExpenseTemplates } from '@/hooks/useExpenseTemplates';
 import { EditExpenseModal } from './EditExpenseModal';
 import { BulkActionsToolbar } from './BulkActionsToolbar';
+import { MakeRecurringDialog } from './MakeRecurringDialog';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -37,6 +39,7 @@ import {
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
 import { format } from 'date-fns';
+import { toast } from 'sonner';
 
 interface ExpenseTableProps {
   expenses: any[];
@@ -57,9 +60,11 @@ const ExpenseRow = memo(({
   onCancelEdit, 
   onOpenModal,
   onDelete,
+  onMakeRecurring,
   isOwner,
   allCategories 
 }: any) => {
+  const hasTemplate = !!expense.template;
   return (
     <TableRow className={isSelected ? 'bg-muted/50' : ''}>
       <TableCell className="w-12">
@@ -196,6 +201,23 @@ const ExpenseRow = memo(({
                 >
                   Full Edit
                 </Button>
+                {!hasTemplate && (
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => onMakeRecurring(expense)}
+                          className="h-8 w-8 p-0"
+                        >
+                          <RefreshCw className="h-4 w-4 text-primary" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>Make Recurring</TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                )}
                 <Button
                   variant="ghost"
                   size="sm"
@@ -224,11 +246,13 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(25);
   const [editModalExpense, setEditModalExpense] = useState<any>(null);
+  const [recurringExpense, setRecurringExpense] = useState<any>(null);
   
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
   const isOwner = useOwnerGuard();
   const { all: allCategories } = useAllExpenseCategories();
+  const { createTemplate } = useExpenseTemplates();
 
   // Pagination
   const totalPages = Math.ceil(expenses.length / pageSize);
@@ -391,6 +415,7 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
                   onCancelEdit={cancelEdit}
                   onOpenModal={onEdit || setEditModalExpense}
                   onDelete={setDeleteId}
+                  onMakeRecurring={setRecurringExpense}
                   isOwner={isOwner}
                   allCategories={allCategories}
                 />
@@ -504,6 +529,42 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <MakeRecurringDialog
+        open={!!recurringExpense}
+        onOpenChange={(open) => !open && setRecurringExpense(null)}
+        expense={recurringExpense}
+        onConfirm={async (frequency, nextDueDate) => {
+          if (!recurringExpense) return;
+          try {
+            // Create the template
+            const template = await createTemplate({
+              description: recurringExpense.description,
+              amount: recurringExpense.amount,
+              category: recurringExpense.category,
+              payment_method: recurringExpense.payment_method || 'cash',
+              supplier_id: recurringExpense.supplier_id,
+              vat_rate: recurringExpense.vat_rate,
+              notes: recurringExpense.notes,
+              frequency: frequency as 'weekly' | 'monthly' | 'quarterly' | 'annually',
+              next_due_date: nextDueDate.toISOString().split('T')[0],
+            });
+            
+            // Link expense to template
+            if (template?.id) {
+              await updateExpense.mutateAsync({ 
+                id: recurringExpense.id, 
+                updates: { template_id: template.id } 
+              });
+            }
+            
+            toast.success('Recurring template created');
+            setRecurringExpense(null);
+          } catch (error) {
+            toast.error('Failed to create recurring template');
+          }
+        }}
+      />
     </>
   );
 }

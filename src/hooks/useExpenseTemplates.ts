@@ -12,7 +12,7 @@ export interface ExpenseTemplate {
   payment_method: string;
   vat_rate: number | null;
   notes: string | null;
-  frequency: 'monthly' | 'quarterly' | 'annually';
+  frequency: 'weekly' | 'monthly' | 'quarterly' | 'annually';
   next_due_date: string;
   is_active: boolean;
   created_by: string | null;
@@ -45,20 +45,18 @@ export function useExpenseTemplates() {
   const createMutation = useMutation({
     mutationFn: async (template: Omit<ExpenseTemplate, 'id' | 'created_at' | 'created_by' | 'last_generated_at' | 'is_active'>) => {
       const { data: userData } = await supabase.auth.getUser();
-      const { error } = await supabase.from('expense_templates').insert({
+      const { data, error } = await supabase.from('expense_templates').insert({
         ...template,
         created_by: userData.user?.id,
         is_active: true,
-      });
+      }).select().single();
 
       if (error) throw error;
+      return data as ExpenseTemplate;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['expense-templates'] });
-      toast({
-        title: 'Recurring template created',
-        description: 'The expense will be tracked for future recurring entries.',
-      });
+      queryClient.invalidateQueries({ queryKey: ['expenses'] });
     },
     onError: (error: Error) => {
       toast({
@@ -124,7 +122,7 @@ export function useExpenseTemplates() {
   return {
     templates: templates || [],
     isLoading,
-    createTemplate: createMutation.mutate,
+    createTemplate: createMutation.mutateAsync,
     updateTemplate: updateMutation.mutate,
     deleteTemplate: deleteMutation.mutate,
     isCreating: createMutation.isPending,
