@@ -82,47 +82,106 @@ export function formatTime(date: string | Date): string {
   });
 }
 
+// Date range period types
+export type DateRangePeriod = 
+  | 'today' 
+  | 'week' 
+  | 'month' 
+  | '7d' 
+  | '30d'
+  | 'this-week'
+  | 'last-week'
+  | 'this-month'
+  | 'last-month'
+  | 'this-quarter'
+  | 'last-quarter'
+  | 'this-year'
+  | 'last-year'
+  | 'all-time';
+
 // Get date range for common periods
-export function getDateRange(period: 'today' | 'week' | 'month' | '7d' | '30d'): { from: string; to: string } {
+export function getDateRange(period: DateRangePeriod): { from: string; to: string } {
   const now = new Date();
   const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   
+  const formatDate = (date: Date) => date.toISOString().split('T')[0];
+  
   switch (period) {
     case 'today':
-      return {
-        from: today.toISOString(),
-        to: new Date(today.getTime() + 24 * 60 * 60 * 1000 - 1).toISOString(),
-      };
+      return { from: formatDate(today), to: formatDate(today) };
+    
     case 'week':
+    case 'this-week': {
+      const dayOfWeek = today.getDay();
       const startOfWeek = new Date(today);
-      startOfWeek.setDate(today.getDate() - today.getDay());
-      return {
-        from: startOfWeek.toISOString(),
-        to: now.toISOString(),
-      };
+      startOfWeek.setDate(today.getDate() - dayOfWeek);
+      return { from: formatDate(startOfWeek), to: formatDate(today) };
+    }
+    
+    case 'last-week': {
+      const dayOfWeek = today.getDay();
+      const startOfThisWeek = new Date(today);
+      startOfThisWeek.setDate(today.getDate() - dayOfWeek);
+      const startOfLastWeek = new Date(startOfThisWeek);
+      startOfLastWeek.setDate(startOfThisWeek.getDate() - 7);
+      const endOfLastWeek = new Date(startOfThisWeek);
+      endOfLastWeek.setDate(startOfThisWeek.getDate() - 1);
+      return { from: formatDate(startOfLastWeek), to: formatDate(endOfLastWeek) };
+    }
+    
     case 'month':
-      const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-      return {
-        from: startOfMonth.toISOString(),
-        to: now.toISOString(),
-      };
-    case '7d':
-      const sevenDaysAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
-      return {
-        from: sevenDaysAgo.toISOString(),
-        to: now.toISOString(),
-      };
-    case '30d':
-      const thirtyDaysAgo = new Date(today.getTime() - 30 * 24 * 60 * 60 * 1000);
-      return {
-        from: thirtyDaysAgo.toISOString(),
-        to: now.toISOString(),
-      };
+    case 'this-month': {
+      const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+      return { from: formatDate(startOfMonth), to: formatDate(today) };
+    }
+    
+    case 'last-month': {
+      const startOfLastMonth = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const endOfLastMonth = new Date(now.getFullYear(), now.getMonth(), 0);
+      return { from: formatDate(startOfLastMonth), to: formatDate(endOfLastMonth) };
+    }
+    
+    case 'this-quarter': {
+      const quarter = Math.floor(now.getMonth() / 3);
+      const startOfQuarter = new Date(now.getFullYear(), quarter * 3, 1);
+      return { from: formatDate(startOfQuarter), to: formatDate(today) };
+    }
+    
+    case 'last-quarter': {
+      const quarter = Math.floor(now.getMonth() / 3);
+      const startOfLastQuarter = new Date(now.getFullYear(), (quarter - 1) * 3, 1);
+      const endOfLastQuarter = new Date(now.getFullYear(), quarter * 3, 0);
+      return { from: formatDate(startOfLastQuarter), to: formatDate(endOfLastQuarter) };
+    }
+    
+    case 'this-year': {
+      const startOfYear = new Date(now.getFullYear(), 0, 1);
+      return { from: formatDate(startOfYear), to: formatDate(today) };
+    }
+    
+    case 'last-year': {
+      const startOfLastYear = new Date(now.getFullYear() - 1, 0, 1);
+      const endOfLastYear = new Date(now.getFullYear() - 1, 11, 31);
+      return { from: formatDate(startOfLastYear), to: formatDate(endOfLastYear) };
+    }
+    
+    case 'all-time':
+      return { from: '2000-01-01', to: formatDate(today) };
+    
+    case '7d': {
+      const sevenDaysAgo = new Date(today);
+      sevenDaysAgo.setDate(today.getDate() - 7);
+      return { from: formatDate(sevenDaysAgo), to: formatDate(today) };
+    }
+    
+    case '30d': {
+      const thirtyDaysAgo = new Date(today);
+      thirtyDaysAgo.setDate(today.getDate() - 30);
+      return { from: formatDate(thirtyDaysAgo), to: formatDate(today) };
+    }
+    
     default:
-      return {
-        from: today.toISOString(),
-        to: now.toISOString(),
-      };
+      return { from: formatDate(today), to: formatDate(today) };
   }
 }
 
