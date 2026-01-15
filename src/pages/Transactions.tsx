@@ -131,12 +131,16 @@ export default function Transactions() {
       const matchesPayment = !filters.paymentMethod || filters.paymentMethod === 'all' || transaction.payment === filters.paymentMethod;
       const matchesStaff = !filters.staffId || filters.staffId === 'all' || transaction.staff_id === filters.staffId;
       
-      // Search functionality - search by sale ID, customer email, or product names
+      // Search functionality - search by sale ID, customer name, customer email, or product names/SKUs
+      const searchLower = filters.searchQuery?.toLowerCase() || '';
       const matchesSearch = !filters.searchQuery || 
         String(transaction.id).includes(filters.searchQuery) ||
-        (transaction.customer_email && transaction.customer_email.toLowerCase().includes(filters.searchQuery.toLowerCase())) ||
+        (transaction.customer_name && transaction.customer_name.toLowerCase().includes(searchLower)) ||
+        (transaction.customer_email && transaction.customer_email.toLowerCase().includes(searchLower)) ||
         (transaction.sale_items && transaction.sale_items.some((item: any) => 
-          item.products?.name?.toLowerCase().includes(filters.searchQuery.toLowerCase())
+          item.products?.name?.toLowerCase().includes(searchLower) ||
+          item.products?.sku?.toLowerCase().includes(searchLower) ||
+          item.products?.internal_sku?.toLowerCase().includes(searchLower)
         ));
       
       return matchesDateRange && matchesPayment && matchesStaff && matchesSearch;
