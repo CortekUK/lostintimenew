@@ -9,6 +9,9 @@ export interface StaffCommissionData {
   revenue: number;
   profit: number;
   commission: number;
+  hasCustomRate?: boolean;
+  effectiveRate?: number;
+  effectiveBasis?: 'revenue' | 'profit';
 }
 
 export function exportCommissionCSV(

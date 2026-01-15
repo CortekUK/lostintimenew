@@ -7,10 +7,14 @@ import { EnhancedTable } from '@/components/ui/enhanced-table';
 import { DateRangePicker } from '@/components/reports/DateRangePicker';
 import { RecordCommissionPaymentModal } from '@/components/reports/RecordCommissionPaymentModal';
 import { CommissionPaymentHistory } from '@/components/reports/CommissionPaymentHistory';
+import { CommissionSettingsModal } from '@/components/reports/CommissionSettingsModal';
+import { StaffCommissionOverrideModal } from '@/components/reports/StaffCommissionOverrideModal';
 import { useToast } from '@/hooks/use-toast';
 import { useSoldItemsReport } from '@/hooks/useDatabase';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useCommissionPayments } from '@/hooks/useCommissionPayments';
+import { useStaffCommissionOverrides } from '@/hooks/useStaffCommissionOverrides';
+import { usePermissions } from '@/hooks/usePermissions';
 import { exportCommissionCSV, StaffCommissionData } from '@/utils/commissionExport';
 import { 
   Download, 
@@ -22,7 +26,10 @@ import {
   Users,
   CheckCircle,
   AlertCircle,
-  History
+  History,
+  Settings,
+  Pencil,
+  Star
 } from 'lucide-react';
 import { format, startOfDay, endOfDay, startOfMonth, endOfMonth, parse } from 'date-fns';
 import type { DateRange } from '@/types';
@@ -30,8 +37,10 @@ import type { DateRange } from '@/types';
 export function StaffCommissionTab() {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { isOwner } = usePermissions();
   const { data: soldItemsData = [], isLoading } = useSoldItemsReport();
   const { settings } = useSettings();
+  const { data: overrides = [] } = useStaffCommissionOverrides();
   
   const commissionRate = settings.commissionSettings?.defaultRate ?? 5;
   const commissionBasis = settings.commissionSettings?.calculationBasis ?? 'revenue';
@@ -46,12 +55,19 @@ export function StaffCommissionTab() {
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [selectedStaff, setSelectedStaff] = useState<StaffCommissionData | null>(null);
   const [showHistory, setShowHistory] = useState(false);
+  const [showSettingsModal, setShowSettingsModal] = useState(false);
+  const [editingStaff, setEditingStaff] = useState<{ id: string; name: string } | null>(null);
 
   // Fetch payments for the current period
   const { data: periodPayments = [] } = useCommissionPayments({
     periodStart: dateRange.from,
     periodEnd: dateRange.to,
   });
+  
+  // Get override for a specific staff member
+  const getStaffOverride = (staffId: string) => {
+    return overrides.find(o => o.staff_id === staffId);
+  };
 
   // Calculate paid amounts by staff
   const paidByStaff = useMemo(() => {
@@ -113,19 +129,32 @@ export function StaffCommissionTab() {
       entry.profit += item.line_gross_profit || 0;
     });
     
-    return Array.from(byStaff.values()).map(staff => ({
-      staffId: staff.staffId,
-      staffName: staff.staffName,
-      salesCount: staff.saleIds.size,
-      revenue: staff.revenue,
-      profit: staff.profit,
-      commission: commissionEnabled 
-        ? (commissionBasis === 'profit' 
-            ? staff.profit * (commissionRate / 100)
-            : staff.revenue * (commissionRate / 100))
-        : 0
-    })).sort((a, b) => b.commission - a.commission);
-  }, [filteredItems, commissionRate, commissionBasis, commissionEnabled]);
+    return Array.from(byStaff.values()).map(staff => {
+      // Check for per-staff override
+      const override = getStaffOverride(staff.staffId);
+      const effectiveRate = override?.commission_rate ?? commissionRate;
+      const effectiveBasis = override?.commission_basis ?? commissionBasis;
+      const hasCustomRate = !!override;
+      
+      const commission = commissionEnabled 
+        ? (effectiveBasis === 'profit' 
+            ? staff.profit * (effectiveRate / 100)
+            : staff.revenue * (effectiveRate / 100))
+        : 0;
+      
+      return {
+        staffId: staff.staffId,
+        staffName: staff.staffName,
+        salesCount: staff.saleIds.size,
+        revenue: staff.revenue,
+        profit: staff.profit,
+        commission,
+        hasCustomRate,
+        effectiveRate,
+        effectiveBasis,
+      };
+    }).sort((a, b) => b.commission - a.commission);
+  }, [filteredItems, commissionRate, commissionBasis, commissionEnabled, overrides]);
 
   // Calculate totals including payment status
   const totals = useMemo(() => {
@@ -200,8 +229,16 @@ export function StaffCommissionTab() {
       key: 'staffName',
       title: 'Staff Member',
       sortable: true,
-      render: (value: string) => (
-        <div className="font-medium">{value}</div>
+      render: (value: string, row: any) => (
+        <div className="flex items-center gap-2">
+          <span className="font-medium">{value}</span>
+          {row.hasCustomRate && (
+            <Badge variant="outline" className="text-xs gap-1 border-primary/50 text-primary">
+              <Star className="h-3 w-3" />
+              {row.effectiveRate}%
+            </Badge>
+          )}
+        </div>
       )
     },
     {
@@ -275,7 +312,7 @@ export function StaffCommissionTab() {
     {
       key: 'actions',
       title: '',
-      render: (_: any, row: StaffCommissionData) => {
+      render: (_: any, row: any) => {
         const { outstanding } = getPaymentStatus(row.staffId, row.commission);
         return (
           <div className="flex gap-1">
@@ -286,6 +323,16 @@ export function StaffCommissionTab() {
                 onClick={() => handleRecordPayment(row)}
               >
                 Pay
+              </Button>
+            )}
+            {isOwner && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setEditingStaff({ id: row.staffId, name: row.staffName })}
+                title="Edit Commission Rate"
+              >
+                <Pencil className="h-3 w-3" />
               </Button>
             )}
             <Button
@@ -317,6 +364,15 @@ export function StaffCommissionTab() {
           onDateRangeChange={setDateRange}
         />
         <div className="flex gap-2">
+          {isOwner && (
+            <Button 
+              variant="outline" 
+              onClick={() => setShowSettingsModal(true)}
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </Button>
+          )}
           <Button 
             variant="outline" 
             onClick={() => setShowHistory(!showHistory)}
@@ -445,13 +501,30 @@ export function StaffCommissionTab() {
       </Card>
 
       {/* Record Payment Modal */}
+      {/* Commission Settings Modal */}
+      <CommissionSettingsModal
+        open={showSettingsModal}
+        onClose={() => setShowSettingsModal(false)}
+      />
+
+      {/* Staff Override Modal */}
+      {editingStaff && (
+        <StaffCommissionOverrideModal
+          open={!!editingStaff}
+          onClose={() => setEditingStaff(null)}
+          staffId={editingStaff.id}
+          staffName={editingStaff.name}
+        />
+      )}
+
+      {/* Record Payment Modal */}
       {selectedStaff && (
         <RecordCommissionPaymentModal
           open={showPaymentModal}
           onOpenChange={setShowPaymentModal}
           staffData={selectedStaff}
           dateRange={dateRangeForModal}
-          commissionRate={commissionRate}
+          commissionRate={selectedStaff.effectiveRate || commissionRate}
           commissionBasis={commissionBasis}
           alreadyPaid={paidByStaff.get(selectedStaff.staffId) || 0}
         />

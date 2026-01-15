@@ -1162,6 +1162,8 @@ export type Database = {
       }
       sales: {
         Row: {
+          commission_override: number | null
+          commission_override_reason: string | null
           customer_email: string | null
           customer_id: number | null
           customer_name: string | null
@@ -1189,6 +1191,8 @@ export type Database = {
           voided_by: string | null
         }
         Insert: {
+          commission_override?: number | null
+          commission_override_reason?: string | null
           customer_email?: string | null
           customer_id?: number | null
           customer_name?: string | null
@@ -1216,6 +1220,8 @@ export type Database = {
           voided_by?: string | null
         }
         Update: {
+          commission_override?: number | null
+          commission_override_reason?: string | null
           customer_email?: string | null
           customer_id?: number | null
           customer_name?: string | null
@@ -1296,6 +1302,47 @@ export type Database = {
             foreignKeyName: "sales_voided_by_fkey"
             columns: ["voided_by"]
             isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
+      }
+      staff_commission_overrides: {
+        Row: {
+          commission_basis: string
+          commission_rate: number
+          created_at: string
+          created_by: string | null
+          id: number
+          notes: string | null
+          staff_id: string
+          updated_at: string
+        }
+        Insert: {
+          commission_basis?: string
+          commission_rate: number
+          created_at?: string
+          created_by?: string | null
+          id?: never
+          notes?: string | null
+          staff_id: string
+          updated_at?: string
+        }
+        Update: {
+          commission_basis?: string
+          commission_rate?: number
+          created_at?: string
+          created_by?: string | null
+          id?: never
+          notes?: string | null
+          staff_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "staff_commission_overrides_staff_id_fkey"
+            columns: ["staff_id"]
+            isOneToOne: true
             referencedRelation: "profiles"
             referencedColumns: ["user_id"]
           },
