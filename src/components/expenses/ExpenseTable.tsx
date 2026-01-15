@@ -1,7 +1,7 @@
 import { useState, useMemo, memo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { cn } from '@/lib/utils';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -450,7 +450,10 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
   return (
     <>
       <Card className="shadow-card">
-        <CardContent className="p-0">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg font-semibold">Expense Records</CardTitle>
+        </CardHeader>
+        <CardContent className="p-0 pt-0">
           <Table>
             <TableHeader>
               <TableRow>
