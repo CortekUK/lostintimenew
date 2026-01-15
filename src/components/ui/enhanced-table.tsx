@@ -27,6 +27,9 @@ interface EnhancedTableProps<T> {
   pageTotalsConfig?: {
     [key: string]: (row: T) => number;
   };
+  expandedRows?: Set<number | string>;
+  renderExpandedContent?: (row: T, index: number) => React.ReactNode;
+  getRowId?: (row: T) => number | string;
 }
 
 export function EnhancedTable<T>({
@@ -39,7 +42,10 @@ export function EnhancedTable<T>({
   pageSize = 50,
   maxHeight = '600px',
   showPageTotals = false,
-  pageTotalsConfig
+  pageTotalsConfig,
+  expandedRows,
+  renderExpandedContent,
+  getRowId
 }: EnhancedTableProps<T>) {
   const [isDense, setIsDense] = useState(false);
   const [sortConfig, setSortConfig] = useState<{
@@ -187,39 +193,53 @@ export function EnhancedTable<T>({
             </tr>
           </thead>
           <tbody>
-            {paginatedData.map((row, rowIndex) => (
-              <tr
-                key={rowIndex}
-                className={cn(
-                  'border-b hover:bg-muted/50 transition-colors',
-                  onRowClick ? 'cursor-pointer' : ''
-                )}
-                onClick={() => onRowClick?.(row, rowIndex)}
-              >
-                {columns.map((column, colIndex) => {
-                  const value = typeof column.key === 'string' && column.key.includes('.') 
-                    ? column.key.split('.').reduce((obj, key) => obj?.[key], row)
-                    : row[column.key as keyof T];
-                  
-                  const content = column.render ? column.render(value, row, rowIndex) : String(value || '');
-                  
-                  return (
-                    <td
-                      key={colIndex}
-                      className={cn(
-                        'px-4 overflow-hidden',
-                        isDense ? 'py-1 text-sm' : 'py-2',
-                        column.align === 'right' ? 'text-right' : 
-                        column.align === 'center' ? 'text-center' : 'text-left'
-                      )}
-                      style={{ width: column.width || 150, minWidth: column.width || 150 }}
-                    >
-                      <div className="truncate">{content}</div>
-                    </td>
-                  );
-                })}
-              </tr>
-            ))}
+            {paginatedData.map((row, rowIndex) => {
+              const rowId = getRowId?.(row) ?? rowIndex;
+              const isExpanded = expandedRows?.has(rowId);
+              
+              return (
+                <React.Fragment key={rowIndex}>
+                  <tr
+                    className={cn(
+                      'border-b hover:bg-muted/50 transition-colors',
+                      onRowClick ? 'cursor-pointer' : '',
+                      isExpanded ? 'bg-muted/30' : ''
+                    )}
+                    onClick={() => onRowClick?.(row, rowIndex)}
+                  >
+                    {columns.map((column, colIndex) => {
+                      const value = typeof column.key === 'string' && column.key.includes('.') 
+                        ? column.key.split('.').reduce((obj, key) => obj?.[key], row)
+                        : row[column.key as keyof T];
+                      
+                      const content = column.render ? column.render(value, row, rowIndex) : String(value || '');
+                      
+                      return (
+                        <td
+                          key={colIndex}
+                          className={cn(
+                            'px-4 overflow-hidden',
+                            isDense ? 'py-1 text-sm' : 'py-2',
+                            column.align === 'right' ? 'text-right' : 
+                            column.align === 'center' ? 'text-center' : 'text-left'
+                          )}
+                          style={{ width: column.width || 150, minWidth: column.width || 150 }}
+                        >
+                          <div className="truncate">{content}</div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                  {isExpanded && renderExpandedContent && (
+                    <tr className="bg-muted/20">
+                      <td colSpan={columns.length} className="p-0 border-b">
+                        {renderExpandedContent(row, rowIndex)}
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
           </tbody>
         </table>
       </div>

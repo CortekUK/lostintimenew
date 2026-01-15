@@ -668,12 +668,12 @@ export default function Transactions() {
                 tax: (row: any) => Number(row.tax_total) || 0,
                 total: (row: any) => Number(row.total) || 0
               }}
+              expandedRows={expandedSales}
+              getRowId={(row: any) => row.id}
+              renderExpandedContent={(row: any) => (
+                <TransactionDetails saleId={row.id} />
+              )}
             />
-            
-            {/* Show expanded details below table */}
-            {Array.from(expandedSales).map(saleId => (
-              <TransactionDetails key={saleId} saleId={saleId} />
-            ))}
           </CardContent>
         </Card>
       </div>
