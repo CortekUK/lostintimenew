@@ -1,11 +1,34 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 
+export interface SupplierProduct {
+  id: number;
+  name: string;
+  internal_sku: string;
+  sku: string | null;
+  category: string | null;
+  metal: string | null;
+  karat: string | null;
+  unit_cost: number;
+  unit_price: number;
+  is_consignment: boolean;
+  is_trade_in: boolean;
+  track_stock: boolean;
+  currentStock: number;
+  isSold: boolean;
+  lastSale?: {
+    sold_at: string;
+    sale_price: number;
+    quantity: number;
+  } | null;
+}
+
 export function useSupplierProducts(supplierId: number) {
   return useQuery({
     queryKey: ['supplier-products', supplierId],
     queryFn: async () => {
-      const { data, error } = await supabase
+      // Fetch products with stock data
+      const { data: products, error } = await supabase
         .from('products')
         .select(`
           id,
@@ -25,7 +48,63 @@ export function useSupplierProducts(supplierId: number) {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
-      return data;
+      if (!products || products.length === 0) return [];
+
+      // Get product IDs for batch queries
+      const productIds = products.map(p => p.id);
+
+      // Fetch stock levels
+      const { data: stockData } = await supabase
+        .from('v_stock_on_hand')
+        .select('product_id, qty_on_hand')
+        .in('product_id', productIds);
+
+      // Fetch sale items for these products
+      const { data: saleItems } = await supabase
+        .from('sale_items')
+        .select(`
+          product_id,
+          quantity,
+          unit_price,
+          sales!inner (
+            id,
+            sold_at,
+            is_voided
+          )
+        `)
+        .in('product_id', productIds)
+        .eq('sales.is_voided', false)
+        .order('sales(sold_at)', { ascending: false });
+
+      // Create lookup maps
+      const stockMap = new Map(stockData?.map(s => [s.product_id, s.qty_on_hand ?? 0]) ?? []);
+      const salesMap = new Map<number, { sold_at: string; sale_price: number; quantity: number }>();
+      
+      // Group sales by product, keeping the most recent
+      saleItems?.forEach(si => {
+        const sales = si.sales as unknown as { id: number; sold_at: string; is_voided: boolean };
+        if (!salesMap.has(si.product_id!) || new Date(sales.sold_at) > new Date(salesMap.get(si.product_id!)!.sold_at)) {
+          salesMap.set(si.product_id!, {
+            sold_at: sales.sold_at,
+            sale_price: si.unit_price,
+            quantity: si.quantity,
+          });
+        }
+      });
+
+      // Enrich products with stock and sale info
+      return products.map(p => {
+        const currentStock = stockMap.get(p.id) ?? 0;
+        const lastSale = salesMap.get(p.id) ?? null;
+        const isSold = currentStock === 0 && lastSale !== null;
+
+        return {
+          ...p,
+          currentStock,
+          isSold,
+          lastSale,
+        } as SupplierProduct;
+      });
     },
     enabled: !!supplierId,
   });
