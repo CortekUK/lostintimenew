@@ -15,9 +15,10 @@ interface ExpenseExportData {
     lastYear: number;
     percentageChange: number;
   };
+  periodLabel?: string;
 }
 
-export const generateExpenseCSV = (expenses: any[]) => {
+export const generateExpenseCSV = (expenses: any[], periodLabel?: string) => {
   const headers = [
     'Date',
     'Description',
@@ -57,7 +58,8 @@ export const generateExpenseCSV = (expenses: any[]) => {
   const url = URL.createObjectURL(blob);
   const link = document.createElement('a');
   link.href = url;
-  link.download = `expenses-${new Date().toISOString().split('T')[0]}.csv`;
+  const periodSuffix = periodLabel ? `-${periodLabel.toLowerCase().replace(/\s+/g, '-')}` : '';
+  link.download = `expenses${periodSuffix}-${new Date().toISOString().split('T')[0]}.csv`;
   link.click();
   URL.revokeObjectURL(url);
 };
@@ -70,7 +72,8 @@ export const generateExpensePDF = async (data: ExpenseExportData) => {
   // Header
   doc.setFontSize(20);
   doc.setFont('helvetica', 'bold');
-  doc.text('Expense Report', pageWidth / 2, yPos, { align: 'center' });
+  const title = data.periodLabel ? `Expense Report - ${data.periodLabel}` : 'Expense Report';
+  doc.text(title, pageWidth / 2, yPos, { align: 'center' });
   yPos += 10;
 
   doc.setFontSize(10);
@@ -162,5 +165,6 @@ export const generateExpensePDF = async (data: ExpenseExportData) => {
   }
 
   // Save
-  doc.save(`expense-report-${new Date().toISOString().split('T')[0]}.pdf`);
+  const periodSuffix = data.periodLabel ? `-${data.periodLabel.toLowerCase().replace(/\s+/g, '-')}` : '';
+  doc.save(`expense-report${periodSuffix}-${new Date().toISOString().split('T')[0]}.pdf`);
 };

@@ -40,7 +40,12 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
+import { getDateRange, DateRangePeriod } from '@/lib/utils';
 
 export default function Expenses() {
   const { loading: authLoading } = useAuth();
@@ -133,21 +138,51 @@ export default function Expenses() {
 
   const isLoading = authLoading || expensesLoading;
 
-  const handleExportCSV = () => {
-    generateExpenseCSV(expenses);
+  const exportPeriods: { value: DateRangePeriod; label: string }[] = [
+    { value: 'this-week', label: 'This Week' },
+    { value: 'last-week', label: 'Last Week' },
+    { value: 'this-month', label: 'This Month' },
+    { value: 'last-month', label: 'Last Month' },
+    { value: 'this-quarter', label: 'This Quarter' },
+    { value: 'last-quarter', label: 'Last Quarter' },
+    { value: 'this-year', label: 'This Year' },
+    { value: 'last-year', label: 'Last Year' },
+    { value: 'all-time', label: 'All Time' },
+  ];
+
+  const filterExpensesByPeriod = (period: DateRangePeriod) => {
+    if (period === 'all-time') return expenses;
+    const { from, to } = getDateRange(period);
+    return expenses.filter((expense: any) => {
+      const date = expense.incurred_at?.split('T')[0];
+      return date >= from && date <= to;
+    });
   };
 
-  const handleExportPDF = () => {
+  const getPeriodLabel = (period: DateRangePeriod): string => {
+    return exportPeriods.find(p => p.value === period)?.label || period;
+  };
+
+  const handleExportCSV = (period: DateRangePeriod) => {
+    const filteredData = filterExpensesByPeriod(period);
+    generateExpenseCSV(filteredData, getPeriodLabel(period));
+  };
+
+  const handleExportPDF = (period: DateRangePeriod) => {
+    const filteredData = filterExpensesByPeriod(period);
+    const periodStats = {
+      thisMonthTotal: filteredData.reduce((sum: number, e: any) => sum + Number(e.amount || 0), 0),
+      thisYearTotal: stats.thisYearTotal,
+      averageMonthly: stats.averageMonthly,
+      totalRecords: filteredData.length,
+    };
     generateExpensePDF({
-      expenses,
-      summary: {
-        thisMonthTotal: stats.thisMonthTotal,
-        thisYearTotal: stats.thisYearTotal,
-        averageMonthly: stats.averageMonthly,
-        totalRecords: stats.totalRecords,
-      },
-      largestExpense,
+      expenses: filteredData,
+      summary: periodStats,
+      largestExpense: filteredData.length > 0 ? filteredData.reduce((max: any, e: any) => 
+        Number(e.amount) > Number(max?.amount || 0) ? e : max, filteredData[0]) : null,
       yoyComparison,
+      periodLabel: getPeriodLabel(period),
     });
   };
 
@@ -222,13 +257,20 @@ export default function Expenses() {
                   Export
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={handleExportCSV}>
-                  Export as CSV
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={handleExportPDF}>
-                  Export as PDF
-                </DropdownMenuItem>
+              <DropdownMenuContent align="end" className="w-48">
+                {exportPeriods.map((period) => (
+                  <DropdownMenuSub key={period.value}>
+                    <DropdownMenuSubTrigger>{period.label}</DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => handleExportCSV(period.value)}>
+                        CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleExportPDF(period.value)}>
+                        PDF
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                ))}
               </DropdownMenuContent>
             </DropdownMenu>
 
