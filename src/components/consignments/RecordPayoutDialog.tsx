@@ -17,7 +17,10 @@ interface RecordPayoutDialogProps {
   onOpenChange: (open: boolean) => void;
   settlement: {
     id: number;
-    product?: { name: string };
+    product?: { 
+      name: string;
+      consignment_terms?: string;
+    };
     supplier?: { name: string };
     sale_price?: number;
     payout_amount?: number;
@@ -68,6 +71,14 @@ export function RecordPayoutDialog({ open, onOpenChange, settlement }: RecordPay
               <Label className="text-sm font-medium text-muted-foreground">Supplier</Label>
               <div className="text-sm font-medium">{settlement.supplier?.name}</div>
             </div>
+
+            {/* Consignment Terms */}
+            {settlement.product?.consignment_terms && (
+              <div className="space-y-2 p-3 bg-muted/30 rounded-lg border border-border/50">
+                <Label className="text-sm font-medium text-muted-foreground">Agreed Terms</Label>
+                <div className="text-sm font-medium">{settlement.product.consignment_terms}</div>
+              </div>
+            )}
 
             {/* Sale Price */}
             <div className="space-y-2">

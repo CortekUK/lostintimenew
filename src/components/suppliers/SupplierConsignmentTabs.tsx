@@ -32,10 +32,13 @@ export function SupplierConsignmentTabs({ supplierId }: SupplierConsignmentTabsP
   const handleRecordPayout = (item: any) => {
     setSelectedSettlement({
       id: item.settlement_id,
-      product: item.product_name,
-      supplier: supplier?.name || '',
-      salePrice: item.sold_price || 0,
-      payoutAmount: item.agreed_payout,
+      product: { 
+        name: item.product_name,
+        consignment_terms: item.consignment_terms 
+      },
+      supplier: { name: supplier?.name || '' },
+      sale_price: item.sold_price || 0,
+      payout_amount: item.agreed_payout,
     });
     setPayoutDialogOpen(true);
   };

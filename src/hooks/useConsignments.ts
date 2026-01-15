@@ -98,7 +98,7 @@ export const useConsignmentSettlements = (filter?: ConsignmentFilter) => {
         .from('consignment_settlements')
         .select(`
           *,
-          product:products(name, sku, internal_sku),
+          product:products(name, sku, internal_sku, consignment_terms),
           supplier:suppliers(name, email, phone, supplier_type),
           sale:sales(sold_at, payment)
         `)
