@@ -29,15 +29,30 @@ interface InlineSupplierAddProps {
   triggerClassName?: string;
   defaultType?: 'registered' | 'customer';
   triggerLabel?: string;
+  /** Controlled open state - when provided, component becomes controlled */
+  open?: boolean;
+  /** Callback when open state changes - required when using controlled mode */
+  onOpenChange?: (open: boolean) => void;
+  /** Hide the trigger button (useful when controlling externally) */
+  hideTrigger?: boolean;
 }
 
 export function InlineSupplierAdd({ 
   onSupplierCreated, 
   triggerClassName,
   defaultType = 'registered',
-  triggerLabel 
+  triggerLabel,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  hideTrigger = false
 }: InlineSupplierAddProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  
+  // Support both controlled and uncontrolled modes
+  const isControlled = controlledOpen !== undefined;
+  const open = isControlled ? controlledOpen : internalOpen;
+  const setOpen = isControlled ? (controlledOnOpenChange || (() => {})) : setInternalOpen;
+  
   const [formData, setFormData] = useState<{
     name: string;
     supplier_type: 'registered' | 'customer';
@@ -129,12 +144,14 @@ export function InlineSupplierAdd({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        <Button variant="outline" size="sm" className={cn("gap-2", triggerClassName)}>
-          <Plus className="h-4 w-4" />
-          {triggerLabel || (defaultType === 'customer' ? 'Add Customer' : 'Add Supplier')}
-        </Button>
-      </DialogTrigger>
+      {!hideTrigger && (
+        <DialogTrigger asChild>
+          <Button variant="outline" size="sm" className={cn("gap-2", triggerClassName)}>
+            <Plus className="h-4 w-4" />
+            {triggerLabel || (defaultType === 'customer' ? 'Add Customer' : 'Add Supplier')}
+          </Button>
+        </DialogTrigger>
+      )}
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-luxury text-lg">

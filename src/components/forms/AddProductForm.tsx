@@ -16,6 +16,9 @@ import { useLocations } from '@/hooks/useLocations';
 import { useAllProductCategories, useAddCustomProductCategory } from '@/hooks/useProductCategories';
 import { InlineSupplierAdd } from '@/components/forms/InlineSupplierAdd';
 import { DocumentType } from '@/types';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Badge } from '@/components/ui/badge';
 import {
   Package,
   Users,
@@ -29,7 +32,10 @@ import {
   Calendar as CalendarIcon,
   MapPin,
   Plus,
-  X
+  X,
+  Search,
+  Check,
+  UserPlus
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -111,6 +117,18 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
   const [images, setImages] = useState<string[]>([]);
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
+  
+  // Customer supplier search state
+  const [selectedCustomerSupplier, setSelectedCustomerSupplier] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+  const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
+  const [quickAddMode, setQuickAddMode] = useState(false);
+  const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
+  
+  // Filter customer suppliers for the search
+  const customerSuppliers = suppliers?.filter(s => s.supplier_type === 'customer') || [];
   
   // Generate SKU preview
   const generateSkuPreview = () => {
@@ -308,11 +326,148 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                   </div>
                 </div>
               ) : (
-                <Input 
-                  placeholder="Customer name" 
-                  value={formData.individual_name}
-                  onChange={(e) => setFormData({...formData, individual_name: e.target.value})}
-                />
+                <div className="space-y-3">
+                  {selectedCustomerSupplier ? (
+                    // Show selected customer as chip
+                    <div className="flex items-center gap-2 p-3 border border-border rounded-lg bg-muted/50">
+                      <Badge variant="secondary" className="flex items-center gap-2 py-1.5 px-3">
+                        <Check className="h-3 w-3 text-primary" />
+                        {selectedCustomerSupplier.name}
+                      </Badge>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedCustomerSupplier(null);
+                          setFormData({...formData, supplier_id: ''});
+                        }}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        Change
+                      </Button>
+                    </div>
+                  ) : (
+                    // Show search combobox and options
+                    <>
+                      <div className="flex gap-2">
+                        <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
+                          <PopoverTrigger asChild>
+                            <Button 
+                              type="button" 
+                              variant="outline" 
+                              className="flex-1 justify-start text-muted-foreground hover:text-foreground"
+                            >
+                              <Search className="h-4 w-4 mr-2" />
+                              Find existing customer...
+                            </Button>
+                          </PopoverTrigger>
+                          <PopoverContent className="w-[350px] p-0" align="start">
+                            <Command>
+                              <CommandInput placeholder="Search by name, phone, or email..." />
+                              <CommandList>
+                                <CommandEmpty>
+                                  <div className="py-4 text-center text-sm text-muted-foreground">
+                                    No customers found.
+                                    <Button
+                                      type="button"
+                                      variant="link"
+                                      size="sm"
+                                      className="block mx-auto mt-2"
+                                      onClick={() => {
+                                        setCustomerSearchOpen(false);
+                                        setShowNewCustomerModal(true);
+                                      }}
+                                    >
+                                      <UserPlus className="h-3 w-3 mr-1" />
+                                      Create new customer
+                                    </Button>
+                                  </div>
+                                </CommandEmpty>
+                                <CommandGroup heading="Existing Customers">
+                                  {customerSuppliers.map((customer) => (
+                                    <CommandItem
+                                      key={customer.id}
+                                      value={`${customer.name} ${customer.email || ''} ${customer.phone || ''}`}
+                                      onSelect={() => {
+                                        setSelectedCustomerSupplier({ id: customer.id, name: customer.name });
+                                        setFormData({...formData, supplier_id: customer.id.toString()});
+                                        setCustomerSearchOpen(false);
+                                        setQuickAddMode(false);
+                                      }}
+                                      className="cursor-pointer"
+                                    >
+                                      <div className="flex flex-col">
+                                        <span className="font-medium">{customer.name}</span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {[customer.email, customer.phone].filter(Boolean).join(' · ') || 'No contact info'}
+                                        </span>
+                                      </div>
+                                    </CommandItem>
+                                  ))}
+                                </CommandGroup>
+                              </CommandList>
+                            </Command>
+                          </PopoverContent>
+                        </Popover>
+                        
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => setShowNewCustomerModal(true)}
+                          className="shrink-0"
+                        >
+                          <Plus className="h-4 w-4 mr-1" />
+                          New
+                        </Button>
+                      </div>
+                      
+                      {/* Quick Add option */}
+                      <div className="space-y-2">
+                        <button 
+                          type="button" 
+                          className="text-sm text-primary hover:underline flex items-center gap-1"
+                          onClick={() => setQuickAddMode(!quickAddMode)}
+                        >
+                          {quickAddMode ? 'Hide quick add' : 'Or quick add name only'}
+                        </button>
+                        {quickAddMode && (
+                          <div className="p-3 border border-dashed border-border rounded-lg bg-muted/30 space-y-3">
+                            <Input 
+                              placeholder="Customer name" 
+                              value={formData.individual_name}
+                              onChange={(e) => setFormData({...formData, individual_name: e.target.value})}
+                            />
+                            <p className="text-xs text-muted-foreground">
+                              This saves the name with the product but won't create a customer record for future reference.
+                            </p>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+                  
+                  {/* New Customer Modal */}
+                  <InlineSupplierAdd
+                    defaultType="customer"
+                    hideTrigger
+                    open={showNewCustomerModal}
+                    onOpenChange={setShowNewCustomerModal}
+                    onSupplierCreated={(supplierId) => {
+                      // Refetch suppliers to get the new customer
+                      const newCustomer = suppliers?.find(s => s.id === supplierId);
+                      if (newCustomer) {
+                        setSelectedCustomerSupplier({ id: newCustomer.id, name: newCustomer.name });
+                      } else {
+                        // Fallback - just set the ID, the name will be fetched on next render
+                        setSelectedCustomerSupplier({ id: supplierId, name: 'Customer' });
+                      }
+                      setFormData({...formData, supplier_id: supplierId.toString()});
+                      setShowNewCustomerModal(false);
+                      setQuickAddMode(false);
+                    }}
+                  />
+                </div>
               )}
             </div>
             
