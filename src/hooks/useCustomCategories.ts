@@ -4,15 +4,20 @@ import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const PREDEFINED_CATEGORIES = [
-  'rent',
-  'utilities',
-  'marketing',
-  'insurance',
-  'shipping',
-  'repairs',
-  'packaging',
-  'other'
+  'Rent',
+  'Utilities',
+  'Marketing',
+  'Insurance',
+  'Shipping',
+  'Repairs',
+  'Packaging',
+  'Other'
 ] as const;
+
+// Helper to format category for display (capitalize first letter)
+export const formatCategoryDisplay = (category: string): string => {
+  return category.charAt(0).toUpperCase() + category.slice(1).toLowerCase().replace(/_/g, ' ');
+};
 
 export const useCustomCategories = () => {
   const { user, session } = useAuth();
