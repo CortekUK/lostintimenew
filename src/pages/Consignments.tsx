@@ -580,18 +580,31 @@ export default function Consignments() {
         {/* Main Content */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
-            <TabsList className="w-full h-auto flex flex-wrap gap-1 p-1">
-              <TabsTrigger value="active" className="flex-1 min-w-[90px] text-xs sm:text-sm">Active Stock</TabsTrigger>
-              <TabsTrigger value="sold_unsettled" className="flex-1 min-w-[90px] text-xs sm:text-sm">
+            <TabsList className="w-full sm:w-auto h-10 bg-muted/50 p-1 rounded-lg">
+              <TabsTrigger 
+                value="active" 
+                className="px-4 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md"
+              >
+                Active Stock
+              </TabsTrigger>
+              <TabsTrigger 
+                value="sold_unsettled" 
+                className="px-4 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md gap-2"
+              >
                 <span className="hidden sm:inline">Sold & Unsettled</span>
                 <span className="sm:hidden">Unsettled</span>
                 {soldUnsettledSettlements.length > 0 && (
-                  <Badge variant="secondary" className="ml-1 sm:ml-2">
+                  <Badge variant="secondary" className="h-5 px-1.5 text-xs font-medium">
                     {soldUnsettledSettlements.length}
                   </Badge>
                 )}
               </TabsTrigger>
-              <TabsTrigger value="settled" className="flex-1 min-w-[90px] text-xs sm:text-sm">Settled</TabsTrigger>
+              <TabsTrigger 
+                value="settled" 
+                className="px-4 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md"
+              >
+                Settled
+              </TabsTrigger>
             </TabsList>
           </Tabs>
           
