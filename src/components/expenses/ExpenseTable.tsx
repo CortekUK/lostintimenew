@@ -497,7 +497,7 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
                 </TableHead>
                 <TableHead>Payment</TableHead>
                 <TableHead>Supplier</TableHead>
-                <TableHead>Type</TableHead>
+                <TableHead>Schedule</TableHead>
                 {canManageExpenses && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
             </TableHeader>
