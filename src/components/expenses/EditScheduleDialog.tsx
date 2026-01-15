@@ -77,7 +77,7 @@ export function EditScheduleDialog({ open, onOpenChange, template }: EditSchedul
         <DialogHeader>
           <DialogTitle>Edit Recurring Schedule</DialogTitle>
           <DialogDescription>
-            Update the recurring settings for "{template.description}"
+            Update the recurring settings{template?.description ? ` for "${template.description}"` : ''}
           </DialogDescription>
         </DialogHeader>
 
