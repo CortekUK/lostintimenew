@@ -178,7 +178,7 @@ export function InlineSupplierAdd({
               >
                 <SelectTrigger id="supplier_type">
                   <SelectValue>
-                    {formData.supplier_type === 'registered' ? 'Registered Supplier' : 'Customer Supplier'}
+                    {formData.supplier_type === 'registered' ? 'Registered Supplier' : 'Individual Supplier'}
                   </SelectValue>
                 </SelectTrigger>
                 <SelectContent>
@@ -205,13 +205,13 @@ export function InlineSupplierAdd({
 
           <div className="space-y-2">
             <Label htmlFor="name">
-              {formData.supplier_type === 'customer' ? 'Customer Name *' : 'Company Name *'}
+              {formData.supplier_type === 'customer' ? 'Full Name *' : 'Company Name *'}
             </Label>
             <Input
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              placeholder={formData.supplier_type === 'customer' ? 'Enter customer name' : 'Enter supplier name'}
+              placeholder={formData.supplier_type === 'customer' ? "Enter individual's name" : 'Enter supplier name'}
               className={cn(errors.name && "border-destructive")}
               required
             />

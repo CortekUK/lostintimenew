@@ -118,17 +118,17 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
   
-  // Customer supplier search state
-  const [selectedCustomerSupplier, setSelectedCustomerSupplier] = useState<{
+  // Individual supplier search state (walk-in sellers, not customers)
+  const [selectedIndividualSupplier, setSelectedIndividualSupplier] = useState<{
     id: number;
     name: string;
   } | null>(null);
-  const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
+  const [individualSearchOpen, setIndividualSearchOpen] = useState(false);
   const [quickAddMode, setQuickAddMode] = useState(false);
-  const [showNewCustomerModal, setShowNewCustomerModal] = useState(false);
+  const [showNewIndividualModal, setShowNewIndividualModal] = useState(false);
   
-  // Filter customer suppliers for the search
-  const customerSuppliers = suppliers?.filter(s => s.supplier_type === 'customer') || [];
+  // Filter individual suppliers for the search (type 'customer' in DB = individual sellers)
+  const individualSuppliers = suppliers?.filter(s => s.supplier_type === 'customer') || [];
   
   // Generate SKU preview
   const generateSkuPreview = () => {
@@ -311,7 +311,7 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                       <SelectValue placeholder="Select supplier" />
                     </SelectTrigger>
                     <SelectContent>
-                      {suppliers?.map((supplier) => (
+                      {suppliers?.filter(s => s.supplier_type === 'registered').map((supplier) => (
                         <SelectItem key={supplier.id} value={supplier.id.toString()}>
                           {supplier.name}
                         </SelectItem>
@@ -328,19 +328,19 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                 </div>
               ) : (
                 <div className="space-y-3">
-                  {selectedCustomerSupplier ? (
-                    // Show selected customer as chip
+                  {selectedIndividualSupplier ? (
+                    // Show selected individual as chip
                     <div className="flex items-center gap-2 p-3 border border-border rounded-lg bg-muted/50">
                       <Badge variant="secondary" className="flex items-center gap-2 py-1.5 px-3">
                         <Check className="h-3 w-3 text-primary" />
-                        {selectedCustomerSupplier.name}
+                        {selectedIndividualSupplier.name}
                       </Badge>
                       <Button
                         type="button"
                         variant="ghost"
                         size="sm"
                         onClick={() => {
-                          setSelectedCustomerSupplier(null);
+                          setSelectedIndividualSupplier(null);
                           setFormData({...formData, supplier_id: ''});
                         }}
                         className="text-muted-foreground hover:text-foreground"
@@ -352,7 +352,7 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                     // Show search combobox and options
                     <>
                       <div className="flex gap-2">
-                        <Popover open={customerSearchOpen} onOpenChange={setCustomerSearchOpen}>
+                        <Popover open={individualSearchOpen} onOpenChange={setIndividualSearchOpen}>
                           <PopoverTrigger asChild>
                             <Button 
                               type="button" 
@@ -360,7 +360,7 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                               className="flex-1 justify-start text-muted-foreground hover:text-foreground"
                             >
                               <Search className="h-4 w-4 mr-2" />
-                              Find existing customer...
+                              Find existing individual...
                             </Button>
                           </PopoverTrigger>
                           <PopoverContent className="w-[350px] p-0 border border-border bg-popover shadow-lg" align="start">
@@ -369,39 +369,39 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                               <CommandList>
                                 <CommandEmpty>
                                   <div className="py-4 text-center text-sm text-muted-foreground">
-                                    No customers found.
+                                    No individuals found.
                                     <Button
                                       type="button"
                                       variant="link"
                                       size="sm"
                                       className="block mx-auto mt-2"
                                       onClick={() => {
-                                        setCustomerSearchOpen(false);
-                                        setShowNewCustomerModal(true);
+                                        setIndividualSearchOpen(false);
+                                        setShowNewIndividualModal(true);
                                       }}
                                     >
                                       <UserPlus className="h-3 w-3 mr-1" />
-                                      Create new customer
+                                      Add new individual
                                     </Button>
                                   </div>
                                 </CommandEmpty>
-                                <CommandGroup heading="Existing Customers">
-                                  {customerSuppliers.map((customer) => (
+                                <CommandGroup heading="Individuals">
+                                  {individualSuppliers.map((individual) => (
                                     <CommandItem
-                                      key={customer.id}
-                                      value={`${customer.name} ${customer.email || ''} ${customer.phone || ''}`}
+                                      key={individual.id}
+                                      value={`${individual.name} ${individual.email || ''} ${individual.phone || ''}`}
                                       onSelect={() => {
-                                        setSelectedCustomerSupplier({ id: customer.id, name: customer.name });
-                                        setFormData({...formData, supplier_id: customer.id.toString()});
-                                        setCustomerSearchOpen(false);
+                                        setSelectedIndividualSupplier({ id: individual.id, name: individual.name });
+                                        setFormData({...formData, supplier_id: individual.id.toString()});
+                                        setIndividualSearchOpen(false);
                                         setQuickAddMode(false);
                                       }}
                                       className="cursor-pointer"
                                     >
                                       <div className="flex flex-col">
-                                        <span className="font-medium">{customer.name}</span>
+                                        <span className="font-medium">{individual.name}</span>
                                         <span className="text-xs text-muted-foreground">
-                                          {[customer.email, customer.phone].filter(Boolean).join(' · ') || 'No contact info'}
+                                          {[individual.email, individual.phone].filter(Boolean).join(' · ') || 'No contact info'}
                                         </span>
                                       </div>
                                     </CommandItem>
@@ -415,7 +415,7 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                         <Button 
                           type="button" 
                           variant="outline" 
-                          onClick={() => setShowNewCustomerModal(true)}
+                          onClick={() => setShowNewIndividualModal(true)}
                           className="shrink-0"
                         >
                           <Plus className="h-4 w-4 mr-1" />
@@ -435,12 +435,12 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                         {quickAddMode && (
                           <div className="p-3 border border-dashed border-border rounded-lg bg-muted/30 space-y-3">
                             <Input 
-                              placeholder="Customer name" 
+                              placeholder="Name only" 
                               value={formData.individual_name}
                               onChange={(e) => setFormData({...formData, individual_name: e.target.value})}
                             />
                             <p className="text-xs text-muted-foreground">
-                              This saves the name with the product but won't create a customer record for future reference.
+                              This saves the name with the product but won't create an individual seller record for future reference.
                             </p>
                           </div>
                         )}
@@ -448,24 +448,24 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                     </>
                   )}
                   
-                  {/* New Customer Modal */}
+                  {/* New Individual Modal */}
                   <InlineSupplierAdd
                     defaultType="customer"
                     hideTrigger
                     lockType
-                    open={showNewCustomerModal}
-                    onOpenChange={setShowNewCustomerModal}
+                    open={showNewIndividualModal}
+                    onOpenChange={setShowNewIndividualModal}
                     onSupplierCreated={(supplierId) => {
-                      // Refetch suppliers to get the new customer
-                      const newCustomer = suppliers?.find(s => s.id === supplierId);
-                      if (newCustomer) {
-                        setSelectedCustomerSupplier({ id: newCustomer.id, name: newCustomer.name });
+                      // Refetch suppliers to get the new individual
+                      const newIndividual = suppliers?.find(s => s.id === supplierId);
+                      if (newIndividual) {
+                        setSelectedIndividualSupplier({ id: newIndividual.id, name: newIndividual.name });
                       } else {
                         // Fallback - just set the ID, the name will be fetched on next render
-                        setSelectedCustomerSupplier({ id: supplierId, name: 'Customer' });
+                        setSelectedIndividualSupplier({ id: supplierId, name: 'Individual' });
                       }
                       setFormData({...formData, supplier_id: supplierId.toString()});
-                      setShowNewCustomerModal(false);
+                      setShowNewIndividualModal(false);
                       setQuickAddMode(false);
                     }}
                   />
@@ -491,8 +491,8 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                     if (checked && !formData.consignment_supplier_id) {
                       if (formData.supplier_type === 'registered' && formData.supplier_id) {
                         updates.consignment_supplier_id = parseInt(formData.supplier_id);
-                      } else if (formData.supplier_type === 'individual' && selectedCustomerSupplier) {
-                        updates.consignment_supplier_id = selectedCustomerSupplier.id;
+                      } else if (formData.supplier_type === 'individual' && selectedIndividualSupplier) {
+                        updates.consignment_supplier_id = selectedIndividualSupplier.id;
                       }
                     }
                     
