@@ -52,11 +52,16 @@ export function ProductSearch({ onAddToCart, cartItems }: ProductSearchProps) {
     // Show first 20 products that are in stock when no search query
     return allProducts
       .map(product => normalizeProductStockData(product, product.stock?.[0], product.inventory?.[0]))
-      .filter(product => !product.track_stock || (product.qty_on_hand > 0))
+      .filter(product => {
+        if (!product.track_stock) return true;
+        // Explicit check: must have stock > 0 (not undefined, not null, not 0)
+        const stockQty = product.qty_on_hand;
+        return typeof stockQty === 'number' && stockQty > 0;
+      })
       .slice(0, 20)
       .map(product => ({
         ...product,
-        stock_on_hand: product.qty_on_hand || 0,
+        stock_on_hand: product.qty_on_hand ?? 0,
         supplier: product.supplier,
         consignment_supplier: product.consignment_supplier,
         location: product.location

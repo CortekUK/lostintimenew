@@ -59,9 +59,16 @@ export function calculateProfitMetrics(unitPrice: number, unitCost: number) {
  * Ensure product has flattened stock and inventory data
  */
 export function normalizeProductStockData(product: any, stockData?: any, inventoryData?: any) {
-  const qty_on_hand = stockData?.qty_on_hand || product.qty_on_hand || 0;
-  const inventory_value = inventoryData?.inventory_value || product.inventory_value || 0;
-  const avg_cost = inventoryData?.avg_cost || product.avg_cost || product.unit_cost || 0;
+  // Use explicit null/undefined checks - 0 is a valid stock value!
+  const qty_on_hand = stockData?.qty_on_hand !== undefined && stockData?.qty_on_hand !== null 
+    ? stockData.qty_on_hand 
+    : (product.qty_on_hand ?? 0);
+  const inventory_value = inventoryData?.inventory_value !== undefined && inventoryData?.inventory_value !== null
+    ? inventoryData.inventory_value
+    : (product.inventory_value ?? 0);
+  const avg_cost = inventoryData?.avg_cost !== undefined && inventoryData?.avg_cost !== null
+    ? inventoryData.avg_cost
+    : (product.avg_cost ?? product.unit_cost ?? 0);
   
   return {
     ...product,

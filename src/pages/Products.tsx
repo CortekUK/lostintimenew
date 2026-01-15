@@ -550,8 +550,12 @@ export default function Products() {
   }
 
   const totalProducts = products?.length || 0;
-  const restockAlerts = stockStatusMap ? 
-    Array.from(stockStatusMap.values()).filter(status => status.is_out_of_stock || status.is_at_risk).length : 0;
+  // Only count items that are "at risk" (low but not zero) from the active products list
+  // Out-of-stock items are moved to Sold Items archive and shouldn't count as "low stock alerts"
+  const restockAlerts = products?.filter(p => {
+    const status = stockStatusMap?.get(p.id);
+    return status?.is_at_risk && !status?.is_out_of_stock;
+  }).length || 0;
   const totalInventoryValue = products?.reduce((sum, p) => sum + Number(p.inventory_value || 0), 0) || 0;
   
   return (
