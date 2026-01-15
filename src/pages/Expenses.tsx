@@ -1,14 +1,10 @@
 import { useState, useMemo } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Textarea } from '@/components/ui/textarea';
-import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { useCreateExpense, useUpdateExpense, useDeleteExpense, useSuppliers, useCreateSupplier } from '@/hooks/useDatabase';
 import { ExpenseCategory } from '@/types';
@@ -23,10 +19,7 @@ import {
   TrendingUp,
   TrendingDown,
   FileText,
-  LayoutGrid,
-  List,
-  Download,
-  Loader2
+  Download
 } from 'lucide-react';
 import { 
   useExpenseStats, 
@@ -49,42 +42,6 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-const ExpenseCard = ({ expense }: { expense: any }) => (
-  <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-    <CardHeader>
-      <div className="flex items-start justify-between">
-        <div>
-          <CardTitle className="text-lg font-semibold">{expense.description}</CardTitle>
-          <CardDescription>
-            {expense.supplier?.name} • {formatCategoryDisplay(expense.category)}
-          </CardDescription>
-        </div>
-        <Badge variant={expense.is_cogs ? 'default' : 'outline'}>
-          {expense.is_cogs ? 'COGS' : 'Operating'}
-        </Badge>
-      </div>
-    </CardHeader>
-    
-    <CardContent className="space-y-4">
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <p className="text-sm text-muted-foreground">Amount</p>
-          <p className="text-lg font-bold">£{Number(expense.amount).toLocaleString()}</p>
-        </div>
-        <div>
-          <p className="text-sm text-muted-foreground">Date</p>
-          <p className="font-medium">{new Date(expense.incurred_at).toLocaleDateString()}</p>
-        </div>
-      </div>
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Badge variant="secondary">{formatCategoryDisplay(expense.payment_method || 'cash')}</Badge>
-        <span>•</span>
-        <span>{expense.staff?.full_name || 'System'}</span>
-      </div>
-    </CardContent>
-  </Card>
-);
-
 export default function Expenses() {
   const { loading: authLoading } = useAuth();
   const createExpense = useCreateExpense();
@@ -93,7 +50,6 @@ export default function Expenses() {
   const { createTemplate } = useExpenseTemplates();
   const { toast } = useToast();
   const [filters, setFilters] = useState<ExpenseFilters>({});
-  const [viewMode, setViewMode] = useState<'grid' | 'table'>('grid');
   const [showModal, setShowModal] = useState(false);
   const [editingExpense, setEditingExpense] = useState<any>(null);
 
@@ -212,33 +168,13 @@ export default function Expenses() {
         
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          {/* Left group: Display controls */}
-          <div className="flex flex-wrap items-center gap-2">
-            <ExpenseFiltersEnhanced
-              filters={filters}
-              onFiltersChange={setFilters}
-              suppliers={suppliers}
-              staffMembers={staffMembers}
-            />
-            <div className="flex items-center gap-1 border rounded-lg p-1">
-              <Button
-                variant={viewMode === 'grid' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('grid')}
-                className="h-8 w-8 p-0"
-              >
-                <LayoutGrid className="h-4 w-4" />
-              </Button>
-              <Button
-                variant={viewMode === 'table' ? 'secondary' : 'ghost'}
-                size="sm"
-                onClick={() => setViewMode('table')}
-                className="h-8 w-8 p-0"
-              >
-                <List className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
+          {/* Left group: Filters */}
+          <ExpenseFiltersEnhanced
+            filters={filters}
+            onFiltersChange={setFilters}
+            suppliers={suppliers}
+            staffMembers={staffMembers}
+          />
 
           {/* Right group: Actions */}
           <div className="flex items-center gap-2">
@@ -345,43 +281,29 @@ export default function Expenses() {
           <MonthlyTrendsChart filters={filters} />
         </div>
 
-        {/* Expenses List */}
-        <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle>
-              {viewMode === 'grid' ? 'Recent Expenses' : 'All Expenses'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            {viewMode === 'grid' ? (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {expenses.slice(0, 9).map((expense) => (
-                  <ExpenseCard key={expense.id} expense={expense} />
-                ))}
-                {expenses.length === 0 && (
-                  <div className="col-span-full">
-                    <div className="flex flex-col items-center justify-center py-12">
-                      <PoundSterling className="h-12 w-12 text-muted-foreground mb-4" />
-                      <h3 className="text-lg font-semibold mb-2">No expenses found</h3>
-                      <p className="text-muted-foreground text-center mb-4">
-                        {Object.keys(filters).length > 0 
-                          ? 'Try adjusting your filters'
-                          : 'Add your first expense to start tracking your business costs'
-                        }
-                      </p>
-                      <Button onClick={() => { setShowModal(true); setEditingExpense(null); }}>
-                        <Plus className="mr-2 h-4 w-4" />
-                        Record Expense
-                      </Button>
-                    </div>
-                  </div>
-                )}
+        {/* Expenses Table */}
+        {expenses.length > 0 ? (
+          <ExpenseTable expenses={expenses} onEdit={setEditingExpense} />
+        ) : (
+          <Card className="shadow-card">
+            <CardContent className="py-12">
+              <div className="flex flex-col items-center justify-center">
+                <PoundSterling className="h-12 w-12 text-muted-foreground mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No expenses found</h3>
+                <p className="text-muted-foreground text-center mb-4">
+                  {Object.keys(filters).length > 0 
+                    ? 'Try adjusting your filters'
+                    : 'Add your first expense to start tracking your business costs'
+                  }
+                </p>
+                <Button onClick={() => { setShowModal(true); setEditingExpense(null); }}>
+                  <Plus className="mr-2 h-4 w-4" />
+                  Record Expense
+                </Button>
               </div>
-            ) : (
-              <ExpenseTable expenses={expenses} onEdit={setEditingExpense} />
-            )}
-          </CardContent>
-        </Card>
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Expense Modal */}
