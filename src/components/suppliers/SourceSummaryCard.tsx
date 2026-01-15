@@ -122,7 +122,7 @@ export function SourceSummaryCard({ supplierId }: SourceSummaryCardProps) {
         <Alert className="bg-blue-50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
           <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
           <AlertDescription className="text-sm text-blue-900 dark:text-blue-100">
-            Customer suppliers originate stock via Part-Exchange or Consignment.
+            Individual suppliers originate stock via Part-Exchange or Consignment.
           </AlertDescription>
         </Alert>
       </CardContent>

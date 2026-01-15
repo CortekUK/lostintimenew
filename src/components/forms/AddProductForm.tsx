@@ -299,7 +299,7 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                   </div>
                   <div className="flex items-center space-x-2">
                     <RadioGroupItem value="individual" id="individual" />
-                    <Label htmlFor="individual" className="font-normal">Walk-in Customer</Label>
+                    <Label htmlFor="individual" className="font-normal">Individual</Label>
                   </div>
                 </RadioGroup>
               </div>

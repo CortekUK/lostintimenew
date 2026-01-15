@@ -72,7 +72,7 @@ export function EditSupplierDialog({ supplier, open, onOpenChange }: EditSupplie
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Edit {supplier.supplier_type === 'customer' ? 'Customer' : 'Supplier'}</DialogTitle>
+          <DialogTitle>Edit {supplier.supplier_type === 'customer' ? 'Individual' : 'Supplier'}</DialogTitle>
           <DialogDescription>
             Update the details for {supplier.name}
           </DialogDescription>
@@ -82,7 +82,7 @@ export function EditSupplierDialog({ supplier, open, onOpenChange }: EditSupplie
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
               <Label htmlFor="name">
-                {supplier.supplier_type === 'customer' ? 'Customer' : 'Supplier'} Name *
+                {supplier.supplier_type === 'customer' ? 'Individual' : 'Supplier'} Name *
               </Label>
               <Input
                 id="name"
@@ -105,7 +105,7 @@ export function EditSupplierDialog({ supplier, open, onOpenChange }: EditSupplie
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="registered">Registered Supplier</SelectItem>
-                  <SelectItem value="customer">Customer</SelectItem>
+                  <SelectItem value="customer">Individual Supplier</SelectItem>
                 </SelectContent>
               </Select>
             </div>

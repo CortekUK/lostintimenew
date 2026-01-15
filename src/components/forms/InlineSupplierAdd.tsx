@@ -161,7 +161,7 @@ export function InlineSupplierAdd({
             Quick Add {defaultType === 'customer' ? 'Customer' : 'Supplier'}
           </DialogTitle>
           <DialogDescription>
-            Add a new {defaultType === 'customer' ? 'customer supplier (walk-in/trade-in)' : 'registered supplier'} with basic information
+            Add a new {defaultType === 'customer' ? 'individual supplier (walk-in/trade-in)' : 'registered supplier'} with basic information
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -169,7 +169,7 @@ export function InlineSupplierAdd({
             <Label htmlFor="supplier_type">Supplier Type *</Label>
             {lockType ? (
               <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted/50 px-3 text-sm text-muted-foreground">
-                {formData.supplier_type === 'registered' ? 'Registered Supplier' : 'Customer Supplier'}
+                {formData.supplier_type === 'registered' ? 'Registered Supplier' : 'Individual Supplier'}
               </div>
             ) : (
               <Select
@@ -192,9 +192,9 @@ export function InlineSupplierAdd({
                   </SelectItem>
                   <SelectItem value="customer">
                     <div>
-                      <div className="font-medium">Customer Supplier</div>
+                      <div className="font-medium">Individual Supplier</div>
                       <div className="text-xs text-muted-foreground">
-                        Walk-in customer for trade-in or consignment
+                        Walk-in individual for trade-in or consignment
                       </div>
                     </div>
                   </SelectItem>

@@ -123,7 +123,7 @@ export function SuppliersTab() {
           <SelectContent>
             <SelectItem value="all">All Suppliers</SelectItem>
             <SelectItem value="registered">Registered</SelectItem>
-            <SelectItem value="customer">Customer</SelectItem>
+            <SelectItem value="customer">Individual</SelectItem>
           </SelectContent>
         </Select>
         
@@ -327,7 +327,7 @@ export function SuppliersTab() {
                         </td>
                         <td className="py-3 px-2 text-center">
                           {supplier.supplier_type === 'customer' ? (
-                            <Badge variant="secondary" className="text-xs">Customer</Badge>
+                            <Badge variant="secondary" className="text-xs">Individual</Badge>
                           ) : (
                             <Badge variant="default" className="text-xs">Registered</Badge>
                           )}

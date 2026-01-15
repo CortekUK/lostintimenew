@@ -91,7 +91,7 @@ function SupplierCard({ supplier, onView }: SupplierCardProps) {
               )}
               <CardTitle className="font-luxury text-lg">{supplier.name}</CardTitle>
               {supplier.supplier_type === 'customer' && (
-                <Badge variant="customer">Customer</Badge>
+                <Badge variant="customer">Individual</Badge>
               )}
               <Badge variant={supplier.status === 'active' ? 'default' : 'secondary'} className="h-5">
                 {supplier.status === 'active' ? 'Active' : 'Inactive'}
@@ -430,9 +430,9 @@ function AddSupplierDialog({ open, onOpenChange }: AddSupplierDialogProps) {
                     </SelectItem>
                     <SelectItem value="customer">
                       <div>
-                        <div className="font-medium">Customer Supplier</div>
+                        <div className="font-medium">Individual Supplier</div>
                         <div className="text-xs text-muted-foreground">
-                          Walk-in customer for trade-in or consignment
+                          Walk-in individual for trade-in or consignment
                         </div>
                       </div>
                     </SelectItem>
@@ -674,7 +674,7 @@ export default function Suppliers() {
             <SelectContent>
               <SelectItem value="all">All Supplier Types</SelectItem>
               <SelectItem value="registered">Registered Suppliers</SelectItem>
-              <SelectItem value="customer">Customer Suppliers</SelectItem>
+              <SelectItem value="customer">Individual Suppliers</SelectItem>
             </SelectContent>
           </Select>
           <Select value={filterStatus} onValueChange={setFilterStatus}>
