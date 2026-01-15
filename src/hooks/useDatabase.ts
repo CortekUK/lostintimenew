@@ -560,6 +560,9 @@ export const useSoldItemsReport = () => {
         const isTradeIn = product?.is_trade_in;
         const isConsignment = product?.is_consignment;
         
+        // Handle sales relation (could be object or array depending on Supabase response)
+        const salesData = Array.isArray(item.sales) ? item.sales[0] : item.sales;
+        
         // Get part exchange data for this sale
         const pxItems = pxBySaleId[item.sale_id] || [];
         const serial = pxItems.length > 0 ? pxItems[0].serial : null;
@@ -597,7 +600,7 @@ export const useSoldItemsReport = () => {
         return {
           sale_item_id: item.id,
           sale_id: item.sale_id,
-          sold_at: item.sales?.sold_at,
+          sold_at: salesData?.sold_at,
           product_id: item.product_id,
           quantity: item.quantity,
           unit_price: item.unit_price,
@@ -608,7 +611,7 @@ export const useSoldItemsReport = () => {
           line_cogs: lineCogs,
           line_gross_profit: lineGrossProfit,
           products: product,
-          sales: item.sales,
+          sales: salesData,
           supplier: supplier,
           supplier_name: supplierName,
           serial: serial,
