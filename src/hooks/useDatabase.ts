@@ -430,7 +430,10 @@ export const useTransactions = () => {
           staff_id, customer_name, customer_email, is_voided, voided_at, void_reason,
           edited_at, edit_reason,
           profiles!fk_sales_staff_id ( full_name ),
-          sale_items ( id )
+          sale_items ( 
+            id,
+            products:product_id ( id, name, sku, internal_sku )
+          )
         `)
         .order('sold_at', { ascending: false });
       
