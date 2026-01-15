@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Settings as SettingsIcon, User, Building, ShoppingCart, Download, Upload, Smartphone, Sparkles, Filter, Clock, Package, Store, Plus, Pencil, Trash2, Watch, CircleDot, Gem, Star, Heart, Crown, Diamond, Zap, Tag, Percent } from 'lucide-react';
+import { Settings as SettingsIcon, User, Building, ShoppingCart, Download, Upload, Smartphone, Sparkles, Filter, Clock, Package, Store, Plus, Pencil, Trash2, Watch, CircleDot, Gem, Star, Heart, Crown, Diamond, Zap, Tag, Percent, Users, ExternalLink } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings, CustomFilter } from '@/contexts/SettingsContext';
 import { CustomFilterDialog } from '@/components/settings/CustomFilterDialog';
@@ -23,6 +23,8 @@ import { RolePermissionsManager } from '@/components/settings/RolePermissionsMan
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { productCSVHeaders, supplierCSVHeaders, expenseCSVHeaders, productTypeCoercion, expenseTypeCoercion } from '@/utils/csvUtils';
+import { CommissionSettingsModal } from '@/components/reports/CommissionSettingsModal';
+import { useStaffCommissionOverrides } from '@/hooks/useStaffCommissionOverrides';
 
 // Timezone options grouped by region
 const timezoneOptions = [
@@ -69,6 +71,10 @@ export default function Settings() {
   // Custom filter dialog state
   const [showCustomFilterDialog, setShowCustomFilterDialog] = useState(false);
   const [editingFilter, setEditingFilter] = useState<CustomFilter | undefined>(undefined);
+  
+  // Commission modal state
+  const [showCommissionModal, setShowCommissionModal] = useState(false);
+  const { data: commissionOverrides = [] } = useStaffCommissionOverrides();
   
   // Profile state
   const [profile, setProfile] = useState<any>(null);
@@ -1102,8 +1108,65 @@ export default function Settings() {
                   A £1,000 sale at {localSettings.commissionSettings?.defaultRate ?? 5}% rate = <span className="font-mono font-medium text-green-600 dark:text-green-400">£{((localSettings.commissionSettings?.defaultRate ?? 5) * 10).toFixed(2)}</span> commission
                 </p>
               </div>
+
+              <Separator className="my-4" />
+
+              {/* Staff Commission Overrides Section */}
+              <div className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h4 className="font-medium">Per-Staff Commission Rates</h4>
+                    <p className="text-sm text-muted-foreground">
+                      Set custom commission rates for individual staff members
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowCommissionModal(true)}
+                    disabled={userRole !== 'owner'}
+                  >
+                    <Users className="h-4 w-4 mr-2" />
+                    Manage Staff Rates
+                  </Button>
+                </div>
+
+                {commissionOverrides.length > 0 ? (
+                  <div className="p-3 bg-muted/50 rounded-lg">
+                    <p className="text-sm">
+                      <span className="font-medium">{commissionOverrides.length}</span> staff member(s) have custom commission rates
+                    </p>
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    All staff members are using the global default rate
+                  </p>
+                )}
+              </div>
+
+              <Separator className="my-4" />
+
+              {/* Quick Link to Commission Report */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                <div>
+                  <h4 className="font-medium">View Commission Report</h4>
+                  <p className="text-sm text-muted-foreground">
+                    See commission breakdown and record payments
+                  </p>
+                </div>
+                <Button variant="ghost" asChild>
+                  <a href="/reports?tab=commission">
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Go to Report
+                  </a>
+                </Button>
+              </div>
             </CardContent>
           </Card>
+
+          <CommissionSettingsModal 
+            open={showCommissionModal} 
+            onClose={() => setShowCommissionModal(false)} 
+          />
 
           {/* Quick Filters Settings */}
           <Card id="quick-filters">
