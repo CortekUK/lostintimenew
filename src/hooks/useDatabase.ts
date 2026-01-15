@@ -523,7 +523,7 @@ export const useSoldItemsReport = () => {
             suppliers!products_supplier_id_fkey ( id, name, supplier_type ),
             consignment_supplier:suppliers!products_consignment_supplier_id_fkey ( id, name, supplier_type )
           ),
-          sales ( id, sold_at, staff_id, staff_member_name, customer_name, total, profiles!fk_sales_staff_id ( full_name ) )
+          sales ( id, sold_at, staff_id, staff_member_name, customer_name, customer_id, total, profiles!fk_sales_staff_id ( full_name ) )
         `)
         .order('sales(sold_at)', { ascending: false });
       
