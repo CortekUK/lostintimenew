@@ -98,8 +98,16 @@ export const useConsignmentSettlements = (filter?: ConsignmentFilter) => {
         .from('consignment_settlements')
         .select(`
           *,
-          product:products(name, sku, internal_sku, consignment_terms),
-          supplier:suppliers(name, email, phone, supplier_type),
+          product:products(
+            id, name, sku, internal_sku, consignment_terms, 
+            unit_cost, unit_price, tax_rate, category, description,
+            image_url, metal, karat, gemstone, barcode,
+            is_consignment, is_trade_in, is_registered,
+            consignment_start_date, consignment_end_date,
+            consignment_supplier_id, supplier_id, location_id,
+            created_at, updated_at, purchase_date
+          ),
+          supplier:suppliers(id, name, email, phone, supplier_type),
           sale:sales(sold_at, payment)
         `)
         .order('created_at', { ascending: false });
