@@ -122,7 +122,7 @@ export function CheckoutForm({
     setDiscountInput(clampedValue.toString());
     onDiscountChange(clampedValue);
   };
-  const canCompleteSale = (items.length > 0 || partExchanges.length > 0) && paymentMethod && staffMember && locationId && !isProcessing && (!requiresOwnerApproval || netTotal >= 0);
+  const canCompleteSale = (items.length > 0 || partExchanges.length > 0) && paymentMethod && staffMember && locationId && customerName.trim() && !isProcessing && (!requiresOwnerApproval || netTotal >= 0);
   return <Card className="shadow-card">
       <CardHeader>
         <CardTitle className="font-luxury">Checkout</CardTitle>
@@ -332,12 +332,16 @@ export function CheckoutForm({
             Select staff member to complete sale
           </p>}
         
-        {(items.length > 0 || partExchanges.length > 0) && !paymentMethod && staffMember && locationId && <p className="text-center text-sm text-muted-foreground">
+        {(items.length > 0 || partExchanges.length > 0) && !paymentMethod && staffMember && locationId && customerName.trim() && <p className="text-center text-sm text-muted-foreground">
             Select a payment method to complete sale
           </p>}
 
         {(items.length > 0 || partExchanges.length > 0) && staffMember && !locationId && <p className="text-center text-sm text-muted-foreground">
             Select a shop location to complete sale
+          </p>}
+
+        {(items.length > 0 || partExchanges.length > 0) && staffMember && locationId && !customerName.trim() && <p className="text-center text-sm text-muted-foreground">
+            Enter customer name to complete sale
           </p>}
 
         {requiresOwnerApproval && netTotal < 0 && <p className="text-center text-sm text-red-600">

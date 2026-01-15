@@ -60,7 +60,7 @@ export function CustomerSearchInput({
     <div className="space-y-3">
       {/* Customer Name/Search */}
       <div className="space-y-2">
-        <Label htmlFor="customer-search">Customer Name (Optional)</Label>
+        <Label htmlFor="customer-search">Customer Name *</Label>
         <Popover open={open} onOpenChange={setOpen}>
           <PopoverAnchor asChild>
             <div className="relative" data-customer-search>
