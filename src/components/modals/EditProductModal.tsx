@@ -405,6 +405,7 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
           
           <AddProductForm 
             onSubmit={handleAddProductFormSubmit}
+            onCancel={() => onOpenChange(false)}
             isLoading={isLoading}
           />
         </DialogContent>
