@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -30,12 +29,12 @@ interface CashDrawerHistoryModalProps {
 }
 
 const movementTypeConfig: Record<CashMovementType, { label: string; icon: typeof ArrowUpCircle; color: string }> = {
-  sale_cash_in: { label: 'Cash Sale', icon: Banknote, color: 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400' },
-  deposit: { label: 'Deposit', icon: ArrowUpCircle, color: 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400' },
-  withdrawal: { label: 'Withdrawal', icon: ArrowDownCircle, color: 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400' },
-  float_set: { label: 'Float Set', icon: RefreshCw, color: 'bg-purple-100 text-purple-800 dark:bg-purple-900/30 dark:text-purple-400' },
-  adjustment: { label: 'Adjustment', icon: RefreshCw, color: 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400' },
-  sale_void_refund: { label: 'Void Refund', icon: Receipt, color: 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400' },
+  sale_cash_in: { label: 'Cash Sale', icon: Banknote, color: 'bg-green-500/20 text-green-400 border-green-500/30' },
+  deposit: { label: 'Deposit', icon: ArrowUpCircle, color: 'bg-blue-500/20 text-blue-400 border-blue-500/30' },
+  withdrawal: { label: 'Withdrawal', icon: ArrowDownCircle, color: 'bg-orange-500/20 text-orange-400 border-orange-500/30' },
+  float_set: { label: 'Float Set', icon: RefreshCw, color: 'bg-purple-500/20 text-purple-400 border-purple-500/30' },
+  adjustment: { label: 'Adjustment', icon: RefreshCw, color: 'bg-muted text-muted-foreground border-border' },
+  sale_void_refund: { label: 'Void Refund', icon: Receipt, color: 'bg-red-500/20 text-red-400 border-red-500/30' },
 };
 
 export function CashDrawerHistoryModal({
@@ -52,18 +51,25 @@ export function CashDrawerHistoryModal({
     }
   };
 
+  // Calculate running balance (from oldest to newest, then reverse for display)
+  const movementsWithBalance = movements ? [...movements].reverse().reduce((acc, movement, index) => {
+    const previousBalance = index === 0 ? 0 : acc[index - 1].runningBalance;
+    const runningBalance = previousBalance + movement.amount;
+    acc.push({ ...movement, runningBalance });
+    return acc;
+  }, [] as Array<typeof movements[0] & { runningBalance: number }>).reverse() : [];
+
   return (
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-2xl max-h-[85vh]">
         <DialogHeader>
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-            <DialogTitle className="text-lg">{locationName} - Cash History</DialogTitle>
+          <div className="flex items-center justify-between gap-3">
+            <DialogTitle className="text-lg font-semibold">{locationName} - Cash History</DialogTitle>
             <Button
               variant="outline"
               size="sm"
               onClick={handleExport}
               disabled={!movements || movements.length === 0}
-              className="w-fit"
             >
               <Download className="h-4 w-4 mr-2" />
               Export
@@ -71,36 +77,39 @@ export function CashDrawerHistoryModal({
           </div>
         </DialogHeader>
 
-        <ScrollArea className="h-[500px] pr-4">
+        <ScrollArea className="h-[500px] pr-4 -mr-4">
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
-                <Skeleton key={i} className="h-16" />
+                <Skeleton key={i} className="h-20" />
               ))}
             </div>
-          ) : !movements || movements.length === 0 ? (
+          ) : !movementsWithBalance || movementsWithBalance.length === 0 ? (
             <div className="text-center py-12 text-muted-foreground">
               <Banknote className="h-12 w-12 mx-auto mb-3 opacity-50" />
               <p>No cash movements recorded yet</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {movements.map((movement) => {
+              {movementsWithBalance.map((movement) => {
                 const config = movementTypeConfig[movement.movement_type];
                 const Icon = config.icon;
+                const isPositive = movement.amount >= 0;
                 
                 return (
                   <div
                     key={movement.id}
-                    className="flex items-start gap-3 p-3 rounded-lg border bg-card hover:bg-accent/50 transition-colors"
+                    className="flex items-center gap-4 p-4 rounded-lg border bg-card/50 hover:bg-card transition-colors"
                   >
-                    <div className={`p-2 rounded-full ${movement.amount >= 0 ? 'bg-green-100 dark:bg-green-900/30' : 'bg-red-100 dark:bg-red-900/30'}`}>
-                      <Icon className={`h-4 w-4 ${movement.amount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`} />
+                    {/* Icon */}
+                    <div className={`p-2.5 rounded-full shrink-0 ${isPositive ? 'bg-green-500/10' : 'bg-red-500/10'}`}>
+                      <Icon className={`h-4 w-4 ${isPositive ? 'text-green-500' : 'text-red-500'}`} />
                     </div>
                     
+                    {/* Main content */}
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        <Badge variant="secondary" className={config.color}>
+                        <Badge variant="outline" className={`text-xs border ${config.color}`}>
                           {config.label}
                         </Badge>
                         {movement.reference_sale_id && (
@@ -110,26 +119,28 @@ export function CashDrawerHistoryModal({
                         )}
                       </div>
                       
-                      <div className="flex justify-between items-start">
-                        <div>
-                          <p className="text-sm text-muted-foreground">
-                            {movement.profile?.full_name || 'System'}
-                          </p>
-                          {movement.notes && (
-                            <p className="text-sm text-muted-foreground truncate max-w-[300px]">
-                              {movement.notes}
-                            </p>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <p className={`font-semibold ${movement.amount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'}`}>
-                            {movement.amount >= 0 ? '+' : ''}{formatCurrency(movement.amount)}
-                          </p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(new Date(movement.created_at), 'dd MMM yyyy HH:mm')}
-                          </p>
-                        </div>
-                      </div>
+                      <p className="text-sm font-medium truncate">
+                        {movement.profile?.full_name || 'System'}
+                      </p>
+                      
+                      {movement.notes && (
+                        <p className="text-xs text-muted-foreground truncate mt-0.5">
+                          {movement.notes}
+                        </p>
+                      )}
+                    </div>
+                    
+                    {/* Amount and balance */}
+                    <div className="text-right shrink-0">
+                      <p className={`text-base font-semibold tabular-nums ${isPositive ? 'text-green-500' : 'text-red-500'}`}>
+                        {isPositive ? '+' : ''}{formatCurrency(movement.amount)}
+                      </p>
+                      <p className="text-xs text-muted-foreground tabular-nums">
+                        Balance: {formatCurrency(movement.runningBalance)}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">
+                        {format(new Date(movement.created_at), 'dd MMM yyyy HH:mm')}
+                      </p>
                     </div>
                   </div>
                 );
