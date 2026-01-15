@@ -80,6 +80,7 @@ export interface CartItem {
   unit_cost: number;
   tax_rate: number;
   discount: number;
+  stock_on_hand?: number; // Available stock for validation
 }
 
 // Part Exchange Types for POS

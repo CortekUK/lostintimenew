@@ -67,17 +67,32 @@ export default function EnhancedSales() {
     }
   }, [userProfile?.full_name, staffMember]);
 
-  // Fetch products
+  // Fetch products with stock data
   const { data: products, isLoading: productsLoading } = useQuery({
-    queryKey: ['products'],
+    queryKey: ['products-with-stock'],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data: productsData, error: productsError } = await supabase
         .from('products')
         .select('*')
         .order('name');
       
-      if (error) throw error;
-      return data as Product[];
+      if (productsError) throw productsError;
+      
+      // Get stock data
+      const productIds = productsData?.map(p => p.id) || [];
+      if (productIds.length === 0) return [];
+      
+      const { data: stockData } = await supabase
+        .from('v_stock_on_hand')
+        .select('*')
+        .in('product_id', productIds);
+      
+      const stockMap = new Map(stockData?.map(s => [s.product_id, s.qty_on_hand]) || []);
+      
+      return productsData.map(p => ({
+        ...p,
+        stock_on_hand: stockMap.get(p.id) || 0
+      })) as (Product & { stock_on_hand: number })[];
     }
   });
 
@@ -96,7 +111,8 @@ export default function EnhancedSales() {
             unit_price: product.unit_price,
             unit_cost: product.unit_cost,
             tax_rate: product.tax_rate,
-            discount: 0
+            discount: 0,
+            stock_on_hand: product.stock_on_hand
           };
           setCart(prev => [...prev, newItem]);
           toast({
@@ -155,10 +171,21 @@ export default function EnhancedSales() {
     setPartExchanges(partExchanges.filter(px => px.id !== id));
   };
 
-  const addToCart = (product: Product) => {
+  const addToCart = (product: Product & { stock_on_hand?: number }) => {
     const existingItem = cart.find(item => item.product.id === product.id);
     
     if (existingItem) {
+      // Don't exceed available stock for tracked products
+      if (product.track_stock && existingItem.stock_on_hand !== undefined) {
+        if (existingItem.quantity >= existingItem.stock_on_hand) {
+          toast({
+            title: 'Stock limit reached',
+            description: `Only ${existingItem.stock_on_hand} available`,
+            variant: 'destructive',
+          });
+          return;
+        }
+      }
       setCart(cart.map(item =>
         item.product.id === product.id
           ? { ...item, quantity: item.quantity + 1 }
@@ -171,7 +198,8 @@ export default function EnhancedSales() {
         unit_price: product.unit_price,
         unit_cost: product.unit_cost,
         tax_rate: product.tax_rate,
-        discount: 0
+        discount: 0,
+        stock_on_hand: product.stock_on_hand
       };
       setCart([...cart, newItem]);
     }
@@ -185,6 +213,17 @@ export default function EnhancedSales() {
   const updateQuantity = (productId: number, quantity: number) => {
     if (quantity <= 0) {
       setCart(cart.filter(item => item.product.id !== productId));
+      return;
+    }
+
+    // Check stock limit
+    const item = cart.find(i => i.product.id === productId);
+    if (item?.product.track_stock && item.stock_on_hand !== undefined && quantity > item.stock_on_hand) {
+      toast({
+        title: 'Stock limit reached',
+        description: `Only ${item.stock_on_hand} available`,
+        variant: 'destructive',
+      });
       return;
     }
 

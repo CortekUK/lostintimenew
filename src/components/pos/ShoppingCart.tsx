@@ -130,6 +130,7 @@ export function ShoppingCartComponent({
                         size="sm"
                         onClick={() => onUpdateQuantity(item.product.id, item.quantity + 1)}
                         className="h-7 w-7 p-0"
+                        disabled={item.product.track_stock && item.stock_on_hand !== undefined && item.quantity >= item.stock_on_hand}
                       >
                         <Plus className="h-3 w-3" />
                       </Button>
