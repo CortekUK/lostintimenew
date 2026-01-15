@@ -77,7 +77,7 @@ const ExpenseCard = ({ expense }: { expense: any }) => (
         </div>
       </div>
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Badge variant="secondary">{expense.payment_method || 'cash'}</Badge>
+        <Badge variant="secondary">{formatCategoryDisplay(expense.payment_method || 'cash')}</Badge>
         <span>•</span>
         <span>{expense.staff?.full_name || 'System'}</span>
       </div>

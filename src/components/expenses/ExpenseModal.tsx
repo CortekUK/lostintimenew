@@ -68,7 +68,13 @@ interface ExpenseModalProps {
   onDelete?: (id: number) => void;
 }
 
-const PAYMENT_METHODS = ['Cash', 'Bank Transfer', 'Card', 'Direct Debit', 'Other'];
+const PAYMENT_METHODS: Array<{ value: 'cash' | 'card' | 'transfer' | 'check' | 'other'; label: string }> = [
+  { value: 'cash', label: 'Cash' },
+  { value: 'card', label: 'Card' },
+  { value: 'transfer', label: 'Bank Transfer' },
+  { value: 'check', label: 'Cheque' },
+  { value: 'other', label: 'Other' },
+];
 const VAT_RATES = [0, 5, 20];
 
 export function ExpenseModal({
@@ -92,7 +98,7 @@ export function ExpenseModal({
     date: new Date(),
     category: 'other',
     supplier_id: null,
-    payment_method: 'Cash',
+    payment_method: 'cash',
     include_vat: false,
     vat_rate: 20,
     notes: '',
@@ -113,7 +119,7 @@ export function ExpenseModal({
         date: expense.incurred_at ? new Date(expense.incurred_at) : new Date(),
         category: expense.category || 'other',
         supplier_id: expense.supplier_id || null,
-        payment_method: expense.payment_method || 'Cash',
+        payment_method: expense.payment_method || 'cash',
         include_vat: !!expense.vat_rate,
         vat_rate: expense.vat_rate || 20,
         notes: expense.notes || '',
@@ -130,7 +136,7 @@ export function ExpenseModal({
         date: new Date(),
         category: 'other',
         supplier_id: null,
-        payment_method: 'Cash',
+        payment_method: 'cash',
         include_vat: false,
         vat_rate: 20,
         notes: '',
@@ -461,8 +467,8 @@ export function ExpenseModal({
                   </SelectTrigger>
                   <SelectContent>
                     {PAYMENT_METHODS.map((method) => (
-                      <SelectItem key={method} value={method}>
-                        {method}
+                      <SelectItem key={method.value} value={method.value}>
+                        {method.label}
                       </SelectItem>
                     ))}
                   </SelectContent>

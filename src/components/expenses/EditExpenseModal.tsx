@@ -25,7 +25,13 @@ interface EditExpenseModalProps {
   onDelete: (id: number) => void;
 }
 
-const PAYMENT_METHODS = ['cash', 'card', 'bank_transfer', 'cheque', 'other'];
+const PAYMENT_METHODS: Array<{ value: 'cash' | 'card' | 'transfer' | 'check' | 'other'; label: string }> = [
+  { value: 'cash', label: 'Cash' },
+  { value: 'card', label: 'Card' },
+  { value: 'transfer', label: 'Bank Transfer' },
+  { value: 'check', label: 'Cheque' },
+  { value: 'other', label: 'Other' },
+];
 
 const formatCategoryName = (category: string) => {
   return category
@@ -161,8 +167,8 @@ export function EditExpenseModal({ open, onOpenChange, expense, onSave, onDelete
                   </SelectTrigger>
                   <SelectContent>
                     {PAYMENT_METHODS.map((method) => (
-                      <SelectItem key={method} value={method}>
-                        {formatCategoryName(method)}
+                      <SelectItem key={method.value} value={method.value}>
+                        {method.label}
                       </SelectItem>
                     ))}
                   </SelectContent>
