@@ -135,19 +135,19 @@ const ExpenseRow = memo(({
         {expense.supplier?.name || '-'}
       </TableCell>
       <TableCell>
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col items-start gap-1">
           {expense.is_cogs && (
-            <Badge variant="default" className="text-xs w-fit">COGS</Badge>
+            <Badge variant="default" className="text-xs">COGS</Badge>
           )}
           {expense.template ? (
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <div className="flex flex-col gap-0.5">
+                  <div className="flex flex-col items-start gap-0.5">
                     <Badge 
                       variant={expense.template.is_active ? "outline" : "secondary"} 
                       className={cn(
-                        "text-xs w-fit gap-1",
+                        "text-xs gap-1",
                         !expense.template.is_active && "opacity-60"
                       )}
                     >
@@ -156,7 +156,7 @@ const ExpenseRow = memo(({
                       {!expense.template.is_active && " (Paused)"}
                     </Badge>
                     {expense.template.is_active && expense.template.next_due_date && (
-                      <span className="text-[10px] text-muted-foreground">
+                      <span className="text-[10px] text-muted-foreground pl-0.5">
                         Next: {format(new Date(expense.template.next_due_date), 'dd MMM')}
                       </span>
                     )}
