@@ -108,15 +108,13 @@ export function CheckoutForm({
   const partExchangeTotal = partExchanges.reduce((sum, px) => sum + px.allowance, 0);
   const netTotal = totals.total - partExchangeTotal;
   const handleDiscountChange = (value: string) => {
-    setDiscountInput(value);
     const numValue = parseFloat(value) || 0;
-    if (numValue >= 0) {
-      if (discountType === 'percentage' && numValue <= 100) {
-        onDiscountChange(numValue);
-      } else if (discountType === 'fixed' && numValue <= subtotal) {
-        onDiscountChange(numValue);
-      }
-    }
+    const clampedValue = Math.max(0, discountType === 'percentage' 
+      ? Math.min(numValue, 100) 
+      : Math.min(numValue, subtotal));
+    
+    setDiscountInput(clampedValue.toString());
+    onDiscountChange(clampedValue);
   };
   const canCompleteSale = (items.length > 0 || partExchanges.length > 0) && paymentMethod && staffMember && locationId && !isProcessing && (!requiresOwnerApproval || netTotal >= 0);
   return <Card className="shadow-card">
