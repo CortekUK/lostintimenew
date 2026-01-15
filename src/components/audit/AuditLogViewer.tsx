@@ -54,9 +54,19 @@ const SENSITIVE_FINANCIAL_FIELDS = [
   'commission_amount', 'commission_rate', 'profit_total', 'revenue_total'
 ];
 
+// Fields that contain financial keywords but are NOT currency values
+const NON_FINANCIAL_FIELDS = [
+  'total_purchases',  // Integer count of purchases
+  'total_orders',     // Integer count of orders
+];
+
 // Check if a field is financial
 const isFinancialField = (fieldName: string): boolean => {
   const lowerField = fieldName.toLowerCase();
+  // First check exclusions - these are counts, not currency
+  if (NON_FINANCIAL_FIELDS.some(f => lowerField === f)) {
+    return false;
+  }
   return SENSITIVE_FINANCIAL_FIELDS.some(f => lowerField.includes(f) || lowerField === f);
 };
 
