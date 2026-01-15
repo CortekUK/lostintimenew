@@ -20,7 +20,6 @@ import {
   TrendingDown,
   FileText,
   Download,
-  Search
 } from 'lucide-react';
 import { 
   useExpenseStats, 
@@ -229,17 +228,8 @@ export default function Expenses() {
       <div className="space-y-6">
         {/* Header Actions */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          {/* Left group: Search and Filters */}
-          <div className="flex items-center gap-3 flex-1 max-w-xl">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search expenses..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9"
-              />
-            </div>
+          {/* Left group: Filters */}
+          <div className="flex items-center gap-3">
             <ExpenseFiltersEnhanced
               filters={filters}
               onFiltersChange={setFilters}
@@ -361,8 +351,13 @@ export default function Expenses() {
         </div>
 
         {/* Expenses Table */}
-        {filteredExpenses.length > 0 ? (
-          <ExpenseTable expenses={filteredExpenses} onEdit={setEditingExpense} />
+        {filteredExpenses.length > 0 || searchQuery.trim() ? (
+          <ExpenseTable 
+            expenses={filteredExpenses} 
+            onEdit={setEditingExpense} 
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+          />
         ) : (
           <Card className="shadow-card">
             <CardContent className="py-12">

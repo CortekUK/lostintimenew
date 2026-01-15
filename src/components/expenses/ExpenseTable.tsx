@@ -21,7 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { Edit, Trash2, Check, X, ArrowUpDown, ChevronLeft, ChevronRight, RefreshCw, Pause, Play, Settings } from 'lucide-react';
+import { Edit, Trash2, Check, X, ArrowUpDown, ChevronLeft, ChevronRight, RefreshCw, Pause, Play, Settings, Search } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { useUpdateExpense, useDeleteExpense } from '@/hooks/useDatabase';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -47,6 +47,8 @@ import { toast } from 'sonner';
 interface ExpenseTableProps {
   expenses: any[];
   onEdit?: (expense: any) => void;
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
 // Use formatCategoryDisplay from useCustomCategories for consistent formatting
@@ -298,7 +300,7 @@ const ExpenseRow = memo(({
 
 ExpenseRow.displayName = 'ExpenseRow';
 
-export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
+export function ExpenseTable({ expenses, onEdit, searchQuery = '', onSearchChange }: ExpenseTableProps) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editData, setEditData] = useState<any>({});
   const [deleteId, setDeleteId] = useState<number | null>(null);
@@ -450,10 +452,28 @@ export function ExpenseTable({ expenses, onEdit }: ExpenseTableProps) {
   return (
     <>
       <Card className="shadow-card">
-        <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold">Expense Records</CardTitle>
+        <CardHeader className="space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <CardTitle className="text-xl font-semibold">Expense Records</CardTitle>
+              <p className="text-sm text-muted-foreground mt-1">
+                {expenses.length} {expenses.length === 1 ? 'expense' : 'expenses'} total
+              </p>
+            </div>
+            {onSearchChange && (
+              <div className="relative w-full sm:w-72">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search expenses..."
+                  value={searchQuery}
+                  onChange={(e) => onSearchChange(e.target.value)}
+                  className="pl-9"
+                />
+              </div>
+            )}
+          </div>
         </CardHeader>
-        <CardContent className="p-0 pt-0">
+        <CardContent className="p-0">
           <Table>
             <TableHeader>
               <TableRow>
