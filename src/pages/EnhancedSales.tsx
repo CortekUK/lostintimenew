@@ -440,6 +440,7 @@ export default function EnhancedSales() {
       setPartExchanges([]);
       setCustomerName('');
       setCustomerEmail('');
+      setCustomerPhone('');
       setSelectedCustomerId(null);
       setDiscount(0);
       setDiscountType('percentage');
