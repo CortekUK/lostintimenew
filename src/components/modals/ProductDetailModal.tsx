@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Product } from '@/types';
-import { Package, PoundSterling, TrendingUp, Calendar, Truck, Tag, Gem, Award, FileText, Eye, Download, Repeat, User, Phone, Copy, ExternalLink, MapPin } from 'lucide-react';
+import { Package, PoundSterling, TrendingUp, Calendar, Truck, Tag, Gem, Award, FileText, Eye, Download, Repeat, User, Phone, Copy, ExternalLink, MapPin, Clock, Percent } from 'lucide-react';
 import { format } from 'date-fns';
 import { ConsignmentAgreementSection } from '@/components/consignments/ConsignmentAgreementSection';
 import { StockAdjustmentModal } from '@/components/products/StockAdjustmentModal';
@@ -76,16 +76,34 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
   
   const stockStatus = getStockStatus(stock);
 
+  // Calculate days in inventory
+  const getDaysInInventory = () => {
+    const purchaseDate = (product as any).purchase_date 
+      ? new Date((product as any).purchase_date)
+      : new Date((product as any).created_at);
+    return Math.floor((new Date().getTime() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24));
+  };
+
+  const daysInInventory = getDaysInInventory();
+  const getAgingStatus = (days: number) => {
+    if (days >= 90) return { variant: 'destructive' as const, text: 'Aged Stock' };
+    if (days >= 60) return { variant: 'secondary' as const, text: 'Aging' };
+    return { variant: 'outline' as const, text: 'Fresh' };
+  };
+  const agingStatus = getAgingStatus(daysInInventory);
+
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className={`w-full max-w-[58rem] max-h-[90vh] overflow-y-auto p-4 md:p-6 ${soldInfo ? 'border-destructive/50' : ''}`}>
-          <DialogHeader className={soldInfo ? 'pt-2' : ''}>
+        <DialogContent className={`w-full max-w-[58rem] max-h-[90vh] overflow-y-auto p-0 ${soldInfo ? 'border-destructive/50' : ''}`}>
+          
+          {/* Hero Header Section */}
+          <div className="p-6 pb-0">
             {soldInfo && (
-              <div className="mb-4 p-3 md:p-4 bg-destructive/10 border border-destructive/30 rounded-lg">
+              <div className="mb-5 p-4 bg-destructive/10 border border-destructive/30 rounded-xl">
                 <div className="flex items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
-                    <Badge variant="destructive" className="text-base px-3 py-1">
+                    <Badge variant="destructive" className="text-base px-3 py-1.5 font-medium">
                       SOLD
                     </Badge>
                     <div>
@@ -109,287 +127,304 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
                 </div>
               </div>
             )}
-            <div className="flex items-start justify-between">
-              <div className="flex items-start gap-4">
+            
+            <DialogHeader className="mb-0">
+              <div className="flex items-start gap-5">
+                {/* Premium Image Container */}
                 {(product as any).image_url ? (
-                  <img
-                    src={(product as any).image_url}
-                    alt={product.name}
-                    className="w-20 h-20 object-cover rounded-lg border cursor-pointer hover:opacity-80 transition-opacity"
-                    onClick={() => setImageModalOpen(true)}
-                  />
+                  <div className="relative group">
+                    <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl blur-sm opacity-50" />
+                    <img
+                      src={(product as any).image_url}
+                      alt={product.name}
+                      className="relative w-24 h-24 object-cover rounded-xl border border-border/50 cursor-pointer shadow-md transition-all duration-200 group-hover:shadow-lg group-hover:scale-[1.02]"
+                      onClick={() => setImageModalOpen(true)}
+                    />
+                    <div className="absolute inset-0 rounded-xl bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer" onClick={() => setImageModalOpen(true)}>
+                      <Eye className="h-5 w-5 text-white drop-shadow-md" />
+                    </div>
+                  </div>
                 ) : (
-                  <div className="w-20 h-20 bg-muted rounded-lg flex items-center justify-center">
-                    <Package className="h-8 w-8 text-muted-foreground" />
+                  <div className="w-24 h-24 bg-gradient-to-br from-muted to-muted/50 rounded-xl border border-border/50 flex items-center justify-center shadow-sm">
+                    <Gem className="h-10 w-10 text-muted-foreground/40" />
                   </div>
                 )}
-                <div className="flex-1">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <DialogTitle className="font-luxury text-2xl text-foreground mb-2">{product.name}</DialogTitle>
-                      <p className="text-muted-foreground font-sans">
-                        {product.category} • SKU: {product.internal_sku || 'N/A'}
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0">
+                      <DialogTitle className="font-luxury text-2xl text-foreground mb-1 truncate">{product.name}</DialogTitle>
+                      <p className="text-muted-foreground text-sm">
+                        {product.category} • <span className="font-mono text-xs">{product.internal_sku || 'N/A'}</span>
                       </p>
                     </div>
-                    <div className="flex items-center gap-2 ml-4">
-                      {!soldInfo && (
-                        <Badge variant={stockStatus.variant}>
-                          {stockStatus.text}
-                        </Badge>
-                      )}
-                    </div>
+                    {!soldInfo && (
+                      <Badge variant={stockStatus.variant} className="shrink-0 px-3 py-1">
+                        {stockStatus.text}
+                      </Badge>
+                    )}
                   </div>
                   
                   {/* Product Type Badges */}
-                  <div className="flex items-center gap-2 mt-3">
+                  <div className="flex flex-wrap items-center gap-2 mt-3">
                     {(product as any).is_registered && (
-                      <Badge className="bg-primary/10 text-primary border-primary/20 font-medium">
-                        <Award className="h-3 w-3 mr-1" />
+                      <Badge className="bg-primary/10 text-primary border-primary/20 font-medium px-2.5 py-0.5">
+                        <Award className="h-3 w-3 mr-1.5" />
                         Registered
                       </Badge>
                     )}
                     {(product as any).is_consignment && (
-                      <Badge variant="outline" className="border-amber-500 text-amber-700 bg-amber-50 dark:bg-amber-900/20 font-medium">
-                        <FileText className="h-3 w-3 mr-1" />
+                      <Badge variant="outline" className="border-amber-500/50 text-amber-700 bg-amber-50 dark:bg-amber-900/20 font-medium px-2.5 py-0.5">
+                        <FileText className="h-3 w-3 mr-1.5" />
                         Consignment
                       </Badge>
                     )}
                     {isTradeIn && (
-                      <Badge variant="outline" className="border-blue-500 text-blue-700 bg-blue-50 dark:bg-blue-900/20 font-medium">
-                        <Repeat className="h-3 w-3 mr-1" />
+                      <Badge variant="outline" className="border-blue-500/50 text-blue-700 bg-blue-50 dark:bg-blue-900/20 font-medium px-2.5 py-0.5">
+                        <Repeat className="h-3 w-3 mr-1.5" />
                         Part Exchange
                       </Badge>
                     )}
                   </div>
                 </div>
               </div>
-            </div>
-          </DialogHeader>
+            </DialogHeader>
+          </div>
           
           {/* Financial Highlights Bar */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-            <Card className="shadow-sm border-primary/20">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <PoundSterling className="h-4 w-4 text-primary" />
-                  <span className="text-sm text-muted-foreground font-sans">Sell Price</span>
-                </div>
-                <p className="text-2xl font-luxury text-primary">£{Number(product.unit_price).toFixed(2)}</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground font-sans">Profit</span>
-                </div>
-                <p className={`text-2xl font-luxury ${Number(profit) >= 0 ? 'text-success' : 'text-destructive'}`}>
-                  £{profit} ({margin}%)
-                </p>
-              </CardContent>
-            </Card>
-            
-            <Card className="shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <Package className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground font-sans">Stock</span>
-                </div>
-                <p className={`text-2xl font-luxury ${stockStatus.color}`}>{stock}</p>
-              </CardContent>
-            </Card>
-            
-            <Card className="shadow-sm">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2 mb-2">
-                  <PoundSterling className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm text-muted-foreground font-sans">Inventory Value</span>
-                </div>
-                <p className="text-2xl font-luxury text-foreground">£{inventoryValue.toFixed(2)}</p>
-              </CardContent>
-            </Card>
+          <div className="px-6 pt-5">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+              <Card className="shadow-sm hover:shadow-md transition-shadow border-border/50 overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                      <PoundSterling className="h-5 w-5 text-primary" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs text-muted-foreground block">Sell Price</span>
+                      <p className="text-xl font-bold text-primary truncate">£{Number(product.unit_price).toFixed(2)}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="shadow-sm hover:shadow-md transition-shadow border-border/50 overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${Number(profit) >= 0 ? 'bg-success/10' : 'bg-destructive/10'}`}>
+                      <TrendingUp className={`h-5 w-5 ${Number(profit) >= 0 ? 'text-success' : 'text-destructive'}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs text-muted-foreground block">Profit</span>
+                      <p className={`text-xl font-bold truncate ${Number(profit) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                        £{profit}
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="shadow-sm hover:shadow-md transition-shadow border-border/50 overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
+                      <Percent className="h-5 w-5 text-muted-foreground" />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs text-muted-foreground block">Margin</span>
+                      <p className="text-xl font-bold text-foreground truncate">{margin}%</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              
+              <Card className="shadow-sm hover:shadow-md transition-shadow border-border/50 overflow-hidden">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${stock === 0 ? 'bg-destructive/10' : stock < 5 ? 'bg-warning/10' : 'bg-muted'}`}>
+                      <Package className={`h-5 w-5 ${stockStatus.color}`} />
+                    </div>
+                    <div className="min-w-0">
+                      <span className="text-xs text-muted-foreground block">In Stock</span>
+                      <p className={`text-xl font-bold ${stockStatus.color}`}>{stock}</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
-          {/* Purchase Tracking Section - Hide if sold */}
-          {stock > 0 && !soldInfo && (
-            <Card className="shadow-sm mb-6 border-primary/20">
-              <CardHeader>
-                <CardTitle className="font-luxury text-lg text-foreground flex items-center gap-2">
-                  <Package className="h-5 w-5 text-primary" />
-                  Purchase & Inventory Age
-                </CardTitle>
-                <CardDescription className="font-sans">
-                  Inventory tracking and aging information
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="p-4 bg-muted/30 rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-1">Purchase Date</p>
-                    <p className="font-medium">{(product as any).purchase_date 
-                      ? new Date((product as any).purchase_date).toLocaleDateString('en-GB')
-                      : new Date((product as any).created_at).toLocaleDateString('en-GB')}</p>
-                    <p className="text-xs text-muted-foreground mt-1">
-                      {(product as any).purchase_date 
-                        ? new Date((product as any).purchase_date).toLocaleDateString('en-GB', { 
-                            weekday: 'long', 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                          })
-                        : new Date((product as any).created_at).toLocaleDateString('en-GB', { 
-                            weekday: 'long', 
-                            year: 'numeric', 
-                            month: 'long', 
-                            day: 'numeric' 
-                          })}
-                    </p>
+          {/* Main Content Area */}
+          <div className="px-6 py-5 space-y-5">
+            
+            {/* Purchase Tracking Section - Hide if sold */}
+            {stock > 0 && !soldInfo && (
+              <Card className="shadow-sm border-border/50 overflow-hidden">
+                <CardHeader className="bg-muted/30 py-4 px-5 border-b border-border/50">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Clock className="h-4 w-4 text-primary" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base font-medium text-foreground">Purchase & Inventory Age</CardTitle>
+                      <CardDescription className="text-xs mt-0.5">Tracking and aging information</CardDescription>
+                    </div>
                   </div>
-                  <div className="p-4 bg-muted/30 rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-1">Days in Inventory</p>
-                    <p className="font-luxury text-2xl font-bold text-primary">
-                      {(() => {
-                        const purchaseDate = (product as any).purchase_date 
-                          ? new Date((product as any).purchase_date)
-                          : new Date((product as any).created_at);
-                        return Math.floor((new Date().getTime() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24));
-                      })()}
-                    </p>
-                    <Badge 
-                      variant={
-                        (() => {
-                          const purchaseDate = (product as any).purchase_date 
-                            ? new Date((product as any).purchase_date)
-                            : new Date((product as any).created_at);
-                          const days = Math.floor((new Date().getTime() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24));
-                          return days >= 90 ? 'destructive' : days >= 60 ? 'secondary' : 'outline';
-                        })()
-                      }
-                      className="mt-1 text-xs"
-                    >
-                      {(() => {
-                        const purchaseDate = (product as any).purchase_date 
-                          ? new Date((product as any).purchase_date)
-                          : new Date((product as any).created_at);
-                        const days = Math.floor((new Date().getTime() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24));
-                        return days >= 90 ? 'Aged Stock' : days >= 60 ? 'Aging' : 'Fresh';
-                      })()}
-                    </Badge>
+                </CardHeader>
+                <CardContent className="p-5">
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
+                      <p className="text-xs text-muted-foreground mb-1.5 uppercase tracking-wide">Purchase Date</p>
+                      <p className="font-medium text-foreground">{(product as any).purchase_date 
+                        ? new Date((product as any).purchase_date).toLocaleDateString('en-GB')
+                        : new Date((product as any).created_at).toLocaleDateString('en-GB')}</p>
+                      <p className="text-xs text-muted-foreground mt-1.5">
+                        {(product as any).purchase_date 
+                          ? new Date((product as any).purchase_date).toLocaleDateString('en-GB', { 
+                              weekday: 'short', 
+                              month: 'short', 
+                              day: 'numeric',
+                              year: 'numeric'
+                            })
+                          : new Date((product as any).created_at).toLocaleDateString('en-GB', { 
+                              weekday: 'short', 
+                              month: 'short', 
+                              day: 'numeric',
+                              year: 'numeric'
+                            })}
+                      </p>
+                    </div>
+                    <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
+                      <p className="text-xs text-muted-foreground mb-1.5 uppercase tracking-wide">Days in Inventory</p>
+                      <div className="flex items-baseline gap-2">
+                        <p className="text-2xl font-bold text-primary">{daysInInventory}</p>
+                        <span className="text-sm text-muted-foreground">days</span>
+                      </div>
+                      <Badge variant={agingStatus.variant} className="mt-2 text-xs">
+                        {agingStatus.text}
+                      </Badge>
+                    </div>
+                    <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
+                      <p className="text-xs text-muted-foreground mb-1.5 uppercase tracking-wide">Cost vs. Value</p>
+                      <div className="space-y-1.5">
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Cost:</span>
+                          <span className="font-medium">{formatCurrency(Number((product as any).unit_cost))}</span>
+                        </div>
+                        <div className="flex justify-between text-sm">
+                          <span className="text-muted-foreground">Value:</span>
+                          <span className="font-medium text-foreground">{formatCurrency(inventoryValue)}</span>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <div className="p-4 bg-muted/30 rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-1">Cost vs. Value</p>
-                    <p className="text-sm">
-                      <span className="text-muted-foreground">Cost: </span>
-                      <span className="font-medium">{formatCurrency(Number((product as any).unit_cost))}</span>
-                    </p>
-                    <p className="text-sm mt-1">
-                      <span className="text-muted-foreground">Value: </span>
-                      <span className="font-medium">{formatCurrency(inventoryValue)}</span>
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
+                </CardContent>
+              </Card>
+            )}
 
-          {/* Ownership Source Section */}
-          {((product as any).is_consignment || isTradeIn || getSupplierDisplayName(product) !== 'Unknown Supplier') && (
-            <Card className="shadow-sm mb-6">
-              <CardHeader>
-                <CardTitle className="font-luxury text-lg text-foreground">
-                  Ownership Source
-                </CardTitle>
-                <CardDescription className="font-sans">
-                  {(product as any).is_consignment 
-                    ? "Consignment product details"
-                    : isTradeIn 
-                      ? "Part exchange customer information"
-                      : "Supplier information"
-                  }
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                {(product as any).is_consignment ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground font-sans">Consignment Supplier:</span>
-                        <span className="font-medium">
-                          {(product as any).consignment_supplier?.name || 'N/A'}
-                        </span>
-                      </div>
-                      {(product as any).consignment_start_date && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground font-sans">Start Date:</span>
-                          <span className="font-medium">
-                            {new Date((product as any).consignment_start_date).toLocaleDateString()}
-                          </span>
-                        </div>
-                      )}
-                      {(product as any).consignment_end_date && (
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground font-sans">End Date:</span>
-                          <span className="font-medium">
-                            {new Date((product as any).consignment_end_date).toLocaleDateString()}
-                          </span>
-                        </div>
-                      )}
+            {/* Ownership Source Section */}
+            {((product as any).is_consignment || isTradeIn || getSupplierDisplayName(product) !== 'Unknown Supplier') && (
+              <Card className="shadow-sm border-border/50 overflow-hidden">
+                <CardHeader className="bg-muted/30 py-4 px-5 border-b border-border/50">
+                  <div className="flex items-center gap-3">
+                    <div className="h-9 w-9 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <User className="h-4 w-4 text-primary" />
                     </div>
-                    {(product as any).consignment_terms && (
-                      <div>
-                        <span className="text-muted-foreground font-sans">Terms:</span>
-                        <p className="mt-1 text-sm">{(product as any).consignment_terms}</p>
-                      </div>
-                    )}
+                    <div>
+                      <CardTitle className="text-base font-medium text-foreground">Ownership Source</CardTitle>
+                      <CardDescription className="text-xs mt-0.5">
+                        {(product as any).is_consignment 
+                          ? "Consignment product details"
+                          : isTradeIn 
+                            ? "Part exchange customer information"
+                            : "Supplier information"
+                        }
+                      </CardDescription>
+                    </div>
                   </div>
-                ) : isTradeIn && partExchange ? (
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div className="space-y-3">
-                      <h4 className="font-medium flex items-center gap-2 font-sans">
-                        <User className="h-4 w-4" />
-                        Customer Details
-                      </h4>
-                      <div className="space-y-2 pl-6">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground font-sans">Name:</span>
-                          <span className="font-medium">
-                            {partExchange.customer_name || 'Not recorded'}
+                </CardHeader>
+                <CardContent className="p-5">
+                  {(product as any).is_consignment ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="divide-y divide-border/50">
+                        <div className="flex justify-between py-2.5 first:pt-0">
+                          <span className="text-muted-foreground text-sm">Consignment Supplier</span>
+                          <span className="font-medium text-sm">
+                            {(product as any).consignment_supplier?.name || 'N/A'}
                           </span>
                         </div>
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground font-sans">Contact:</span>
-                          <span className="font-medium font-mono">
-                            {partExchange.customer_contact || 'Not recorded'}
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="space-y-3">
-                      <h4 className="font-medium flex items-center gap-2 font-sans">
-                        <PoundSterling className="h-4 w-4" />
-                        Trade-In Details
-                      </h4>
-                      <div className="space-y-2 pl-6">
-                        <div className="flex justify-between">
-                          <span className="text-muted-foreground font-sans">Allowance:</span>
-                          <span className="font-medium text-success">
-                            {formatCurrency(Number(partExchange.allowance))}
-                          </span>
-                        </div>
-                        {partExchange.sale?.sold_at && (
-                          <div className="flex justify-between">
-                            <span className="text-muted-foreground font-sans">Date:</span>
-                            <span className="font-medium">
-                              {new Date(partExchange.sale.sold_at).toLocaleDateString('en-GB')}
+                        {(product as any).consignment_start_date && (
+                          <div className="flex justify-between py-2.5">
+                            <span className="text-muted-foreground text-sm">Start Date</span>
+                            <span className="font-medium text-sm">
+                              {new Date((product as any).consignment_start_date).toLocaleDateString()}
                             </span>
                           </div>
                         )}
+                        {(product as any).consignment_end_date && (
+                          <div className="flex justify-between py-2.5 last:pb-0">
+                            <span className="text-muted-foreground text-sm">End Date</span>
+                            <span className="font-medium text-sm">
+                              {new Date((product as any).consignment_end_date).toLocaleDateString()}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                      {(product as any).consignment_terms && (
+                        <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
+                          <span className="text-xs text-muted-foreground uppercase tracking-wide">Terms</span>
+                          <p className="mt-2 text-sm">{(product as any).consignment_terms}</p>
+                        </div>
+                      )}
+                    </div>
+                  ) : isTradeIn && partExchange ? (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                      <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
+                        <div className="flex items-center gap-2 mb-3">
+                          <User className="h-4 w-4 text-muted-foreground" />
+                          <h4 className="font-medium text-sm">Customer Details</h4>
+                        </div>
+                        <div className="divide-y divide-border/50">
+                          <div className="flex justify-between py-2 first:pt-0">
+                            <span className="text-muted-foreground text-sm">Name</span>
+                            <span className="font-medium text-sm">
+                              {partExchange.customer_name || 'Not recorded'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between py-2 last:pb-0">
+                            <span className="text-muted-foreground text-sm">Contact</span>
+                            <span className="font-medium font-mono text-sm">
+                              {partExchange.customer_contact || 'Not recorded'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
+                        <div className="flex items-center gap-2 mb-3">
+                          <PoundSterling className="h-4 w-4 text-muted-foreground" />
+                          <h4 className="font-medium text-sm">Trade-In Details</h4>
+                        </div>
+                        <div className="divide-y divide-border/50">
+                          <div className="flex justify-between py-2 first:pt-0">
+                            <span className="text-muted-foreground text-sm">Allowance</span>
+                            <span className="font-medium text-success text-sm">
+                              {formatCurrency(Number(partExchange.allowance))}
+                            </span>
+                          </div>
+                          {partExchange.sale?.sold_at && (
+                            <div className="flex justify-between py-2 last:pb-0">
+                              <span className="text-muted-foreground text-sm">Date</span>
+                              <span className="font-medium text-sm">
+                                {new Date(partExchange.sale.sold_at).toLocaleDateString('en-GB')}
+                              </span>
+                            </div>
+                          )}
+                        </div>
                         {partExchange.sale_id && (
                           <Button
                             variant="link"
                             size="sm"
-                            className="h-auto p-0 text-xs mt-2"
+                            className="h-auto p-0 text-xs mt-3"
                             onClick={(e) => {
                               e.stopPropagation();
                               navigate(`/sales/${partExchange.sale_id}`);
@@ -402,222 +437,241 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
                         )}
                       </div>
                     </div>
-                  </div>
-                ) : (
-                  <div className="flex justify-between items-center">
-                    <span className="text-muted-foreground font-sans">Supplier:</span>
-                    <span className="font-medium">
-                      {getSupplierDisplayName(product)}
-                    </span>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Collapsible Sections */}
-          <Accordion type="multiple" defaultValue={["pricing", "specifications"]} className="space-y-4">
-            
-            {/* Pricing & Financials */}
-            <AccordionItem value="pricing" className="border border-border border-b-0 rounded-lg px-4">
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <PoundSterling className="h-4 w-4 text-primary" />
-                  <span className="font-luxury text-lg">Pricing & Financials</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground font-sans">Cost Price:</span>
-                    <span className="font-medium">£{Number(product.unit_cost).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground font-sans">Sell Price:</span>
-                    <span className="font-medium">£{Number(product.unit_price).toFixed(2)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground font-sans">Profit per Unit:</span>
-                    <span className={`font-medium ${Number(profit) >= 0 ? 'text-success' : 'text-destructive'}`}>£{profit}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground font-sans">Margin:</span>
-                    <span className="font-medium">{margin}%</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground font-sans">Tax Rate:</span>
-                    <span className="font-medium">{Number(product.tax_rate || 0).toFixed(1)}%</span>
-                  </div>
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-
-            {/* Specifications */}
-            <AccordionItem value="specifications" className="border border-border border-b-0 rounded-lg px-4">
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <Gem className="h-4 w-4 text-primary" />
-                  <span className="font-luxury text-lg">Specifications</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-4">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground font-sans">Internal SKU:</span>
-                    <span className="font-medium font-mono">{product.internal_sku}</span>
-                  </div>
-                  {product.sku && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground font-sans">SKU:</span>
-                      <span className="font-medium font-mono">{product.sku}</span>
-                    </div>
-                  )}
-                  <div className="flex justify-between">
-                    <span className="text-muted-foreground font-sans">Category:</span>
-                    <span className="font-medium">{product.category || 'N/A'}</span>
-                  </div>
-                  {product.metal && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground font-sans">Metal:</span>
-                      <span className="font-medium">{product.metal}</span>
-                    </div>
-                  )}
-                  {product.karat && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground font-sans">Karat/Purity:</span>
-                      <span className="font-medium">{product.karat}</span>
-                    </div>
-                  )}
-                  {product.gemstone && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground font-sans">Gemstone:</span>
-                      <span className="font-medium">{product.gemstone}</span>
-                    </div>
-                  )}
-                  {(product as any).location && (
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground font-sans flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        Location:
+                  ) : (
+                    <div className="flex justify-between items-center py-1">
+                      <span className="text-muted-foreground text-sm">Supplier</span>
+                      <span className="font-medium text-sm">
+                        {getSupplierDisplayName(product)}
                       </span>
-                      <span className="font-medium">{(product as any).location.name}</span>
                     </div>
                   )}
-                </div>
-                {getCleanedDescription(product.description) && (
-                  <div className="mt-4 pt-4 border-t">
-                    <span className="text-muted-foreground font-sans">Description:</span>
-                    <p className="mt-1 text-sm font-sans">{getCleanedDescription(product.description)}</p>
-                  </div>
-                )}
-              </AccordionContent>
-            </AccordionItem>
+                </CardContent>
+              </Card>
+            )}
 
-            {/* Stock Management - Owner only */}
-            {isOwner && (
-              <AccordionItem value="stock" className="border border-border border-b-0 rounded-lg px-4">
-                <AccordionTrigger className="hover:no-underline">
-                  <div className="flex items-center gap-2">
-                    <Package className="h-4 w-4 text-primary" />
-                    <span className="font-luxury text-lg">Stock Management</span>
+            {/* Collapsible Sections */}
+            <Accordion type="multiple" defaultValue={["pricing", "specifications"]} className="space-y-3">
+              
+              {/* Pricing & Financials */}
+              <AccordionItem value="pricing" className="border border-border/50 rounded-xl overflow-hidden shadow-sm">
+                <AccordionTrigger className="hover:no-underline px-5 py-4 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <PoundSterling className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="font-medium text-base">Pricing & Financials</span>
                   </div>
                 </AccordionTrigger>
-                <AccordionContent className="pb-4">
-                  <div className="flex items-center justify-between pt-2">
-                    <div>
-                      <p className="font-medium font-sans">
-                        Current Stock: <span className={stockStatus.color}>{stock} units</span>
-                      </p>
-                      <p className="text-sm text-muted-foreground font-sans">
-                        Inventory Value: £{inventoryValue.toFixed(2)}
-                      </p>
+                <AccordionContent className="px-5 pb-5 bg-muted/10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 divide-border/50">
+                    <div className="divide-y divide-border/50 sm:pr-5">
+                      <div className="flex justify-between py-3 first:pt-0">
+                        <span className="text-muted-foreground text-sm">Cost Price</span>
+                        <span className="font-medium">£{Number(product.unit_cost).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between py-3">
+                        <span className="text-muted-foreground text-sm">Sell Price</span>
+                        <span className="font-medium">£{Number(product.unit_price).toFixed(2)}</span>
+                      </div>
+                      <div className="flex justify-between py-3 last:pb-0">
+                        <span className="text-muted-foreground text-sm">Tax Rate</span>
+                        <span className="font-medium">{Number(product.tax_rate || 0).toFixed(1)}%</span>
+                      </div>
                     </div>
-                    <Button 
-                      variant="outline" 
-                      onClick={() => setStockModalOpen(true)}
-                      className="ml-4"
-                    >
-                      Adjust Stock
-                    </Button>
+                    <div className="divide-y divide-border/50 sm:pl-5 sm:border-l border-border/50">
+                      <div className="flex justify-between py-3 sm:first:pt-0">
+                        <span className="text-muted-foreground text-sm">Profit per Unit</span>
+                        <span className={`font-medium ${Number(profit) >= 0 ? 'text-success' : 'text-destructive'}`}>£{profit}</span>
+                      </div>
+                      <div className="flex justify-between py-3 last:pb-0">
+                        <span className="text-muted-foreground text-sm">Margin</span>
+                        <span className="font-medium">{margin}%</span>
+                      </div>
+                    </div>
                   </div>
                 </AccordionContent>
               </AccordionItem>
-            )}
 
-            {/* Documents & Media */}
-            <AccordionItem value="documents" className="border border-border border-b-0 rounded-lg px-4">
-              <AccordionTrigger className="hover:no-underline">
-                <div className="flex items-center gap-2">
-                  <FileText className="h-4 w-4 text-primary" />
-                  <span className="font-luxury text-lg">Documents & Media</span>
-                </div>
-              </AccordionTrigger>
-              <AccordionContent className="pb-4">
-                <div className="pt-2">
-                  <ProductDocumentsTab productId={product.id} />
-                  
-                  {/* Consignment Agreements - if applicable */}
-                  {(product as any).is_consignment && (
-                    <div className="mt-6">
-                      <ConsignmentAgreementSection 
-                        productId={product.id} 
-                        isConsignment={true}
-                      />
+              {/* Specifications */}
+              <AccordionItem value="specifications" className="border border-border/50 rounded-xl overflow-hidden shadow-sm">
+                <AccordionTrigger className="hover:no-underline px-5 py-4 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <Gem className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="font-medium text-base">Specifications</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-5 pb-5 bg-muted/10">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 divide-border/50">
+                    <div className="divide-y divide-border/50 sm:pr-5">
+                      <div className="flex justify-between py-3 first:pt-0">
+                        <span className="text-muted-foreground text-sm">Internal SKU</span>
+                        <span className="font-medium font-mono text-sm">{product.internal_sku}</span>
+                      </div>
+                      {product.sku && (
+                        <div className="flex justify-between py-3">
+                          <span className="text-muted-foreground text-sm">SKU</span>
+                          <span className="font-medium font-mono text-sm">{product.sku}</span>
+                        </div>
+                      )}
+                      <div className="flex justify-between py-3">
+                        <span className="text-muted-foreground text-sm">Category</span>
+                        <span className="font-medium">{product.category || 'N/A'}</span>
+                      </div>
+                      {(product as any).location && (
+                        <div className="flex justify-between py-3 last:pb-0">
+                          <span className="text-muted-foreground text-sm flex items-center gap-1">
+                            <MapPin className="h-3 w-3" />
+                            Location
+                          </span>
+                          <span className="font-medium">{(product as any).location.name}</span>
+                        </div>
+                      )}
+                    </div>
+                    <div className="divide-y divide-border/50 sm:pl-5 sm:border-l border-border/50">
+                      {product.metal && (
+                        <div className="flex justify-between py-3 sm:first:pt-0">
+                          <span className="text-muted-foreground text-sm">Metal</span>
+                          <span className="font-medium">{product.metal}</span>
+                        </div>
+                      )}
+                      {product.karat && (
+                        <div className="flex justify-between py-3">
+                          <span className="text-muted-foreground text-sm">Karat/Purity</span>
+                          <span className="font-medium">{product.karat}</span>
+                        </div>
+                      )}
+                      {product.gemstone && (
+                        <div className="flex justify-between py-3 last:pb-0">
+                          <span className="text-muted-foreground text-sm">Gemstone</span>
+                          <span className="font-medium">{product.gemstone}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  {getCleanedDescription(product.description) && (
+                    <div className="mt-4 pt-4 border-t border-border/50">
+                      <span className="text-muted-foreground text-sm">Description</span>
+                      <p className="mt-2 text-sm leading-relaxed">{getCleanedDescription(product.description)}</p>
                     </div>
                   )}
+                </AccordionContent>
+              </AccordionItem>
 
-                  {/* Trade-in Notes - if applicable */}
-                  {isTradeIn && partExchange?.notes && (
-                    <Card className="mt-6 border-blue-200 bg-blue-50/50 dark:bg-blue-900/20">
-                      <CardHeader>
-                        <CardTitle className="flex items-center gap-2 text-base text-blue-800 dark:text-blue-200">
-                          <Repeat className="h-4 w-4" />
-                          Trade-In Notes
-                        </CardTitle>
-                      </CardHeader>
-                      <CardContent>
-                        <p className="text-sm font-sans">{partExchange.notes}</p>
-                      </CardContent>
-                    </Card>
-                  )}
-                </div>
-              </AccordionContent>
-            </AccordionItem>
-            
-          </Accordion>
+              {/* Stock Management - Owner only */}
+              {isOwner && (
+                <AccordionItem value="stock" className="border border-border/50 rounded-xl overflow-hidden shadow-sm">
+                  <AccordionTrigger className="hover:no-underline px-5 py-4 hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center gap-3">
+                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Package className="h-4 w-4 text-primary" />
+                      </div>
+                      <span className="font-medium text-base">Stock Management</span>
+                    </div>
+                  </AccordionTrigger>
+                  <AccordionContent className="px-5 pb-5 bg-muted/10">
+                    <div className="flex items-center justify-between">
+                      <div className="space-y-1">
+                        <p className="font-medium">
+                          Current Stock: <span className={stockStatus.color}>{stock} units</span>
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Inventory Value: £{inventoryValue.toFixed(2)}
+                        </p>
+                      </div>
+                      <Button 
+                        variant="outline" 
+                        onClick={() => setStockModalOpen(true)}
+                        className="shrink-0"
+                      >
+                        Adjust Stock
+                      </Button>
+                    </div>
+                  </AccordionContent>
+                </AccordionItem>
+              )}
+
+              {/* Documents & Media */}
+              <AccordionItem value="documents" className="border border-border/50 rounded-xl overflow-hidden shadow-sm">
+                <AccordionTrigger className="hover:no-underline px-5 py-4 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-center gap-3">
+                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                      <FileText className="h-4 w-4 text-primary" />
+                    </div>
+                    <span className="font-medium text-base">Documents & Media</span>
+                  </div>
+                </AccordionTrigger>
+                <AccordionContent className="px-5 pb-5 bg-muted/10">
+                  <div>
+                    <ProductDocumentsTab productId={product.id} />
+                    
+                    {/* Consignment Agreements - if applicable */}
+                    {(product as any).is_consignment && (
+                      <div className="mt-6">
+                        <ConsignmentAgreementSection 
+                          productId={product.id} 
+                          isConsignment={true}
+                        />
+                      </div>
+                    )}
+
+                    {/* Trade-in Notes - if applicable */}
+                    {isTradeIn && partExchange?.notes && (
+                      <Card className="mt-6 border-blue-200 bg-blue-50/50 dark:bg-blue-900/20 dark:border-blue-800/50">
+                        <CardHeader className="pb-2">
+                          <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-800 dark:text-blue-200">
+                            <Repeat className="h-4 w-4" />
+                            Trade-In Notes
+                          </CardTitle>
+                        </CardHeader>
+                        <CardContent className="pt-0">
+                          <p className="text-sm">{partExchange.notes}</p>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </AccordionContent>
+              </AccordionItem>
+              
+            </Accordion>
+          </div>
 
           {/* Action Buttons - Hide when viewing sold items */}
           {!soldInfo && (
-            <div className="flex gap-2 pt-6 border-t mt-6">
-              <Button variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
-                Close
-              </Button>
-              {isOwner && (
-                <>
-                  {onDuplicateClick && (
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <Button 
-                            variant="outline" 
-                            onClick={() => {
-                              onOpenChange(false);
-                              onDuplicateClick();
-                            }}
-                          >
-                            <Copy className="h-4 w-4 mr-2" />
-                            Duplicate
-                          </Button>
-                        </TooltipTrigger>
-                        <TooltipContent>Duplicate this product (Cmd/Ctrl+D)</TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  )}
-                  <Button onClick={onEditClick} className="flex-1">
-                    Edit Product
-                  </Button>
-                </>
-              )}
+            <div className="px-6 pb-6">
+              <div className="flex gap-3 pt-5 border-t border-border/50">
+                <Button variant="ghost" onClick={() => onOpenChange(false)} className="flex-1">
+                  Close
+                </Button>
+                {isOwner && (
+                  <>
+                    {onDuplicateClick && (
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button 
+                              variant="outline" 
+                              onClick={() => {
+                                onOpenChange(false);
+                                onDuplicateClick();
+                              }}
+                              className="gap-2"
+                            >
+                              <Copy className="h-4 w-4" />
+                              Duplicate
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Duplicate this product (Cmd/Ctrl+D)</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    )}
+                    <Button variant="premium" onClick={onEditClick} className="flex-1 min-w-[140px]">
+                      Edit Product
+                    </Button>
+                  </>
+                )}
+              </div>
             </div>
           )}
 
