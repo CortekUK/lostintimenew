@@ -63,7 +63,7 @@ export function CashDrawerHistoryModal({
     <Dialog open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <DialogContent className="sm:max-w-2xl max-h-[85vh]">
         <DialogHeader>
-          <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center justify-between gap-3 pr-8">
             <DialogTitle className="text-lg font-semibold">{locationName} - Cash History</DialogTitle>
             <Button
               variant="outline"
