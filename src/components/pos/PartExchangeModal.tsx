@@ -25,7 +25,7 @@ interface PartExchangeModalProps {
 
 export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalProps) => {
   const { data: filterOptions } = useFilterOptions();
-  const { data: suppliers } = useSuppliers();
+  const { data: suppliers, refetch: refetchSuppliers } = useSuppliers();
   
   const [formData, setFormData] = useState({
     product_name: '',
@@ -464,8 +464,10 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
           open={showNewPersonModal}
           onOpenChange={setShowNewPersonModal}
           hideTrigger
-          onSupplierCreated={(supplierId) => {
-            const newPerson = suppliers?.find(s => s.id === supplierId);
+          onSupplierCreated={async (supplierId) => {
+            // Refetch suppliers to get the newly created one
+            const { data: refreshedSuppliers } = await refetchSuppliers();
+            const newPerson = refreshedSuppliers?.find(s => s.id === supplierId);
             if (newPerson) {
               setSelectedPerson({
                 id: newPerson.id,
