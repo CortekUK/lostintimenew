@@ -487,9 +487,13 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                   onCheckedChange={(checked) => {
                     const updates: Partial<typeof formData> = { is_consignment: checked };
                     
-                    // Auto-fill consignment supplier if enabling and a registered supplier is selected
-                    if (checked && formData.supplier_type === 'registered' && formData.supplier_id && !formData.consignment_supplier_id) {
-                      updates.consignment_supplier_id = parseInt(formData.supplier_id);
+                    // Auto-fill consignment supplier if enabling and a supplier is selected
+                    if (checked && !formData.consignment_supplier_id) {
+                      if (formData.supplier_type === 'registered' && formData.supplier_id) {
+                        updates.consignment_supplier_id = parseInt(formData.supplier_id);
+                      } else if (formData.supplier_type === 'individual' && selectedCustomerSupplier) {
+                        updates.consignment_supplier_id = selectedCustomerSupplier.id;
+                      }
                     }
                     
                     // Auto-fill start date to today if not already set
