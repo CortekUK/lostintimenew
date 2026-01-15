@@ -460,7 +460,40 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Accordion type="multiple" defaultValue={["ownership", "financials"]} className="w-full space-y-4">
+          <Accordion type="multiple" defaultValue={["basics", "ownership", "financials"]} className="w-full space-y-4">
+            
+            {/* Basic Details Section */}
+            <AccordionItem value="basics" className="border border-border rounded-lg px-8">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center space-x-3">
+                  <Package className="h-5 w-5 text-primary" />
+                  <span className="font-luxury text-lg">Basic Details</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-6 pt-4 pb-6 px-1.5">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Product Name *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData({...formData, name: e.target.value})}
+                    placeholder="Enter product name"
+                    required
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description</Label>
+                  <Textarea
+                    id="description"
+                    value={formData.description}
+                    onChange={(e) => setFormData({...formData, description: e.target.value})}
+                    placeholder="Enter product description"
+                    rows={3}
+                  />
+                </div>
+              </AccordionContent>
+            </AccordionItem>
             
             {/* Ownership Source Section */}
             <AccordionItem value="ownership" className="border border-border rounded-lg px-8">
