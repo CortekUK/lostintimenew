@@ -14,6 +14,8 @@ import { CreditCard, Banknote, Smartphone, Building, Loader2, PenTool, ChevronDo
 import { SignaturePad, SignaturePadRef } from './SignaturePad';
 import { CustomerSearchInput } from './CustomerSearchInput';
 import { LocationSelector } from '@/components/cash-drawer/LocationSelector';
+import { Badge } from '@/components/ui/badge';
+import { MapPin } from 'lucide-react';
 
 export type DiscountType = 'percentage' | 'fixed';
 
@@ -43,6 +45,8 @@ interface CheckoutFormProps {
   onStaffMemberChange: (member: string) => void;
   locationId: number | null;
   onLocationChange: (locationId: number | null) => void;
+  locationLocked?: boolean;
+  locationName?: string;
 }
 const paymentMethods = [{
   value: 'cash' as PaymentMethod,
@@ -86,7 +90,9 @@ export function CheckoutForm({
   staffMember,
   onStaffMemberChange,
   locationId,
-  onLocationChange
+  onLocationChange,
+  locationLocked,
+  locationName
 }: CheckoutFormProps) {
   const [discountInput, setDiscountInput] = useState(discount.toString());
   const signaturePadRef = useRef<SignaturePadRef>(null);
@@ -137,12 +143,27 @@ export function CheckoutForm({
           </div>
         </div>
 
-        {/* Shop Location */}
-        <LocationSelector
-          value={locationId}
-          onChange={onLocationChange}
-          required
-        />
+        {/* Shop Location - locked when cart has items */}
+        {locationLocked && locationId ? (
+          <div className="space-y-2">
+            <Label className="flex items-center gap-2">
+              <MapPin className="h-4 w-4" />
+              Shop Location *
+            </Label>
+            <div className="flex items-center gap-2 p-3 bg-muted/50 rounded-lg border">
+              <span className="font-medium">{locationName || `Location #${locationId}`}</span>
+              <Badge variant="secondary" className="ml-auto text-xs">
+                From product
+              </Badge>
+            </div>
+          </div>
+        ) : (
+          <LocationSelector
+            value={locationId}
+            onChange={onLocationChange}
+            required
+          />
+        )}
 
         {/* Customer Information */}
         <CustomerSearchInput

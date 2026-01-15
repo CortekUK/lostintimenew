@@ -67,13 +67,13 @@ export default function EnhancedSales() {
     }
   }, [userProfile?.full_name, staffMember]);
 
-  // Fetch products with stock data
+  // Fetch products with stock data and location details
   const { data: products, isLoading: productsLoading } = useQuery({
     queryKey: ['products-with-stock'],
     queryFn: async () => {
       const { data: productsData, error: productsError } = await supabase
         .from('products')
-        .select('*')
+        .select('*, location:locations(id, name)')
         .order('name');
       
       if (productsError) throw productsError;
@@ -92,9 +92,23 @@ export default function EnhancedSales() {
       return productsData.map(p => ({
         ...p,
         stock_on_hand: stockMap.get(p.id) || 0
-      })) as (Product & { stock_on_hand: number })[];
+      })) as (Product & { stock_on_hand: number; location?: { id: number; name: string } | null })[];
     }
   });
+
+  // Auto-set location from first cart item's product location
+  useEffect(() => {
+    if (cart.length > 0) {
+      const firstProduct = cart[0].product as Product & { location?: { id: number; name: string } | null };
+      if (firstProduct.location_id && !locationId) {
+        setLocationId(firstProduct.location_id);
+      }
+    }
+    // Clear location when cart and part exchanges are empty
+    if (cart.length === 0 && partExchanges.length === 0) {
+      setLocationId(null);
+    }
+  }, [cart, partExchanges.length]);
 
   // Handle productId from URL (coming from Products page)
   useEffect(() => {
@@ -172,6 +186,19 @@ export default function EnhancedSales() {
   };
 
   const addToCart = (product: Product & { stock_on_hand?: number }) => {
+    // Check if this product is from a different location than items already in cart
+    if (cart.length > 0 && product.location_id) {
+      const currentLocationId = cart[0].product.location_id;
+      if (currentLocationId && product.location_id !== currentLocationId) {
+        toast({
+          title: 'Different shop location',
+          description: 'Cannot add products from different locations to the same sale. Complete this sale first.',
+          variant: 'destructive',
+        });
+        return;
+      }
+    }
+
     const existingItem = cart.find(item => item.product.id === product.id);
     
     if (existingItem) {
@@ -492,6 +519,8 @@ export default function EnhancedSales() {
               onStaffMemberChange={setStaffMember}
               locationId={locationId}
               onLocationChange={setLocationId}
+              locationLocked={cart.length > 0}
+              locationName={cart.length > 0 ? (cart[0].product as any).location?.name : undefined}
             />
           </div>
         </div>
