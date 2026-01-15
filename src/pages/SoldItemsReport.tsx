@@ -325,9 +325,25 @@ export default function SoldItemsReport() {
       key: 'customer',
       title: 'Customer',
       width: 150,
-      render: (value: any, row: any, index: number) => (
-        <div className="text-sm">{(row?.sales as any)?.customer_name || '-'}</div>
-      )
+      render: (value: any, row: any, index: number) => {
+        const customerId = (row?.sales as any)?.customer_id;
+        const customerName = (row?.sales as any)?.customer_name;
+        
+        if (!customerName) return <div className="text-sm text-muted-foreground">-</div>;
+        
+        if (customerId) {
+          return (
+            <button
+              onClick={() => navigate(`/customers/${customerId}`)}
+              className="text-sm text-primary hover:underline text-left"
+            >
+              {customerName}
+            </button>
+          );
+        }
+        
+        return <div className="text-sm">{customerName}</div>;
+      }
     },
     {
       key: 'actions',
