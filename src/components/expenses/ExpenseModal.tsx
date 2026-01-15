@@ -543,8 +543,6 @@ export function ExpenseModal({
                       </Popover>
                     </div>
                   </div>
-
-                  <div className="rounded-md bg-blue-50 dark:bg-blue-950 p-3 text-sm text-blue-900 dark:text-blue-100">A recurring expense will be created. This expense will be recorded once now, and the template will track future recurring entries.</div>
                 </div>}
             </div>
 
