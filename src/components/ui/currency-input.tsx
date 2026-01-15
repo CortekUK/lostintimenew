@@ -12,17 +12,26 @@ export interface CurrencyInputProps
 const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
   ({ className, value, onValueChange, error, ...props }, ref) => {
     const [displayValue, setDisplayValue] = React.useState("");
+    const [isFocused, setIsFocused] = React.useState(false);
+    const hasInitialized = React.useRef(false);
 
+    // Only sync from prop on initial mount or when not focused
     React.useEffect(() => {
+      if (isFocused) return; // Don't override while user is typing
+      
       if (value === "" || value === undefined || value === null) {
         setDisplayValue("");
+        hasInitialized.current = true;
         return;
       }
+      
       const numValue = typeof value === "string" ? parseFloat(value) : value;
       if (!isNaN(numValue)) {
-        setDisplayValue(numValue.toFixed(2));
+        // Only format with decimals if already initialized (not first render with a default)
+        setDisplayValue(hasInitialized.current ? numValue.toFixed(2) : String(numValue));
+        hasInitialized.current = true;
       }
-    }, [value]);
+    }, [value, isFocused]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       const rawValue = e.target.value.replace(/[^0-9.]/g, "");
@@ -38,7 +47,12 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       onValueChange(cleanValue);
     };
 
+    const handleFocus = () => {
+      setIsFocused(true);
+    };
+
     const handleBlur = () => {
+      setIsFocused(false);
       if (displayValue && !isNaN(parseFloat(displayValue))) {
         const formatted = parseFloat(displayValue).toFixed(2);
         setDisplayValue(formatted);
@@ -57,6 +71,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
           inputMode="decimal"
           value={displayValue}
           onChange={handleChange}
+          onFocus={handleFocus}
           onBlur={handleBlur}
           className={cn(
             "pl-8",
