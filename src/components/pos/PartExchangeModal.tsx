@@ -15,6 +15,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 interface PartExchangeModalProps {
   isOpen: boolean;
@@ -45,6 +46,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
 
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
+  const [showCustomCategory, setShowCustomCategory] = useState(false);
 
   const handleCategorySelect = (category: string) => {
     setFormData(prev => ({ ...prev, category }));
@@ -122,6 +124,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
     setQuickContact('');
     setUploadedFiles([]);
     setErrors({});
+    setShowCustomCategory(false);
     
     onClose();
   };
@@ -159,31 +162,41 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
           </div>
 
           {/* Category Selection */}
-          <div>
+          <div className="space-y-2">
             <Label htmlFor="category">Category</Label>
-            <div className="space-y-2">
-              <div className="flex flex-wrap gap-2">
-                {filterOptions?.categories.slice(0, 7).map((category) => (
-                  <Button
-                    key={category}
-                    type="button"
-                    variant={formData.category === category ? "default" : "outline"}
-                    size="sm"
-                    className="text-xs px-3 py-1 h-7"
-                    onClick={() => handleCategorySelect(category)}
-                  >
+            <Select
+              value={showCustomCategory ? '__other__' : formData.category}
+              onValueChange={(value) => {
+                if (value === '__other__') {
+                  setFormData(prev => ({ ...prev, category: '' }));
+                  setShowCustomCategory(true);
+                } else {
+                  setFormData(prev => ({ ...prev, category: value }));
+                  setShowCustomCategory(false);
+                }
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {filterOptions?.categories.map((category) => (
+                  <SelectItem key={category} value={category}>
                     {category}
-                  </Button>
+                  </SelectItem>
                 ))}
-              </div>
-              {formData.category && !filterOptions?.categories.includes(formData.category) && (
-                <Input
-                  placeholder="Custom category..."
-                  value={formData.category}
-                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                />
-              )}
-            </div>
+                <SelectItem value="__other__">Other...</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {showCustomCategory && (
+              <Input
+                placeholder="Enter custom category..."
+                value={formData.category}
+                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                autoFocus
+              />
+            )}
           </div>
 
           <div>
