@@ -372,24 +372,38 @@ export default function Consignments() {
     {
       key: 'actions',
       title: 'Actions',
-      width: 160,
+      width: 240,
       align: 'right',
-      render: (_, settlement) => {
-        if (!isOwner) return null;
-        return (
-          <Button 
-            size="sm" 
-            variant="outline"
+      render: (_, settlement) => (
+        <div className="flex items-center justify-end gap-2">
+          <Button
+            size="sm"
+            variant="ghost"
+            className="gap-1.5"
             onClick={(e) => {
               e.stopPropagation();
-              setSelectedSettlement(settlement);
-              setPayoutDialogOpen(true);
+              setSelectedProduct(settlement.product);
+              setViewModalOpen(true);
             }}
           >
-            Record Payout
+            <Eye className="h-4 w-4" />
+            View
           </Button>
-        );
-      }
+          {isOwner && (
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={(e) => {
+                e.stopPropagation();
+                setSelectedSettlement(settlement);
+                setPayoutDialogOpen(true);
+              }}
+            >
+              Record Payout
+            </Button>
+          )}
+        </div>
+      )
     }
   ];
 
@@ -499,6 +513,27 @@ export default function Consignments() {
             Settled
           </Badge>
         </div>
+      )
+    },
+    {
+      key: 'actions',
+      title: 'Actions',
+      width: 120,
+      align: 'right',
+      render: (_, settlement) => (
+        <Button
+          size="sm"
+          variant="ghost"
+          className="gap-1.5"
+          onClick={(e) => {
+            e.stopPropagation();
+            setSelectedProduct(settlement.product);
+            setViewModalOpen(true);
+          }}
+        >
+          <Eye className="h-4 w-4" />
+          View
+        </Button>
       )
     }
   ];
