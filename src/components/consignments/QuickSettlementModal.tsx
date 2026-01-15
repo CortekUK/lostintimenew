@@ -1,17 +1,16 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { CurrencyInput } from '@/components/ui/currency-input';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { Calendar as CalendarIcon, PoundSterling } from 'lucide-react';
+import { Calendar as CalendarIcon } from 'lucide-react';
 import { format } from 'date-fns';
-
 interface QuickSettlementModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -125,19 +124,12 @@ export function QuickSettlementModal({
           {/* Payout Amount */}
           <div className="space-y-2">
             <Label htmlFor="payout-amount">Payout Amount *</Label>
-            <div className="relative">
-              <PoundSterling className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                id="payout-amount"
-                type="number"
-                step="0.01"
-                min="0"
-                value={payoutAmount}
-                onChange={(e) => setPayoutAmount(e.target.value)}
-                className="pl-9"
-                placeholder="0.00"
-              />
-            </div>
+            <CurrencyInput
+              id="payout-amount"
+              value={payoutAmount}
+              onValueChange={setPayoutAmount}
+              placeholder="0.00"
+            />
           </div>
 
           {/* Payment Date */}
