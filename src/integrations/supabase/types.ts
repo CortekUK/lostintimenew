@@ -1893,6 +1893,7 @@ export type Database = {
         Returns: Json
       }
       get_user_role: { Args: { uid: string }; Returns: string }
+      is_any_staff: { Args: { uid: string }; Returns: boolean }
       is_manager: { Args: { uid: string }; Returns: boolean }
       is_owner: { Args: { uid: string }; Returns: boolean }
       is_owner_or_manager: { Args: { uid: string }; Returns: boolean }
