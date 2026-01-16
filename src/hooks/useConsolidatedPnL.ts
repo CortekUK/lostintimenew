@@ -45,19 +45,21 @@ export function useConsolidatedPnL(dateRange: DateRange) {
 
       if (unsettledError) throw unsettledError;
 
-      // Get transaction counts
+      // Get transaction counts (exclude voided)
       const { data: salesCount, error: salesError } = await supabase
         .from('sales')
         .select('id, sold_at')
+        .eq('is_voided', false)
         .gte('sold_at', fromDate)
         .lte('sold_at', toDate);
 
       if (salesError) throw salesError;
 
-      // Get total items sold
+      // Get total items sold (exclude voided)
       const { data: itemsCount, error: itemsError } = await supabase
         .from('sale_items')
-        .select('quantity, sales!inner(sold_at)')
+        .select('quantity, sales!inner(sold_at, is_voided)')
+        .eq('sales.is_voided', false)
         .gte('sales.sold_at', fromDate)
         .lte('sales.sold_at', toDate);
 

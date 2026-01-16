@@ -84,31 +84,35 @@ export const useTodayStats = () => {
       const yesterdayStart = startOfDay(subDays(now, 1));
       const yesterdayEnd = endOfDay(subDays(now, 1));
       
-      // Today's sales
+      // Today's sales (exclude voided)
       const { data: todaySales } = await supabase
         .from('sales')
         .select('total')
+        .eq('is_voided', false)
         .gte('sold_at', todayStart.toISOString())
         .lte('sold_at', todayEnd.toISOString());
       
-      // Yesterday's sales
+      // Yesterday's sales (exclude voided)
       const { data: yesterdaySales } = await supabase
         .from('sales')
         .select('total')
+        .eq('is_voided', false)
         .gte('sold_at', yesterdayStart.toISOString())
         .lte('sold_at', yesterdayEnd.toISOString());
       
-      // Today's items sold
+      // Today's items sold (exclude voided)
       const { data: todayItems } = await supabase
         .from('sale_items')
-        .select('quantity, sales!inner(sold_at)')
+        .select('quantity, sales!inner(sold_at, is_voided)')
+        .eq('sales.is_voided', false)
         .gte('sales.sold_at', todayStart.toISOString())
         .lte('sales.sold_at', todayEnd.toISOString());
       
-      // Yesterday's items sold
+      // Yesterday's items sold (exclude voided)
       const { data: yesterdayItems } = await supabase
         .from('sale_items')
-        .select('quantity, sales!inner(sold_at)')
+        .select('quantity, sales!inner(sold_at, is_voided)')
+        .eq('sales.is_voided', false)
         .gte('sales.sold_at', yesterdayStart.toISOString())
         .lte('sales.sold_at', yesterdayEnd.toISOString());
 
@@ -177,6 +181,7 @@ export const useRecentSales = (limit: number = 5) => {
           id, sold_at, total, payment, staff_member_name,
           profiles!fk_sales_staff_id(full_name)
         `)
+        .eq('is_voided', false)
         .order('sold_at', { ascending: false })
         .order('id', { ascending: false })
         .limit(limit);
@@ -311,24 +316,26 @@ export const useStaffActivity = () => {
   return useQuery({
     queryKey: ['staff-activity'],
     queryFn: async (): Promise<StaffActivity> => {
-      // Get last sale
+      // Get last sale (exclude voided)
       const { data: lastSale } = await supabase
         .from('sales')
         .select(`
           id, sold_at, staff_member_name,
           profiles:staff_id(full_name)
         `)
+        .eq('is_voided', false)
         .order('sold_at', { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
       
-      // Get recent sales with staff info
+      // Get recent sales with staff info (exclude voided)
       const { data: recentSales } = await supabase
         .from('sales')
         .select(`
           id, sold_at, total, staff_member_name,
           profiles!fk_sales_staff_id(full_name)
         `)
+        .eq('is_voided', false)
         .order('sold_at', { ascending: false })
         .limit(5);
       
@@ -446,10 +453,11 @@ export const useBusinessInsights = (period: '7d' | '30d' | '90d' = '30d') => {
         }
       }
 
-      // Average transaction value
+      // Average transaction value (exclude voided)
       const { data: salesData } = await supabase
         .from('sales')
         .select('total')
+        .eq('is_voided', false)
         .gte('sold_at', fromDate.toISOString());
 
       if (salesData && salesData.length > 0) {
@@ -462,10 +470,11 @@ export const useBusinessInsights = (period: '7d' | '30d' | '90d' = '30d') => {
         });
       }
 
-      // Total units sold
+      // Total units sold (exclude voided)
       const { data: itemsData } = await supabase
         .from('sale_items')
-        .select('quantity, sales!inner(sold_at)')
+        .select('quantity, sales!inner(sold_at, is_voided)')
+        .eq('sales.is_voided', false)
         .gte('sales.sold_at', fromDate.toISOString());
 
       if (itemsData) {
