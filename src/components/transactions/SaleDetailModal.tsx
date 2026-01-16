@@ -547,7 +547,7 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
               <Separator className="my-2" />
               <div className="flex justify-between font-bold text-lg border-l-4 border-primary pl-3 py-1 bg-primary/5">
                 <span className="text-primary">Net Total:</span>
-                <span className="font-mono text-primary">£{sale.total.toFixed(2)}</span>
+                <span className="font-mono text-primary">£{(sale.total - (sale.part_exchange_total || 0)).toFixed(2)}</span>
               </div>
             </div>
 
