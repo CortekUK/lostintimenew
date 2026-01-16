@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/hooks/usePermissions';
 import { startOfMonth, startOfYear, subYears, format, eachMonthOfInterval, subMonths } from 'date-fns';
 
 export interface ExpenseFilters {
@@ -18,9 +19,10 @@ export interface ExpenseFilters {
 
 export const useFilteredExpenses = (filters?: ExpenseFilters) => {
   const { user } = useAuth();
+  const { isOwner, isManager } = usePermissions();
 
   return useQuery({
-    queryKey: ['expenses', 'filtered', filters],
+    queryKey: ['expenses', 'filtered', filters, user?.id, isOwner, isManager],
     queryFn: async () => {
       let query = supabase
         .from('expenses')
@@ -74,6 +76,17 @@ export const useFilteredExpenses = (filters?: ExpenseFilters) => {
 
       const { data, error } = await query;
       if (error) throw error;
+      
+      // Staff can only see their own commission expenses, but can see all other expenses
+      if (!isOwner && !isManager) {
+        return data.filter((expense: any) => {
+          if (expense.category === 'commission') {
+            return expense.staff_id === user?.id;
+          }
+          return true;
+        });
+      }
+      
       return data;
     },
     enabled: !!user,

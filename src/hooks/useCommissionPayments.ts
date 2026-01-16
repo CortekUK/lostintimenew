@@ -1,5 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions } from '@/hooks/usePermissions';
 
 export interface CommissionPayment {
   id: number;
@@ -28,8 +30,11 @@ interface UseCommissionPaymentsParams {
 }
 
 export function useCommissionPayments(params: UseCommissionPaymentsParams = {}) {
+  const { user } = useAuth();
+  const { isOwner, isManager } = usePermissions();
+
   return useQuery({
-    queryKey: ['commission-payments', params],
+    queryKey: ['commission-payments', params, user?.id, isOwner, isManager],
     queryFn: async () => {
       let query = supabase
         .from('commission_payments')
@@ -40,7 +45,10 @@ export function useCommissionPayments(params: UseCommissionPaymentsParams = {}) 
         `)
         .order('paid_at', { ascending: false });
 
-      if (params.staffId) {
+      // Staff can only see their own commission payments
+      if (!isOwner && !isManager) {
+        query = query.eq('staff_id', user?.id);
+      } else if (params.staffId) {
         query = query.eq('staff_id', params.staffId);
       }
 
@@ -55,7 +63,8 @@ export function useCommissionPayments(params: UseCommissionPaymentsParams = {}) 
 
       if (error) throw error;
       return data as CommissionPayment[];
-    }
+    },
+    enabled: !!user
   });
 }
 
