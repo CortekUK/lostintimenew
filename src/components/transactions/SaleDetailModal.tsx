@@ -447,7 +447,7 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                     <Button
                       variant="link"
                       size="sm"
-                      onClick={() => navigate('/part-exchange-intake')}
+                      onClick={() => navigate('/products/intake')}
                       className="text-xs h-auto p-0"
                     >
                       View Intake Queue →

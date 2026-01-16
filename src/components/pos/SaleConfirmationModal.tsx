@@ -268,7 +268,7 @@ export function SaleConfirmationModal({
                   size="sm"
                   onClick={() => {
                     onClose();
-                    navigate('/part-exchange-intake');
+                    navigate('/products/intake');
                   }}
                   className="text-blue-600 dark:text-blue-400 h-auto p-0 whitespace-nowrap"
                 >

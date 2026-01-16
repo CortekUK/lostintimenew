@@ -112,7 +112,7 @@ export function PartExchangeInfoTab({ productId }: PartExchangeInfoTabProps) {
                 View Original Sale
               </Button>
             )}
-            <Link to="/part-exchange-intake">
+            <Link to="/products/intake">
               <Button variant="outline" size="sm" className="w-full">
                 <Repeat className="h-4 w-4 mr-2" />
                 View All Trade-Ins
