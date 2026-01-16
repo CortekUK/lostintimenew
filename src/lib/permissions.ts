@@ -79,7 +79,7 @@ export const PERMISSION_MATRIX: PermissionMatrix = {
     consignments: { view: true, create: true, edit: true, delete: true },
     expenses: { view: true, create: true, edit: true, delete: true },
     reports: { view: false },
-    analytics: { view: true },
+    analytics: { view: false },
     settings: { view: false },
     user_management: { view: false },
   },
