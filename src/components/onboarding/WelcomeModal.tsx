@@ -46,21 +46,20 @@ export function WelcomeModal() {
   const [step, setStep] = useState(0);
 
   useEffect(() => {
-    // Only show welcome modal on the user's very first login
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (event, session) => {
-        if (event === 'SIGNED_IN' && session?.user) {
-          const userWelcomeKey = `jc_welcome_seen_${session.user.id}`;
-          const hasSeenWelcome = localStorage.getItem(userWelcomeKey);
-          
-          if (!hasSeenWelcome) {
-            setOpen(true);
-          }
+    // Check once on mount - don't use auth state change which fires on every refresh
+    const checkWelcome = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const userWelcomeKey = `jc_welcome_seen_${user.id}`;
+        const hasSeenWelcome = localStorage.getItem(userWelcomeKey);
+        
+        if (!hasSeenWelcome) {
+          setOpen(true);
         }
       }
-    );
-
-    return () => subscription.unsubscribe();
+    };
+    
+    checkWelcome();
   }, []);
 
   const handleClose = async () => {
