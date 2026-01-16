@@ -1,9 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Checkbox } from '@/components/ui/checkbox';
+import { Card, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Sparkles, 
   ShoppingCart, 
@@ -11,11 +9,8 @@ import {
   PoundSterling, 
   BarChart3, 
   Settings,
-  Users,
-  CheckCircle2,
-  ArrowRight
+  CheckCircle2
 } from 'lucide-react';
-import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 
 const features = [
@@ -49,21 +44,18 @@ const features = [
 export function WelcomeModal() {
   const [open, setOpen] = useState(false);
   const [step, setStep] = useState(0);
-  const [neverShowAgain, setNeverShowAgain] = useState(false);
-  const { user, userRole } = useAuth();
 
   useEffect(() => {
-    // Only show welcome modal on actual login, not tab return
-    const hasSeenWelcome = localStorage.getItem('jc_welcome_seen');
-    const neverShow = localStorage.getItem('jc_welcome_never_show') === 'true';
-    
-    if (hasSeenWelcome || neverShow) return;
-
+    // Only show welcome modal on the user's very first login
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        // Only show on SIGNED_IN event (actual login), not on initial session restore
         if (event === 'SIGNED_IN' && session?.user) {
-          setOpen(true);
+          const userWelcomeKey = `jc_welcome_seen_${session.user.id}`;
+          const hasSeenWelcome = localStorage.getItem(userWelcomeKey);
+          
+          if (!hasSeenWelcome) {
+            setOpen(true);
+          }
         }
       }
     );
@@ -71,11 +63,12 @@ export function WelcomeModal() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleClose = () => {
-    if (neverShowAgain) {
-      localStorage.setItem('jc_welcome_never_show', 'true');
-    } else {
-      localStorage.setItem('jc_welcome_seen', 'true');
+  const handleClose = async () => {
+    // Get current user and store per-user flag
+    const { data: { user: currentUser } } = await supabase.auth.getUser();
+    if (currentUser) {
+      const userWelcomeKey = `jc_welcome_seen_${currentUser.id}`;
+      localStorage.setItem(userWelcomeKey, 'true');
     }
     setOpen(false);
   };
@@ -108,19 +101,6 @@ export function WelcomeModal() {
             </div>
             
             
-            <div className="flex items-center space-x-2 pt-2">
-              <Checkbox 
-                id="never-show" 
-                checked={neverShowAgain}
-                onCheckedChange={(checked) => setNeverShowAgain(checked === true)}
-              />
-              <label 
-                htmlFor="never-show" 
-                className="text-sm text-muted-foreground cursor-pointer"
-              >
-                Don't show this welcome message again
-              </label>
-            </div>
             
             <div className="flex gap-2 pt-4">
               <Button onClick={() => setStep(1)} className="w-full">
