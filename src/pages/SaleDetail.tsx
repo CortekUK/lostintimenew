@@ -18,6 +18,8 @@ import { ReceiptDocument } from '@/components/receipt/ReceiptDocument';
 import { buildReceiptHtml } from '@/utils/receiptHtmlBuilder';
 import { printHtml } from '@/utils/printUtils';
 import { EmailService } from '@/components/integrations/EmailService';
+import { AddPartExchangeToSaleModal } from '@/components/transactions/AddPartExchangeToSaleModal';
+import { usePermissions } from '@/hooks/usePermissions';
 import { 
   ArrowLeft,
   Receipt, 
@@ -29,7 +31,8 @@ import {
   CreditCard,
   Package,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Repeat
 } from 'lucide-react';
 import { format } from 'date-fns';
 import type { SaleDetailData } from '@/types';
@@ -41,8 +44,10 @@ export default function SaleDetail() {
   const { toast } = useToast();
   const { settings } = useSettings();
   const { theme } = useTheme();
+  const { isAtLeast } = usePermissions();
   const { data: salesData = [], isLoading } = useSales();
   const [showReceiptModal, setShowReceiptModal] = useState(false);
+  const [showAddPxModal, setShowAddPxModal] = useState(false);
   
   const sale = Array.isArray(salesData) ? salesData.find((s: any) => s.id.toString() === id) : undefined;
 
@@ -210,6 +215,12 @@ export default function SaleDetail() {
           </Button>
           
           <div className="flex gap-2">
+            {isAtLeast('manager') && !sale.is_voided && (
+              <Button variant="outline" onClick={() => setShowAddPxModal(true)}>
+                <Repeat className="h-4 w-4 mr-2" />
+                Add Part Exchange
+              </Button>
+            )}
             <Button variant="outline" onClick={handleViewReceipt}>
               <PoundSterling className="h-4 w-4 mr-2" />
               View Receipt
@@ -455,6 +466,15 @@ export default function SaleDetail() {
           )}
         </DialogContent>
       </Dialog>
+
+      {/* Add Part Exchange Modal */}
+      {id && (
+        <AddPartExchangeToSaleModal
+          isOpen={showAddPxModal}
+          onClose={() => setShowAddPxModal(false)}
+          saleId={parseInt(id)}
+        />
+      )}
     </AppLayout>
   );
 }
