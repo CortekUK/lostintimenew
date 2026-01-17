@@ -1,6 +1,6 @@
 import { useState, useMemo, memo } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { cn } from '@/lib/utils';
+import { cn, formatPaymentMethod } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -131,7 +131,7 @@ const ExpenseRow = memo(({
         )}
       </TableCell>
       <TableCell>
-        <Badge variant="outline">{formatCategoryDisplay(expense.payment_method || 'cash')}</Badge>
+        <Badge variant="outline">{formatPaymentMethod(expense.payment_method || 'cash')}</Badge>
       </TableCell>
       <TableCell className="text-sm text-muted-foreground">
         {expense.supplier?.name || '-'}

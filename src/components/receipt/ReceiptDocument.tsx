@@ -1,5 +1,5 @@
 import { useTheme } from 'next-themes';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatPaymentMethod } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
@@ -68,7 +68,7 @@ export function ReceiptDocument({ data, settings }: ReceiptProps) {
   };
 
   const capitalizePayment = (payment: string) => {
-    return payment.charAt(0).toUpperCase() + payment.slice(1).replace('_', ' ');
+    return formatPaymentMethod(payment);
   };
 
   const handleExportCSV = () => {

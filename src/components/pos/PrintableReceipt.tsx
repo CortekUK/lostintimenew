@@ -3,7 +3,7 @@ import { Card } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { Printer, Mail, X } from 'lucide-react';
-import { formatCurrency, formatDateTime } from '@/lib/utils';
+import { formatCurrency, formatDateTime, formatPaymentMethod } from '@/lib/utils';
 import { SaleWithItems } from '@/types';
 import { useToast } from '@/hooks/use-toast';
 import { Logo } from '@/components/ui/logo';
@@ -77,16 +77,7 @@ Thank you for your business!`;
   };
 
   const getPaymentMethodDisplay = (method: string) => {
-    switch (method) {
-      case 'cash':
-        return 'Cash';
-      case 'card':
-        return 'Card';
-      case 'bank_transfer':
-        return 'Bank Transfer';
-      default:
-        return method;
-    }
+    return formatPaymentMethod(method);
   };
 
   return (

@@ -34,7 +34,7 @@ const PAYMENT_METHOD_OPTIONS = [
   { value: 'cash', label: 'Cash' },
   { value: 'card', label: 'Card' },
   { value: 'transfer', label: 'Bank Transfer' },
-  { value: 'check', label: 'Check' },
+  { value: 'check', label: 'Cheque' },
   { value: 'other', label: 'Other' },
 ];
 

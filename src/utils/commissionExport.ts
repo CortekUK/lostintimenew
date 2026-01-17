@@ -1,5 +1,6 @@
 import { toCSV } from '@/utils/csvUtils';
 import { format } from 'date-fns';
+import { formatPaymentMethod } from '@/lib/utils';
 import type { CommissionPayment } from '@/hooks/useCommissionPayments';
 
 export interface StaffCommissionData {
@@ -76,7 +77,7 @@ export function exportCommissionPaymentsCSV(
     'Commission Rate': `${payment.commission_rate}%`,
     'Commission Basis': payment.commission_basis === 'profit' ? 'Gross Profit' : 'Revenue',
     'Amount Paid': `£${Number(payment.commission_amount).toFixed(2)}`,
-    'Payment Method': payment.payment_method.replace('_', ' '),
+    'Payment Method': formatPaymentMethod(payment.payment_method),
     'Paid By': payment.paid_by_profile?.full_name || 'Unknown',
     'Notes': payment.notes || ''
   }));

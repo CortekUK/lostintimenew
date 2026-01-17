@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { format } from 'date-fns';
 import { Download, Trash2, History } from 'lucide-react';
+import { formatPaymentMethod } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { EnhancedTable, Column } from '@/components/ui/enhanced-table';
@@ -99,7 +100,7 @@ export function CommissionPaymentHistory({ staffId }: CommissionPaymentHistoryPr
       key: 'payment_method',
       title: 'Method',
       render: (payment) => (
-        <span className="capitalize">{payment.payment_method.replace('_', ' ')}</span>
+        <span>{formatPaymentMethod(payment.payment_method)}</span>
       ),
     },
     {

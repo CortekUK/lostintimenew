@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { formatCurrency, formatDateTime } from '@/lib/utils';
+import { formatCurrency, formatDateTime, formatPaymentMethod } from '@/lib/utils';
 import type { Sale, SaleItem, Product, PaymentMethod } from '@/types';
 import { 
   Receipt,
@@ -27,13 +27,7 @@ interface SaleReceiptProps {
 export function SaleReceipt({ sale, items, partExchanges = [], customerName, onClose, onPrint }: SaleReceiptProps) {
   const pxTotal = partExchanges.reduce((sum, px) => sum + px.allowance, 0);
   const getPaymentMethodDisplay = (method: PaymentMethod) => {
-    const methods = {
-      cash: 'Cash',
-      card: 'Credit/Debit Card',
-      transfer: 'Bank Transfer',
-      other: 'Other'
-    };
-    return methods[method] || method;
+    return formatPaymentMethod(method);
   };
 
   return (

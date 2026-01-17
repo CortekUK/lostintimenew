@@ -5,6 +5,20 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+// Payment method formatting (centralised for consistency)
+export function formatPaymentMethod(method: string): string {
+  const methods: Record<string, string> = {
+    cash: 'Cash',
+    card: 'Card',
+    transfer: 'Bank Transfer',
+    bank_transfer: 'Bank Transfer',
+    check: 'Cheque',
+    cheque: 'Cheque',
+    other: 'Other',
+  };
+  return methods[method?.toLowerCase()] || method?.charAt(0).toUpperCase() + method?.slice(1) || 'Unknown';
+}
+
 // Currency formatting
 export function formatCurrency(amount: number, currency = 'GBP'): string {
   return new Intl.NumberFormat('en-GB', {
