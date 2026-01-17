@@ -19,7 +19,7 @@ import {
   ExternalLink, ShoppingCart
 } from 'lucide-react';
 import { format, subDays, differenceInDays } from 'date-fns';
-import { useOwnerGuard } from '@/hooks/useOwnerGuard';
+import { useManagerOrAboveGuard } from '@/hooks/useOwnerGuard';
 import { ConvertPartExchangeDialog } from '@/components/pos/ConvertPartExchangeDialog';
 import { EditPartExchangeModal } from '@/components/pos/EditPartExchangeModal';
 import { useDiscardPartExchange } from '@/hooks/usePartExchanges';
@@ -43,7 +43,7 @@ interface PendingPartExchange {
 
 export default function PartExchangeIntake() {
   const navigate = useNavigate();
-  const isOwner = useOwnerGuard();
+  const canManage = useManagerOrAboveGuard();
   
   // View and filter state
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
@@ -424,7 +424,7 @@ export default function PartExchangeIntake() {
                         <Button
                           size="sm"
                           onClick={() => handleConvert(px)}
-                          disabled={!isOwner}
+                          disabled={!canManage}
                         >
                           <PackageCheck className="h-4 w-4 mr-1" />
                           Convert
@@ -433,7 +433,7 @@ export default function PartExchangeIntake() {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleEdit(px)}
-                          disabled={!isOwner}
+                          disabled={!canManage}
                         >
                           <Edit className="h-4 w-4" />
                         </Button>
@@ -441,7 +441,7 @@ export default function PartExchangeIntake() {
                           size="sm"
                           variant="ghost"
                           onClick={() => handleDiscardClick(px)}
-                          disabled={!isOwner}
+                          disabled={!canManage}
                           className="text-destructive hover:text-destructive"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -529,7 +529,7 @@ export default function PartExchangeIntake() {
                   <div className="flex gap-2">
                     <Button
                       onClick={() => handleConvert(px)}
-                      disabled={!isOwner}
+                      disabled={!canManage}
                       className="flex-1"
                       size="sm"
                     >
@@ -540,7 +540,7 @@ export default function PartExchangeIntake() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleEdit(px)}
-                      disabled={!isOwner}
+                      disabled={!canManage}
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
@@ -548,16 +548,16 @@ export default function PartExchangeIntake() {
                       variant="outline"
                       size="sm"
                       onClick={() => handleDiscardClick(px)}
-                      disabled={!isOwner}
+                      disabled={!canManage}
                       className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
 
-                  {!isOwner && (
+                  {!canManage && (
                     <p className="text-xs text-muted-foreground mt-2 text-center">
-                      Owner access required
+                      Manager access required
                     </p>
                   )}
                 </CardContent>
