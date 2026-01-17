@@ -64,8 +64,9 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
   const stock = (product as any).qty_on_hand || 0;
   const inventoryValue = (product as any).inventory_value || 0;
   const profit = (Number(product.unit_price) - Number(product.unit_cost)).toFixed(2);
-  const margin = Number(product.unit_price) > 0 
-    ? (((Number(product.unit_price) - Number(product.unit_cost)) / Number(product.unit_price)) * 100).toFixed(1)
+  // Markup = (Profit / Cost) * 100 - standard jewellery industry metric
+  const markup = Number(product.unit_cost) > 0 
+    ? (((Number(product.unit_price) - Number(product.unit_cost)) / Number(product.unit_cost)) * 100).toFixed(1)
     : 0;
   
   const getStockStatus = (qty: number) => {
@@ -229,12 +230,12 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
               <Card className="shadow-sm hover:shadow-md transition-shadow border-border/50 overflow-hidden">
                 <CardContent className="p-4">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-lg bg-muted flex items-center justify-center shrink-0">
-                      <Percent className="h-5 w-5 text-muted-foreground" />
+                    <div className={`h-10 w-10 rounded-lg flex items-center justify-center shrink-0 ${Number(markup) >= 50 ? 'bg-success/10' : Number(markup) >= 25 ? 'bg-muted' : 'bg-warning/10'}`}>
+                      <Percent className={`h-5 w-5 ${Number(markup) >= 50 ? 'text-success' : Number(markup) >= 25 ? 'text-muted-foreground' : 'text-warning'}`} />
                     </div>
                     <div className="min-w-0">
-                      <span className="text-xs text-muted-foreground block">Margin</span>
-                      <p className="text-xl font-bold text-foreground truncate">{margin}%</p>
+                      <span className="text-xs text-muted-foreground block">Markup</span>
+                      <p className={`text-xl font-bold truncate ${Number(markup) >= 50 ? 'text-success' : Number(markup) >= 25 ? 'text-foreground' : 'text-warning'}`}>{markup}%</p>
                     </div>
                   </div>
                 </CardContent>
@@ -486,8 +487,8 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
                         <span className={`font-medium ${Number(profit) >= 0 ? 'text-success' : 'text-destructive'}`}>£{profit}</span>
                       </div>
                       <div className="flex justify-between py-3 last:pb-0">
-                        <span className="text-muted-foreground text-sm">Margin</span>
-                        <span className="font-medium">{margin}%</span>
+                        <span className="text-muted-foreground text-sm">Markup</span>
+                        <span className={`font-medium ${Number(markup) >= 50 ? 'text-success' : Number(markup) >= 25 ? '' : 'text-warning'}`}>{markup}%</span>
                       </div>
                     </div>
                   </div>

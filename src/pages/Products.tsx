@@ -67,8 +67,9 @@ const ProductCard = ({
   
   const stock = product.qty_on_hand || 0;
   const profit = (Number(product.unit_price) - Number(product.unit_cost)).toFixed(2);
-  const margin = Number(product.unit_price) > 0 
-    ? (((Number(product.unit_price) - Number(product.unit_cost)) / Number(product.unit_price)) * 100).toFixed(1)
+  // Markup = (Profit / Cost) * 100 - standard jewellery industry metric
+  const markup = Number(product.unit_cost) > 0 
+    ? (((Number(product.unit_price) - Number(product.unit_cost)) / Number(product.unit_cost)) * 100).toFixed(1)
     : 0;
   
   // Calculate days in inventory
@@ -196,9 +197,9 @@ const ProductCard = ({
             </p>
           </div>
           <div>
-            <p className="text-xs text-muted-foreground mb-1">Margin</p>
-            <p className={`font-medium ${Number(margin) > 0 ? 'text-success' : 'text-muted-foreground'}`}>
-              {margin}%
+            <p className="text-xs text-muted-foreground mb-1">Markup</p>
+            <p className={`font-medium ${Number(markup) >= 50 ? 'text-success' : Number(markup) >= 25 ? 'text-foreground' : 'text-warning'}`}>
+              {markup}%
             </p>
           </div>
         </div>

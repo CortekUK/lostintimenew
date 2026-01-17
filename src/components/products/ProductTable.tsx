@@ -96,8 +96,9 @@ export function ProductTable({
           bValue = Number(b.unit_price) - Number(b.unit_cost);
           break;
         case 'margin':
-          aValue = a.unit_price > 0 ? ((a.unit_price - a.unit_cost) / a.unit_price) * 100 : 0;
-          bValue = b.unit_price > 0 ? ((b.unit_price - b.unit_cost) / b.unit_price) * 100 : 0;
+          // Markup = (Profit / Cost) * 100
+          aValue = a.unit_cost > 0 ? ((a.unit_price - a.unit_cost) / a.unit_cost) * 100 : 0;
+          bValue = b.unit_cost > 0 ? ((b.unit_price - b.unit_cost) / b.unit_cost) * 100 : 0;
           break;
         default:
           return 0;
@@ -218,7 +219,7 @@ export function ProductTable({
                     onClick={() => handleSort('margin')}
                     className="flex items-center gap-1 hover:text-foreground transition-colors ml-auto"
                   >
-                    Margin {getSortIcon('margin')}
+                    Markup {getSortIcon('margin')}
                   </button>
                 </TableHead>
                 <TableHead className="w-[100px]">Type</TableHead>
@@ -228,8 +229,9 @@ export function ProductTable({
             <TableBody>
               {sortedProducts.map((product) => {
                 const profit = Number(product.unit_price) - Number(product.unit_cost);
-                const margin = Number(product.unit_price) > 0
-                  ? ((profit / Number(product.unit_price)) * 100).toFixed(1)
+                // Markup = (Profit / Cost) * 100
+                const markup = Number(product.unit_cost) > 0
+                  ? ((profit / Number(product.unit_cost)) * 100).toFixed(1)
                   : '0.0';
                 const stockBadge = getStockStatusBadge(product);
                 const pxInfo = product.is_trade_in ? partExchangeMap?.[product.id] : null;
@@ -326,10 +328,10 @@ export function ProductTable({
                       </span>
                     </TableCell>
 
-                    {/* Margin */}
+                    {/* Markup */}
                     <TableCell className={`${cellPadding} text-right`}>
-                      <span className={Number(margin) > 0 ? 'text-success font-medium' : 'text-muted-foreground'}>
-                        {margin}%
+                      <span className={Number(markup) >= 50 ? 'text-success font-medium' : Number(markup) >= 25 ? 'text-foreground' : 'text-warning font-medium'}>
+                        {markup}%
                       </span>
                     </TableCell>
 

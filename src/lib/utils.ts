@@ -253,6 +253,13 @@ export function getSupplierDisplayName(product: any): string {
   return 'No supplier';
 }
 
+// Calculate markup percentage (profit / cost * 100)
+// This is the standard jewellery industry metric
+export function calculateMarkup(sellPrice: number, cost: number): number {
+  if (cost <= 0) return 0;
+  return ((sellPrice - cost) / cost) * 100;
+}
+
 // Calculate cart totals
 export function calculateCartTotals(items: Array<{
   quantity: number;
