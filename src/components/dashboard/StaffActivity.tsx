@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Clock, ExternalLink } from 'lucide-react';
 import { useStaffActivity } from '@/hooks/useDashboardData';
+import { usePermissions } from '@/hooks/usePermissions';
 import { formatCurrency } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -43,7 +44,9 @@ const StaffRow = ({ sale }: { sale: any }) => {
 
 export const StaffActivity = () => {
   const { data: staffActivity, isLoading } = useStaffActivity();
+  const { can } = usePermissions();
   const navigate = useNavigate();
+  const salesHistoryPath = can('reports', 'view') ? '/sales/transactions' : '/sales/my-sales';
   
   if (isLoading) {
     return (
@@ -142,7 +145,7 @@ export const StaffActivity = () => {
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate('/sales/history')}
+              onClick={() => navigate(salesHistoryPath)}
               className="w-full mt-3"
             >
               View All Sales History

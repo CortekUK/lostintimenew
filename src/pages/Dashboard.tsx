@@ -92,6 +92,7 @@ const EnhancedRecentSales = () => {
     isLoading
   } = useRecentSales(5);
   const navigate = useNavigate();
+  const { can } = usePermissions();
   if (isLoading) {
     return <Card className="shadow-card">
         <CardHeader>
@@ -166,7 +167,7 @@ const EnhancedRecentSales = () => {
             </CardTitle>
             <CardDescription className="text-xs md:text-sm">Latest 5 transactions</CardDescription>
           </div>
-          <Button variant="outline" size="sm" onClick={() => navigate('/sales/history')} className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => navigate(can('reports', 'view') ? '/sales/transactions' : '/sales/my-sales')} className="flex items-center gap-2">
             <ExternalLink className="h-3 w-3" />
             <span className="hidden sm:inline">View All Sales History</span>
             <span className="sm:hidden">View All</span>
