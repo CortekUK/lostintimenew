@@ -13,7 +13,9 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Mail, Phone, User, Edit, Trash2, Eye, MapPin, Truck, Package, TrendingUp, Tag, Loader2, Search, AlertCircle, Building2 } from 'lucide-react';
+import { Plus, Mail, Phone, User, Edit, Trash2, Eye, MapPin, Truck, Package, TrendingUp, Tag, Loader2, Search, AlertCircle, Building2, LayoutGrid, LayoutList } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { z } from 'zod';
 import { cn } from '@/lib/utils';
 
@@ -326,6 +328,227 @@ function SupplierCard({ supplier, onView }: SupplierCardProps) {
   );
 }
 
+function SupplierTableRow({ supplier, onView }: SupplierCardProps) {
+  const [isEditOpen, setIsEditOpen] = useState(false);
+  const [isDeleteOpen, setIsDeleteOpen] = useState(false);
+  
+  const [editForm, setEditForm] = useState({
+    name: supplier.name,
+    contact_name: supplier.contact_name || '',
+    email: supplier.email || '',
+    phone: supplier.phone || '',
+    address: supplier.address || '',
+    status: supplier.status,
+    tags: supplier.tags || [],
+    notes: supplier.notes || '',
+  });
+
+  const updateMutation = useUpdateSupplier();
+  const deleteMutation = useDeleteSupplier();
+
+  const handleEditSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    updateMutation.mutate({ id: supplier.id, ...editForm }, {
+      onSuccess: () => setIsEditOpen(false)
+    });
+  };
+
+  return (
+    <>
+      <TableRow className="cursor-pointer hover:bg-muted/50" onClick={() => onView(supplier.id)}>
+        <TableCell>
+          <div className="flex items-center gap-2">
+            {supplier.supplier_type === 'customer' ? (
+              <User className="h-4 w-4 text-muted-foreground" />
+            ) : (
+              <Building2 className="h-4 w-4 text-muted-foreground" />
+            )}
+            <span className="font-medium">{supplier.name}</span>
+          </div>
+        </TableCell>
+        <TableCell>
+          <div className="text-sm">
+            {supplier.email && (
+              <div className="text-muted-foreground truncate max-w-[180px]">{supplier.email}</div>
+            )}
+            {supplier.phone && (
+              <div className="text-muted-foreground">{supplier.phone}</div>
+            )}
+            {!supplier.email && !supplier.phone && (
+              <span className="text-muted-foreground">—</span>
+            )}
+          </div>
+        </TableCell>
+        <TableCell>
+          {supplier.supplier_type === 'customer' ? (
+            <Badge variant="customer">Individual</Badge>
+          ) : (
+            <Badge variant="outline">Registered</Badge>
+          )}
+        </TableCell>
+        <TableCell>
+          <Badge variant={supplier.status === 'active' ? 'default' : 'secondary'}>
+            {supplier.status === 'active' ? 'Active' : 'Inactive'}
+          </Badge>
+        </TableCell>
+        <TableCell className="text-right">{supplier.product_count || 0}</TableCell>
+        <TableCell className="text-right font-medium">
+          £{(supplier.total_spend_this_year || 0).toLocaleString()}
+        </TableCell>
+        <TableCell className="text-right">
+          <div className="flex justify-end gap-1" onClick={(e) => e.stopPropagation()}>
+            <Button size="sm" variant="ghost" onClick={() => onView(supplier.id)}>
+              <Eye className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setIsEditOpen(true)}>
+              <Edit className="h-4 w-4" />
+            </Button>
+            <Button size="sm" variant="ghost" onClick={() => setIsDeleteOpen(true)}>
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+        </TableCell>
+      </TableRow>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="font-luxury">Edit Supplier</DialogTitle>
+            <DialogDescription>Update supplier information</DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleEditSubmit} className="space-y-4">
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-name-table">Company Name *</Label>
+                  <Input
+                    id="edit-name-table"
+                    value={editForm.name}
+                    onChange={(e) => setEditForm({ ...editForm, name: e.target.value })}
+                    required
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-contact-table">Contact Person</Label>
+                  <Input
+                    id="edit-contact-table"
+                    value={editForm.contact_name}
+                    onChange={(e) => setEditForm({ ...editForm, contact_name: e.target.value })}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <Label htmlFor="edit-status-table">Status</Label>
+                    <p className="text-xs text-muted-foreground">Active suppliers appear in search</p>
+                  </div>
+                  <Switch
+                    id="edit-status-table"
+                    checked={editForm.status === 'active'}
+                    onCheckedChange={(checked) => setEditForm({ ...editForm, status: checked ? 'active' : 'inactive' })}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="edit-email-table">Email</Label>
+                  <Input
+                    id="edit-email-table"
+                    type="email"
+                    value={editForm.email}
+                    onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-phone-table">Phone</Label>
+                  <Input
+                    id="edit-phone-table"
+                    type="tel"
+                    value={editForm.phone}
+                    onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="edit-address-table">Address</Label>
+                  <Input
+                    id="edit-address-table"
+                    value={editForm.address}
+                    onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <Label htmlFor="edit-tags-table">Tags (comma-separated)</Label>
+              <Input
+                id="edit-tags-table"
+                value={editForm.tags?.join(', ') || ''}
+                onChange={(e) => setEditForm({ 
+                  ...editForm, 
+                  tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) 
+                })}
+                placeholder="e.g. Luxury Watches, Diamonds, Gold"
+              />
+            </div>
+            
+            <div>
+              <Label htmlFor="edit-notes-table">Notes</Label>
+              <Textarea
+                id="edit-notes-table"
+                value={editForm.notes}
+                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                rows={3}
+              />
+            </div>
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={updateMutation.isPending}>
+                {updateMutation.isPending ? (
+                  <>
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    Updating...
+                  </>
+                ) : (
+                  'Update Supplier'
+                )}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation */}
+      <AlertDialog open={isDeleteOpen} onOpenChange={setIsDeleteOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Supplier</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{supplier.name}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={() => {
+                deleteMutation.mutate(supplier.id, {
+                  onSuccess: () => setIsDeleteOpen(false)
+                });
+              }}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
+  );
+}
+
 interface AddSupplierDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
@@ -594,6 +817,7 @@ export default function Suppliers() {
   const [sortBy, setSortBy] = useState('name');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
 
   const { data: suppliers, isLoading } = useSuppliers();
   const { data: summary } = useSupplierMetricsSummary();
@@ -687,6 +911,18 @@ export default function Suppliers() {
               <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
           </Select>
+          <ToggleGroup 
+            type="single" 
+            value={viewMode} 
+            onValueChange={(value) => value && setViewMode(value as 'cards' | 'table')}
+          >
+            <ToggleGroupItem value="cards" aria-label="Card view" size="sm">
+              <LayoutGrid className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="table" aria-label="Table view" size="sm">
+              <LayoutList className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
           <Button onClick={() => setIsAddDialogOpen(true)} variant="premium" className="whitespace-nowrap">
             <Plus className="h-4 w-4 mr-2" />
             Add Supplier
@@ -769,15 +1005,43 @@ export default function Suppliers() {
             <div className="flex items-center justify-between text-sm text-muted-foreground">
               <span>Showing {filteredAndSortedSuppliers.length} supplier{filteredAndSortedSuppliers.length !== 1 ? 's' : ''}</span>
             </div>
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {filteredAndSortedSuppliers.map((supplier) => (
-                <SupplierCard
-                  key={supplier.id}
-                  supplier={supplier}
-                  onView={handleViewSupplier}
-                />
-              ))}
-            </div>
+            
+            {viewMode === 'table' ? (
+              <Card>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Contact</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-right">Products</TableHead>
+                      <TableHead className="text-right">Spend</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredAndSortedSuppliers.map((supplier) => (
+                      <SupplierTableRow
+                        key={supplier.id}
+                        supplier={supplier}
+                        onView={handleViewSupplier}
+                      />
+                    ))}
+                  </TableBody>
+                </Table>
+              </Card>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {filteredAndSortedSuppliers.map((supplier) => (
+                  <SupplierCard
+                    key={supplier.id}
+                    supplier={supplier}
+                    onView={handleViewSupplier}
+                  />
+                ))}
+              </div>
+            )}
           </>
         )}
 
