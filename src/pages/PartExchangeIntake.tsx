@@ -404,7 +404,7 @@ export default function PartExchangeIntake() {
                     </TableCell>
                     <TableCell>
                       <button
-                        onClick={() => navigate(`/transactions/${px.sale_id}`)}
+                        onClick={() => navigate(`/sales/${px.sale_id}`)}
                         className="text-sm text-primary hover:underline inline-flex items-center gap-1"
                       >
                         #{px.sale_id}
@@ -498,7 +498,7 @@ export default function PartExchangeIntake() {
                     <div className="text-right">
                       <p className="text-xs text-muted-foreground mb-0.5">From Sale</p>
                       <button
-                        onClick={() => navigate(`/transactions/${px.sale_id}`)}
+                        onClick={() => navigate(`/sales/${px.sale_id}`)}
                         className="text-sm text-primary hover:underline inline-flex items-center gap-1"
                       >
                         #{px.sale_id}
