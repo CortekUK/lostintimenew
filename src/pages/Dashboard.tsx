@@ -9,7 +9,7 @@ import { PoundSterling, Package, TrendingUp, ReceiptPoundSterling, ShoppingCart,
 import { useTodayStats, useRecentSales, useTrendsData, useExpenseSnapshot, useStaffActivity, useBusinessInsights } from '@/hooks/useDashboardData';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
-import { formatCurrency } from '@/lib/utils';
+import { formatCurrency, formatPaymentMethod } from '@/lib/utils';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useState } from 'react';
@@ -186,7 +186,7 @@ const EnhancedRecentSales = () => {
                       {sale.products.length > 1 && <span className="text-muted-foreground"> +{sale.products.length - 1} more</span>}
                     </p>
                     <Badge variant="outline" className="text-xs">
-                      {sale.payment}
+                      {formatPaymentMethod(sale.payment)}
                     </Badge>
                   </div>
                   <div className="flex items-center gap-2 mt-1">
