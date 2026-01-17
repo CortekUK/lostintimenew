@@ -17,12 +17,28 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { useAddPartExchangeToSale } from '@/hooks/useAddPartExchangeToSale';
 
 interface AddPartExchangeToSaleModalProps {
-  isOpen: boolean;
-  onClose: () => void;
+  isOpen?: boolean;
+  open?: boolean;
+  onClose?: () => void;
+  onOpenChange?: (open: boolean) => void;
   saleId: number;
+  onSuccess?: () => void;
 }
 
-export const AddPartExchangeToSaleModal = ({ isOpen, onClose, saleId }: AddPartExchangeToSaleModalProps) => {
+export const AddPartExchangeToSaleModal = ({ 
+  isOpen, 
+  open, 
+  onClose, 
+  onOpenChange,
+  saleId,
+  onSuccess 
+}: AddPartExchangeToSaleModalProps) => {
+  // Support both prop patterns
+  const isModalOpen = open ?? isOpen ?? false;
+  const handleClose = () => {
+    onClose?.();
+    onOpenChange?.(false);
+  };
   const { data: filterOptions } = useFilterOptions();
   const { data: suppliers, refetch: refetchSuppliers } = useSuppliers();
   const addPartExchangeMutation = useAddPartExchangeToSale();
@@ -119,19 +135,20 @@ export const AddPartExchangeToSaleModal = ({ isOpen, onClose, saleId }: AddPartE
       {
         onSuccess: () => {
           resetForm();
-          onClose();
+          handleClose();
+          onSuccess?.();
         },
       }
     );
   };
 
-  const handleClose = () => {
+  const closeModal = () => {
     resetForm();
-    onClose();
+    handleClose();
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={handleClose}>
+    <Dialog open={isModalOpen} onOpenChange={(open) => !open && closeModal()}>
       <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2 font-luxury text-2xl">

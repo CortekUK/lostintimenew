@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useTheme } from 'next-themes';
-import { Printer, Mail, X, AlertCircle, Eye, Ban, Edit, Coins } from 'lucide-react';
+import { Printer, Mail, X, AlertCircle, Eye, Ban, Edit, Coins, Repeat } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
 import { QuickSettlementModal } from '@/components/consignments/QuickSettlementModal';
@@ -24,6 +24,7 @@ import { EditSaleModal } from './EditSaleModal';
 import { EditSaleCommissionModal } from '@/components/reports/EditSaleCommissionModal';
 import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { useStaffCommissionOverride } from '@/hooks/useStaffCommissionOverrides';
+import { AddPartExchangeToSaleModal } from './AddPartExchangeToSaleModal';
 
 interface SaleDetailModalProps {
   saleId: number | null;
@@ -39,7 +40,7 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
   const navigate = useNavigate();
   const { settings } = useSettings();
   const { theme } = useTheme();
-  const { canEdit, canDelete } = usePermissions();
+  const { canEdit, canDelete, isAtLeast } = usePermissions();
   const canEditSales = canEdit(CRM_MODULES.SALES);
   const canVoidSales = canDelete(CRM_MODULES.SALES);
   const { data, isLoading, error, refetch } = useTransactionDetails(saleId || undefined);
@@ -49,6 +50,7 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
   const [voidModalOpen, setVoidModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [commissionModalOpen, setCommissionModalOpen] = useState(false);
+  const [addPxModalOpen, setAddPxModalOpen] = useState(false);
 
   const items = data?.items || [];
   const partExchanges = data?.partExchanges || [];
@@ -625,6 +627,16 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                   Void
                 </Button>
               )}
+              {isAtLeast('manager') && !sale?.is_voided && (
+                <Button
+                  variant="outline"
+                  onClick={() => setAddPxModalOpen(true)}
+                  aria-label="Add part exchange to sale"
+                >
+                  <Repeat className="h-4 w-4 mr-2" />
+                  Add Trade-In
+                </Button>
+              )}
             </div>
             <div className="flex gap-2 flex-wrap">
               {focusLineItemId && (
@@ -732,6 +744,20 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
           calculatedCommission={commissionDetails.calculated}
           hasOverride={commissionDetails.hasOverride}
           overrideReason={commissionDetails.reason}
+        />
+      )}
+
+      {/* Add Part Exchange Modal */}
+      {saleId && (
+        <AddPartExchangeToSaleModal
+          open={addPxModalOpen}
+          onOpenChange={setAddPxModalOpen}
+          saleId={saleId}
+          onSuccess={async () => {
+            await refetch();
+            await queryClient.invalidateQueries({ queryKey: ['transactions'] });
+            await queryClient.invalidateQueries({ queryKey: ['part-exchanges'] });
+          }}
         />
       )}
     </>
