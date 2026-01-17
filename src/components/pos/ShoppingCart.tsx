@@ -23,6 +23,7 @@ interface ShoppingCartProps {
   onUpdateQuantity: (productId: number, quantity: number) => void;
   onRemoveItem: (productId: number) => void;
   onRemovePartExchange: (id: string) => void;
+  onEditPartExchange: (id: string) => void;
   onAddPartExchange: () => void;
   discount: number;
   discountType: DiscountType;
@@ -35,6 +36,7 @@ export function ShoppingCartComponent({
   onUpdateQuantity, 
   onRemoveItem,
   onRemovePartExchange,
+  onEditPartExchange,
   onAddPartExchange,
   discount,
   discountType,
@@ -163,6 +165,7 @@ export function ShoppingCartComponent({
                     <PartExchangeItemComponent
                       key={px.id}
                       item={px}
+                      onEdit={() => onEditPartExchange(px.id)}
                       onRemove={() => onRemovePartExchange(px.id)}
                     />
                   ))}

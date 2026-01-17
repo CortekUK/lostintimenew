@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ShoppingCartComponent } from '@/components/pos/ShoppingCart';
 import { CheckoutForm, DiscountType } from '@/components/pos/CheckoutForm';
 import { PartExchangeModal } from '@/components/pos/PartExchangeModal';
+import { EditCartPartExchangeModal } from '@/components/pos/EditCartPartExchangeModal';
 import { SaleConfirmationModal } from '@/components/pos/SaleConfirmationModal';
 import { ProductSearch } from '@/components/pos/ProductSearch';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -40,6 +41,8 @@ export default function EnhancedSales() {
   const [signature, setSignature] = useState<string | null>(null);
   const [staffMember, setStaffMember] = useState('');
   const [showPartExchangeModal, setShowPartExchangeModal] = useState(false);
+  const [showEditPxModal, setShowEditPxModal] = useState(false);
+  const [editingPartExchange, setEditingPartExchange] = useState<PartExchangeItem | null>(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [completedSale, setCompletedSale] = useState<{ sale: any; items: any[]; partExchanges: any[]; signature: string | null } | null>(null);
   const [locationId, setLocationId] = useState<number | null>(null);
@@ -184,6 +187,22 @@ export default function EnhancedSales() {
 
   const removePartExchange = (id: string) => {
     setPartExchanges(partExchanges.filter(px => px.id !== id));
+  };
+
+  const editPartExchange = (id: string) => {
+    const px = partExchanges.find(p => p.id === id);
+    if (px) {
+      setEditingPartExchange(px);
+      setShowEditPxModal(true);
+    }
+  };
+
+  const updatePartExchange = (updated: PartExchangeItem) => {
+    setPartExchanges(partExchanges.map(px => px.id === updated.id ? updated : px));
+    toast({
+      title: 'Trade-in updated',
+      description: `${updated.product_name} - ${formatCurrency(updated.allowance)}`,
+    });
   };
 
   const addToCart = (product: Product & { stock_on_hand?: number }) => {
@@ -483,6 +502,7 @@ export default function EnhancedSales() {
               onUpdateQuantity={updateQuantity}
               onRemoveItem={removeFromCart}
               onRemovePartExchange={removePartExchange}
+              onEditPartExchange={editPartExchange}
               onAddPartExchange={() => setShowPartExchangeModal(true)}
               discount={discount}
               discountType={discountType}
@@ -534,6 +554,13 @@ export default function EnhancedSales() {
           isOpen={showPartExchangeModal}
           onClose={() => setShowPartExchangeModal(false)}
           onAdd={addPartExchange}
+        />
+
+        <EditCartPartExchangeModal
+          open={showEditPxModal}
+          onOpenChange={setShowEditPxModal}
+          partExchange={editingPartExchange}
+          onSave={updatePartExchange}
         />
 
         {completedSale && (
