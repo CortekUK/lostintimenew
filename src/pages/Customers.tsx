@@ -14,7 +14,9 @@ import { CustomerFiltersComponent, CustomerFilters, defaultCustomerFilters } fro
 import { useCustomers, useCustomerReminders } from '@/hooks/useCustomers';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useSettings } from '@/contexts/SettingsContext';
-import { Plus, Search, Users, Crown, Gift, Heart, Mail, Phone, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown } from 'lucide-react';
+import { Plus, Search, Users, Crown, Gift, Heart, Mail, Phone, ChevronRight, ArrowUpDown, ArrowUp, ArrowDown, LayoutGrid, LayoutList } from 'lucide-react';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { CustomerCard } from '@/components/customers/CustomerCard';
 import { differenceInDays, setYear, addYears, parseISO } from 'date-fns';
 
 // Check if event date occurs within next N days (handles year wrap-around)
@@ -72,6 +74,7 @@ export default function Customers() {
   const [addDialogOpen, setAddDialogOpen] = useState(false);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
 
   // Handle ?add=true query parameter
   useEffect(() => {
@@ -292,6 +295,19 @@ export default function Customers() {
             onFiltersChange={setFilters}
             activeFiltersCount={activeFiltersCount}
           />
+          <ToggleGroup 
+            type="single" 
+            value={viewMode} 
+            onValueChange={(v) => v && setViewMode(v as 'list' | 'grid')}
+            className="hidden sm:flex"
+          >
+            <ToggleGroupItem value="list" aria-label="List view" size="sm">
+              <LayoutList className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="grid" aria-label="Grid view" size="sm">
+              <LayoutGrid className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
       </div>
 
@@ -303,83 +319,95 @@ export default function Customers() {
           ))}
         </div>
       ) : sortedCustomers && sortedCustomers.length > 0 ? (
-        <Card>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead 
-                  className="cursor-pointer select-none hover:bg-muted/50"
-                  onClick={() => handleSort('name')}
-                >
-                  <div className="flex items-center">
-                    Customer
-                    <SortIcon field="name" />
-                  </div>
-                </TableHead>
-                <TableHead className="hidden sm:table-cell">Contact</TableHead>
-                <TableHead>Tier</TableHead>
-                <TableHead 
-                  className="text-right cursor-pointer select-none hover:bg-muted/50"
-                  onClick={() => handleSort('lifetime_spend')}
-                >
-                  <div className="flex items-center justify-end">
-                    Lifetime Spend
-                    <SortIcon field="lifetime_spend" />
-                  </div>
-                </TableHead>
-                <TableHead 
-                  className="text-right hidden md:table-cell cursor-pointer select-none hover:bg-muted/50"
-                  onClick={() => handleSort('total_purchases')}
-                >
-                  <div className="flex items-center justify-end">
-                    Purchases
-                    <SortIcon field="total_purchases" />
-                  </div>
-                </TableHead>
-                <TableHead className="w-10"></TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {sortedCustomers.map((customer) => (
-                <TableRow
-                  key={customer.id}
-                  className="cursor-pointer hover:bg-muted/50"
-                  onClick={() => handleCustomerClick(customer.id)}
-                >
-                  <TableCell className="font-medium">{customer.name}</TableCell>
-                  <TableCell className="hidden sm:table-cell">
-                    <div className="flex flex-col gap-0.5 text-sm text-muted-foreground">
-                      {customer.email && (
-                        <div className="flex items-center gap-1.5">
-                          <Mail className="h-3.5 w-3.5" />
-                          <span className="truncate max-w-[200px]">{customer.email}</span>
-                        </div>
-                      )}
-                      {customer.phone && (
-                        <div className="flex items-center gap-1.5">
-                          <Phone className="h-3.5 w-3.5" />
-                          <span>{customer.phone}</span>
-                        </div>
-                      )}
+        viewMode === 'list' ? (
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead 
+                    className="cursor-pointer select-none hover:bg-muted/50"
+                    onClick={() => handleSort('name')}
+                  >
+                    <div className="flex items-center">
+                      Customer
+                      <SortIcon field="name" />
                     </div>
-                  </TableCell>
-                  <TableCell>
-                    <VIPTierBadge tier={customer.vip_tier} size="sm" />
-                  </TableCell>
-                  <TableCell className="text-right font-medium">
-                    {formatCurrency(customer.lifetime_spend)}
-                  </TableCell>
-                  <TableCell className="text-right text-muted-foreground hidden md:table-cell">
-                    {customer.total_purchases}
-                  </TableCell>
-                  <TableCell>
-                    <ChevronRight className="h-4 w-4 text-muted-foreground" />
-                  </TableCell>
+                  </TableHead>
+                  <TableHead className="hidden sm:table-cell">Contact</TableHead>
+                  <TableHead>Tier</TableHead>
+                  <TableHead 
+                    className="text-right cursor-pointer select-none hover:bg-muted/50"
+                    onClick={() => handleSort('lifetime_spend')}
+                  >
+                    <div className="flex items-center justify-end">
+                      Lifetime Spend
+                      <SortIcon field="lifetime_spend" />
+                    </div>
+                  </TableHead>
+                  <TableHead 
+                    className="text-right hidden md:table-cell cursor-pointer select-none hover:bg-muted/50"
+                    onClick={() => handleSort('total_purchases')}
+                  >
+                    <div className="flex items-center justify-end">
+                      Purchases
+                      <SortIcon field="total_purchases" />
+                    </div>
+                  </TableHead>
+                  <TableHead className="w-10"></TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Card>
+              </TableHeader>
+              <TableBody>
+                {sortedCustomers.map((customer) => (
+                  <TableRow
+                    key={customer.id}
+                    className="cursor-pointer hover:bg-muted/50"
+                    onClick={() => handleCustomerClick(customer.id)}
+                  >
+                    <TableCell className="font-medium">{customer.name}</TableCell>
+                    <TableCell className="hidden sm:table-cell">
+                      <div className="flex flex-col gap-0.5 text-sm text-muted-foreground">
+                        {customer.email && (
+                          <div className="flex items-center gap-1.5">
+                            <Mail className="h-3.5 w-3.5" />
+                            <span className="truncate max-w-[200px]">{customer.email}</span>
+                          </div>
+                        )}
+                        {customer.phone && (
+                          <div className="flex items-center gap-1.5">
+                            <Phone className="h-3.5 w-3.5" />
+                            <span>{customer.phone}</span>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <VIPTierBadge tier={customer.vip_tier} size="sm" />
+                    </TableCell>
+                    <TableCell className="text-right font-medium">
+                      {formatCurrency(customer.lifetime_spend)}
+                    </TableCell>
+                    <TableCell className="text-right text-muted-foreground hidden md:table-cell">
+                      {customer.total_purchases}
+                    </TableCell>
+                    <TableCell>
+                      <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        ) : (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sortedCustomers.map((customer) => (
+              <CustomerCard
+                key={customer.id}
+                customer={customer}
+                onClick={() => handleCustomerClick(customer.id)}
+              />
+            ))}
+          </div>
+        )
       ) : (
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-12">
