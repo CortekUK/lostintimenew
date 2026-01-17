@@ -62,19 +62,21 @@ export function WelcomeModal() {
     checkWelcome();
   }, []);
 
-  const handleClose = async () => {
-    // Get current user and store per-user flag
-    const { data: { user: currentUser } } = await supabase.auth.getUser();
-    if (currentUser) {
-      const userWelcomeKey = `jc_welcome_seen_${currentUser.id}`;
-      localStorage.setItem(userWelcomeKey, 'true');
+  const handleClose = async (isOpen: boolean) => {
+    if (!isOpen) {
+      // Mark as seen when closing
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
+      if (currentUser) {
+        const userWelcomeKey = `jc_welcome_seen_${currentUser.id}`;
+        localStorage.setItem(userWelcomeKey, 'true');
+      }
     }
-    setOpen(false);
+    setOpen(isOpen);
   };
 
   if (step === 0) {
     return (
-      <Dialog open={open} onOpenChange={setOpen}>
+      <Dialog open={open} onOpenChange={handleClose}>
         <DialogContent className="w-full max-w-lg p-4 sm:p-6">
           <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-xl">
@@ -113,7 +115,7 @@ export function WelcomeModal() {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="w-full max-w-md p-4 sm:p-6">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -162,7 +164,7 @@ export function WelcomeModal() {
             </CardHeader>
           </Card>
           
-          <Button onClick={handleClose} className="w-full">
+          <Button onClick={() => handleClose(false)} className="w-full">
             ✨ Start Using Your CRM
           </Button>
         </div>
