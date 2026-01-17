@@ -176,9 +176,9 @@ export default function SaleDetail() {
             <p className="text-muted-foreground mb-4">
               The sale you're looking for doesn't exist or you don't have permission to view it.
             </p>
-            <Button onClick={() => navigate('/sales/history')}>
+            <Button onClick={() => navigate('/sales')}>
               <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Sales History
+              Back to Sales
             </Button>
           </div>
         </div>
