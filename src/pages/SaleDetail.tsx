@@ -207,7 +207,7 @@ export default function SaleDetail() {
           
           <div className="flex gap-2">
             <Button variant="outline" onClick={handleViewReceipt}>
-              <Receipt className="h-4 w-4 mr-2" />
+              <PoundSterling className="h-4 w-4 mr-2" />
               View Receipt
             </Button>
             <Button variant="outline" onClick={handlePrintReceipt}>
