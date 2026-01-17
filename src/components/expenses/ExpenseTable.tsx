@@ -213,14 +213,21 @@ const ExpenseRow = memo(({
                 <>
                   {canEditExpenses && (
                     <>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => onStartEdit(expense)}
-                        className="h-8 w-8 p-0"
-                      >
-                        <Edit className="h-4 w-4" />
-                      </Button>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => onOpenModal(expense)}
+                              className="h-8 w-8 p-0"
+                            >
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                          </TooltipTrigger>
+                          <TooltipContent>Edit Expense</TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
                       {hasTemplate ? (
                         <>
                           <TooltipProvider>
