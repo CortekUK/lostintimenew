@@ -1,5 +1,6 @@
 import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,12 +11,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
-import { Package, Loader2, Search, Edit, Trash2, PackageCheck, Filter, X } from 'lucide-react';
-import { format, subDays } from 'date-fns';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { 
+  Package, Loader2, Search, Edit, Trash2, PackageCheck, Filter, X, 
+  LayoutGrid, LayoutList, Download, Clock, TrendingUp, Calendar, User,
+  ExternalLink, ShoppingCart
+} from 'lucide-react';
+import { format, subDays, differenceInDays } from 'date-fns';
 import { useOwnerGuard } from '@/hooks/useOwnerGuard';
 import { ConvertPartExchangeDialog } from '@/components/pos/ConvertPartExchangeDialog';
 import { EditPartExchangeModal } from '@/components/pos/EditPartExchangeModal';
 import { useDiscardPartExchange } from '@/hooks/usePartExchanges';
+import { exportPartExchangesToCSV } from '@/utils/partExchangeExport';
 
 interface PendingPartExchange {
   id: number;
@@ -34,9 +42,11 @@ interface PendingPartExchange {
 }
 
 export default function PartExchangeIntake() {
+  const navigate = useNavigate();
   const isOwner = useOwnerGuard();
   
-  // Search and filter state
+  // View and filter state
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards');
   const [searchQuery, setSearchQuery] = useState('');
   const [dateFilter, setDateFilter] = useState<'7d' | '30d' | 'all'>('30d');
   const [categoryFilter, setCategoryFilter] = useState<string>('all');
@@ -64,12 +74,28 @@ export default function PartExchangeIntake() {
 
   const discardMutation = useDiscardPartExchange();
 
+  // Calculate summary stats
+  const summaryStats = useMemo(() => {
+    if (!pendingPXs || pendingPXs.length === 0) {
+      return { count: 0, totalValue: 0, oldestDays: 0, avgDays: 0 };
+    }
+
+    const now = new Date();
+    const ages = pendingPXs.map(px => differenceInDays(now, new Date(px.created_at)));
+    
+    return {
+      count: pendingPXs.length,
+      totalValue: pendingPXs.reduce((sum, px) => sum + Number(px.allowance), 0),
+      oldestDays: Math.max(...ages),
+      avgDays: Math.round(ages.reduce((a, b) => a + b, 0) / ages.length),
+    };
+  }, [pendingPXs]);
+
   // Filter logic
   const filteredPXs = useMemo(() => {
     if (!pendingPXs) return [];
 
     return pendingPXs.filter((px) => {
-      // Search filter
       const searchLower = searchQuery.toLowerCase();
       const matchesSearch =
         !searchQuery ||
@@ -78,7 +104,6 @@ export default function PartExchangeIntake() {
         px.serial?.toLowerCase().includes(searchLower) ||
         px.category?.toLowerCase().includes(searchLower);
 
-      // Date filter
       const createdDate = new Date(px.created_at);
       const now = new Date();
       const matchesDate =
@@ -86,7 +111,6 @@ export default function PartExchangeIntake() {
         (dateFilter === '7d' && createdDate >= subDays(now, 7)) ||
         (dateFilter === '30d' && createdDate >= subDays(now, 30));
 
-      // Category filter
       const matchesCategory =
         categoryFilter === 'all' ||
         px.category === categoryFilter ||
@@ -138,6 +162,12 @@ export default function PartExchangeIntake() {
     setCategoryFilter('all');
   };
 
+  const handleExport = () => {
+    if (filteredPXs.length > 0) {
+      exportPartExchangesToCSV(filteredPXs);
+    }
+  };
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-GB', {
       style: 'currency',
@@ -145,63 +175,172 @@ export default function PartExchangeIntake() {
     }).format(amount);
   };
 
+  // Get aging badge based on days pending
+  const getAgingBadge = (createdAt: string) => {
+    const days = differenceInDays(new Date(), new Date(createdAt));
+    
+    if (days <= 7) {
+      return (
+        <Badge variant="outline" className="bg-success/10 text-success border-success/30 text-xs">
+          {days === 0 ? 'Today' : days === 1 ? '1 day' : `${days} days`}
+        </Badge>
+      );
+    } else if (days <= 14) {
+      return (
+        <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30 text-xs">
+          {days} days
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge variant="outline" className="bg-destructive/10 text-destructive border-destructive/30 text-xs">
+          {days} days
+        </Badge>
+      );
+    }
+  };
+
+  const hasActiveFilters = searchQuery || dateFilter !== '30d' || categoryFilter !== 'all';
+
   return (
     <AppLayout 
-      title="Part Exchange Intake Queue"
+      title="Trade-In Intake Queue"
       subtitle="Review and convert trade-ins into sellable inventory"
     >
       <div className="space-y-6">
-        {/* Search and Filters */}
+        {/* Summary Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Package className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Pending Items</p>
+                  <p className="text-2xl font-semibold">{summaryStats.count}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-[#D4AF37]/10">
+                  <TrendingUp className="h-5 w-5 text-[#D4AF37]" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Total Value</p>
+                  <p className="text-2xl font-semibold">{formatCurrency(summaryStats.totalValue)}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-destructive/10">
+                  <Clock className="h-5 w-5 text-destructive" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Oldest Item</p>
+                  <p className="text-2xl font-semibold">{summaryStats.oldestDays} days</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="pt-4 pb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-muted">
+                  <Calendar className="h-5 w-5 text-muted-foreground" />
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">Avg. Days Pending</p>
+                  <p className="text-2xl font-semibold">{summaryStats.avgDays}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Search, Filters, and View Toggle */}
         <Card>
           <CardContent className="pt-6">
-            <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-              <div className="flex-1 relative">
+            <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center">
+              <div className="flex-1 relative w-full lg:w-auto">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  placeholder="Search by product name, customer, or serial..."
+                  placeholder="Search by product, customer, or serial..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="pl-10"
                 />
               </div>
               
-              <Select value={dateFilter} onValueChange={(value: any) => setDateFilter(value)}>
-                <SelectTrigger className="w-full md:w-[180px]">
-                  <Filter className="h-4 w-4 mr-2" />
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="7d">Last 7 days</SelectItem>
-                  <SelectItem value="30d">Last 30 days</SelectItem>
-                  <SelectItem value="all">All time</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="flex flex-wrap gap-2 items-center">
+                <Select value={dateFilter} onValueChange={(value: any) => setDateFilter(value)}>
+                  <SelectTrigger className="w-[140px]">
+                    <Filter className="h-4 w-4 mr-2" />
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7d">Last 7 days</SelectItem>
+                    <SelectItem value="30d">Last 30 days</SelectItem>
+                    <SelectItem value="all">All time</SelectItem>
+                  </SelectContent>
+                </Select>
 
-              <Select value={categoryFilter} onValueChange={setCategoryFilter}>
-                <SelectTrigger className="w-full md:w-[180px]">
-                  <SelectValue placeholder="All categories" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All categories</SelectItem>
-                  <SelectItem value="uncategorized">Uncategorized</SelectItem>
-                  {categories.map((cat) => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <Select value={categoryFilter} onValueChange={setCategoryFilter}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder="All categories" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All categories</SelectItem>
+                    <SelectItem value="uncategorized">Uncategorized</SelectItem>
+                    {categories.map((cat) => (
+                      <SelectItem key={cat} value={cat!}>
+                        {cat}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
 
-              {(searchQuery || dateFilter !== '30d' || categoryFilter !== 'all') && (
-                <Button variant="outline" onClick={clearFilters}>
-                  <X className="h-4 w-4" />
-                  Clear
+                {hasActiveFilters && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters}>
+                    <X className="h-4 w-4 mr-1" />
+                    Clear
+                  </Button>
+                )}
+              </div>
+
+              <div className="flex gap-2 items-center ml-auto">
+                <ToggleGroup 
+                  type="single" 
+                  value={viewMode} 
+                  onValueChange={(value) => value && setViewMode(value as 'cards' | 'table')}
+                >
+                  <ToggleGroupItem value="cards" aria-label="Card view" size="sm">
+                    <LayoutGrid className="h-4 w-4" />
+                  </ToggleGroupItem>
+                  <ToggleGroupItem value="table" aria-label="Table view" size="sm">
+                    <LayoutList className="h-4 w-4" />
+                  </ToggleGroupItem>
+                </ToggleGroup>
+
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={handleExport}
+                  disabled={filteredPXs.length === 0}
+                >
+                  <Download className="h-4 w-4 mr-2" />
+                  Export
                 </Button>
-              )}
-
-              <Badge variant="secondary" className="text-base px-4 py-1.5 whitespace-nowrap">
-                {filteredPXs.length} Pending
-              </Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
@@ -214,126 +353,227 @@ export default function PartExchangeIntake() {
         ) : !pendingPXs || pendingPXs.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
-              <Package className="h-16 w-16 text-muted-foreground/50 mb-4" />
-              <p className="text-lg font-medium text-muted-foreground">
-                No pending trade-ins
+              <div className="p-4 rounded-full bg-muted/50 mb-4">
+                <Package className="h-12 w-12 text-muted-foreground/50" />
+              </div>
+              <p className="text-lg font-medium">No pending trade-ins</p>
+              <p className="text-sm text-muted-foreground mt-1 text-center max-w-sm">
+                Trade-ins from point of sale will appear here for review and conversion to inventory
               </p>
-              <p className="text-sm text-muted-foreground mt-1">
-                Trade-ins from sales will appear here for conversion to inventory
-              </p>
-              <Button variant="outline" className="mt-4" onClick={() => window.location.href = '/sales'}>
-                Go to Point of Sale
-              </Button>
+              <div className="flex gap-3 mt-6">
+                <Button onClick={() => navigate('/sales')}>
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Go to Point of Sale
+                </Button>
+                <Button variant="outline" onClick={() => navigate('/products?filter=trade-in')}>
+                  View Converted Trade-ins
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ) : filteredPXs.length === 0 ? (
           <Card>
             <CardContent className="flex flex-col items-center justify-center py-16">
-              <Filter className="h-16 w-16 text-muted-foreground/50 mb-4" />
-              <p className="text-lg font-medium text-muted-foreground">
-                No trade-ins match your filters
-              </p>
+              <Filter className="h-12 w-12 text-muted-foreground/50 mb-4" />
+              <p className="text-lg font-medium">No trade-ins match your filters</p>
               <Button variant="outline" className="mt-4" onClick={clearFilters}>
                 Clear Filters
               </Button>
             </CardContent>
           </Card>
-        ) : (
-          <div className="grid gap-4">
-            {filteredPXs.map((px) => (
-              <Card key={px.id} className="hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2">
-                        <Badge variant="secondary">Pending</Badge>
-                        <span className="text-sm text-muted-foreground">
-                          Sale #{px.sale_id} • {format(new Date(px.created_at), 'PPp')}
-                        </span>
-                      </div>
-                      <CardTitle className="font-luxury text-2xl mt-2">
-                        {px.title}
-                      </CardTitle>
-                      {px.category && (
-                        <CardDescription className="mt-1">
-                          {px.category} {px.serial && `• SKU: ${px.serial}`}
-                        </CardDescription>
-                      )}
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid md:grid-cols-2 gap-6 mb-6">
-                    <div className="space-y-3">
-                      {px.description && (
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">Description</p>
-                          <p className="text-sm">{px.description}</p>
-                        </div>
-                      )}
-                      {px.customer_name && (
-                        <div>
-                          <p className="text-sm text-muted-foreground mb-1">Customer</p>
-                          <p className="font-medium">{px.customer_name}</p>
-                          {px.customer_contact && (
-                            <p className="text-sm text-muted-foreground">
-                              {px.customer_contact}
-                            </p>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                    <div className="space-y-3">
-                      <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
-                        <p className="text-sm text-muted-foreground mb-1">Trade-in Allowance</p>
-                        <p className="text-3xl font-luxury font-semibold text-[#D4AF37]">
-                          {formatCurrency(px.allowance)}
+        ) : viewMode === 'table' ? (
+          /* Table View */
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Customer</TableHead>
+                  <TableHead>Sale</TableHead>
+                  <TableHead className="text-right">Value</TableHead>
+                  <TableHead>Age</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredPXs.map((px) => (
+                  <TableRow key={px.id}>
+                    <TableCell>
+                      <div>
+                        <p className="font-medium">{px.title}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {px.category}{px.serial && ` • ${px.serial}`}
                         </p>
                       </div>
+                    </TableCell>
+                    <TableCell>
+                      {px.customer_name ? (
+                        <div className="flex items-center gap-2">
+                          <div className="h-7 w-7 rounded-full bg-primary/10 flex items-center justify-center">
+                            <User className="h-3.5 w-3.5 text-primary" />
+                          </div>
+                          <span className="text-sm">{px.customer_name}</span>
+                        </div>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">—</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <button
+                        onClick={() => navigate(`/transactions/${px.sale_id}`)}
+                        className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        #{px.sale_id}
+                        <ExternalLink className="h-3 w-3" />
+                      </button>
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <span className="font-semibold text-[#D4AF37]">
+                        {formatCurrency(px.allowance)}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {getAgingBadge(px.created_at)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <div className="flex justify-end gap-1">
+                        <Button
+                          size="sm"
+                          onClick={() => handleConvert(px)}
+                          disabled={!isOwner}
+                        >
+                          <PackageCheck className="h-4 w-4 mr-1" />
+                          Convert
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleEdit(px)}
+                          disabled={!isOwner}
+                        >
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => handleDiscardClick(px)}
+                          disabled={!isOwner}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        ) : (
+          /* Card View - 2 column grid */
+          <div className="grid md:grid-cols-2 gap-4">
+            {filteredPXs.map((px) => (
+              <Card key={px.id} className="hover:shadow-lg transition-shadow">
+                <CardContent className="pt-5">
+                  {/* Header row */}
+                  <div className="flex items-start justify-between gap-4 mb-4">
+                    <div className="flex items-center gap-3 min-w-0">
+                      {/* Customer avatar */}
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                        {px.customer_name ? (
+                          <span className="text-sm font-medium text-primary">
+                            {px.customer_name.charAt(0).toUpperCase()}
+                          </span>
+                        ) : (
+                          <User className="h-4 w-4 text-primary" />
+                        )}
+                      </div>
+                      <div className="min-w-0">
+                        <h3 className="font-semibold truncate">{px.title}</h3>
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          {px.category && <span>{px.category}</span>}
+                          {px.serial && (
+                            <Badge variant="outline" className="text-xs font-mono">
+                              {px.serial}
+                            </Badge>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                    {getAgingBadge(px.created_at)}
+                  </div>
+
+                  {/* Details row */}
+                  <div className="flex items-center justify-between mb-4 p-3 rounded-lg bg-muted/30">
+                    <div>
+                      <p className="text-xs text-muted-foreground mb-0.5">Trade-in Value</p>
+                      <p className="text-xl font-semibold text-[#D4AF37]">
+                        {formatCurrency(px.allowance)}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="text-xs text-muted-foreground mb-0.5">From Sale</p>
+                      <button
+                        onClick={() => navigate(`/transactions/${px.sale_id}`)}
+                        className="text-sm text-primary hover:underline inline-flex items-center gap-1"
+                      >
+                        #{px.sale_id}
+                        <ExternalLink className="h-3 w-3" />
+                      </button>
                     </div>
                   </div>
 
-                  {px.notes && (
-                    <div className="mb-6 p-4 bg-muted/30 rounded-lg">
-                      <p className="text-sm text-muted-foreground mb-1">Notes</p>
-                      <p className="text-sm">{px.notes}</p>
+                  {/* Customer info */}
+                  {px.customer_name && (
+                    <div className="mb-4 text-sm">
+                      <span className="text-muted-foreground">Customer: </span>
+                      <span className="font-medium">{px.customer_name}</span>
+                      {px.customer_contact && (
+                        <span className="text-muted-foreground"> • {px.customer_contact}</span>
+                      )}
                     </div>
                   )}
 
-                  <div className="flex flex-wrap gap-3">
+                  {/* Notes */}
+                  {px.notes && (
+                    <div className="mb-4 p-2 rounded bg-muted/20 text-sm text-muted-foreground line-clamp-2">
+                      {px.notes}
+                    </div>
+                  )}
+
+                  {/* Actions */}
+                  <div className="flex gap-2">
                     <Button
                       onClick={() => handleConvert(px)}
-                      variant="default"
                       disabled={!isOwner}
-                      className="flex-1 md:flex-initial"
+                      className="flex-1"
+                      size="sm"
                     >
-                      <PackageCheck className="h-4 w-4" />
-                      Convert to Product
+                      <PackageCheck className="h-4 w-4 mr-1" />
+                      Convert
                     </Button>
-                    
                     <Button
-                      onClick={() => handleEdit(px)}
                       variant="outline"
+                      size="sm"
+                      onClick={() => handleEdit(px)}
                       disabled={!isOwner}
                     >
                       <Edit className="h-4 w-4" />
-                      Edit Details
                     </Button>
-                    
                     <Button
-                      onClick={() => handleDiscardClick(px)}
                       variant="outline"
+                      size="sm"
+                      onClick={() => handleDiscardClick(px)}
                       disabled={!isOwner}
-                      className="text-destructive hover:text-destructive"
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
                     >
                       <Trash2 className="h-4 w-4" />
-                      Discard
                     </Button>
                   </div>
 
                   {!isOwner && (
-                    <p className="text-xs text-muted-foreground mt-3">
-                      Only owners can convert or discard trade-ins
+                    <p className="text-xs text-muted-foreground mt-2 text-center">
+                      Owner access required
                     </p>
                   )}
                 </CardContent>
