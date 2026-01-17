@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { formatPaymentMethod } from '@/lib/utils';
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -22,13 +23,11 @@ import {
   Receipt, 
   Printer,
   Mail,
-  RotateCcw,
   PoundSterling,
   Calendar,
   User,
   CreditCard,
   Package,
-  Hash,
   TrendingUp,
   AlertCircle
 } from 'lucide-react';
@@ -153,21 +152,6 @@ export default function SaleDetail() {
     });
   };
 
-  const handleReturnItem = (saleItemId: number) => {
-    if (userRole !== 'owner') {
-      toast({
-        title: "Access Denied",
-        description: "Only owners can process returns",
-        variant: "destructive"
-      });
-      return;
-    }
-    
-    toast({
-      title: "Return Item",
-      description: "Return functionality coming soon"
-    });
-  };
 
   if (isLoading) {
     return (
@@ -289,7 +273,7 @@ export default function SaleDetail() {
             </CardHeader>
             <CardContent>
               <Badge variant={sale.payment === 'cash' ? 'secondary' : 'default'} className="text-lg">
-                {sale.payment.toUpperCase()}
+                {formatPaymentMethod(sale.payment)}
               </Badge>
             </CardContent>
           </Card>
@@ -336,17 +320,6 @@ export default function SaleDetail() {
                           </p>
                         )}
                       </div>
-                      
-                      {userRole === 'owner' && (
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => handleReturnItem(item.id)}
-                        >
-                          <RotateCcw className="h-3 w-3 mr-2" />
-                          Return
-                        </Button>
-                      )}
                     </div>
                     
                     <div className="grid grid-cols-2 md:grid-cols-5 gap-4 text-sm">
@@ -380,12 +353,16 @@ export default function SaleDetail() {
                       </div>
                     </div>
                     
-                    {/* Serial tracking note - functionality to be implemented */}
-                    <div className="mt-3 pt-3 border-t">
-                      <div className="text-sm text-muted-foreground">
-                        Serial tracking coming soon
+                    {/* Product metadata */}
+                    {(item.product?.internal_sku || item.product?.category) && (
+                      <div className="mt-3 pt-3 border-t">
+                        <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                          {item.product?.internal_sku && <span>INT: {item.product.internal_sku}</span>}
+                          {item.product?.category && <span>{item.product.category}</span>}
+                          {item.product?.metal && <span>{item.product.metal}</span>}
+                        </div>
                       </div>
-                    </div>
+                    )}
                   </div>
                 );
               })}
@@ -475,30 +452,5 @@ export default function SaleDetail() {
         </DialogContent>
       </Dialog>
     </AppLayout>
-  );
-}
-
-// Helper component for serial numbers
-function SerialNumbersList({ saleItemId }: { saleItemId: number }) {
-  // TODO: Implement serial numbers fetch when the hook is available
-  const serialNumbers: any[] = [];
-  
-  if (serialNumbers.length === 0) {
-    return (
-      <div className="text-sm text-muted-foreground italic">
-        No serial numbers assigned
-      </div>
-    );
-  }
-  
-  return (
-    <div className="flex flex-wrap gap-2">
-      {serialNumbers.map((serial) => (
-        <Badge key={serial.id} variant="outline" className="font-mono">
-          <Hash className="h-3 w-3 mr-1" />
-          {serial.serial}
-        </Badge>
-      ))}
-    </div>
   );
 }
