@@ -29,6 +29,8 @@ interface ExpenseFormData {
   payment_method: string;
   include_vat: boolean;
   vat_rate: number;
+  manual_vat_override: boolean;
+  manual_vat_amount: string;
   notes: string;
   is_cogs: boolean;
   recurring: boolean;
@@ -92,6 +94,8 @@ export function ExpenseModal({
     payment_method: 'cash',
     include_vat: false,
     vat_rate: 20,
+    manual_vat_override: false,
+    manual_vat_amount: '',
     notes: '',
     is_cogs: false,
     recurring: false,
@@ -110,8 +114,10 @@ export function ExpenseModal({
         category: expense.category || 'other',
         supplier_id: expense.supplier_id || null,
         payment_method: expense.payment_method || 'cash',
-        include_vat: !!expense.vat_rate,
+        include_vat: !!expense.vat_rate || !!expense.vat_amount,
         vat_rate: expense.vat_rate || 20,
+        manual_vat_override: false,
+        manual_vat_amount: expense.vat_amount?.toString() || '',
         notes: expense.notes || '',
         is_cogs: expense.is_cogs || false,
         recurring: false,
@@ -129,6 +135,8 @@ export function ExpenseModal({
         payment_method: 'cash',
         include_vat: false,
         vat_rate: 20,
+        manual_vat_override: false,
+        manual_vat_amount: '',
         notes: '',
         is_cogs: false,
         recurring: false,
@@ -150,6 +158,19 @@ export function ExpenseModal({
         amountIncVat: amountNum
       };
     }
+    
+    // If manual override is enabled, use the manually entered VAT amount
+    if (formData.manual_vat_override) {
+      const manualVat = parseFloat(formData.manual_vat_amount) || 0;
+      const amountExVat = amountNum - manualVat;
+      return {
+        amountExVat: parseFloat(amountExVat.toFixed(2)),
+        vatAmount: parseFloat(manualVat.toFixed(2)),
+        amountIncVat: amountNum
+      };
+    }
+    
+    // Standard calculation based on VAT rate
     const vatDecimal = formData.vat_rate / 100;
     const amountExVat = amountNum / (1 + vatDecimal);
     const vatAmount = amountNum - amountExVat;
@@ -178,6 +199,16 @@ export function ExpenseModal({
     }
     if (formData.recurring && !formData.next_due_date) {
       newErrors.next_due_date = 'Next due date is required for recurring expenses';
+    }
+    // Validate manual VAT amount
+    if (formData.include_vat && formData.manual_vat_override) {
+      const manualVat = parseFloat(formData.manual_vat_amount) || 0;
+      const totalAmount = parseFloat(formData.amount) || 0;
+      if (manualVat < 0) {
+        newErrors.manual_vat = 'VAT amount cannot be negative';
+      } else if (manualVat >= totalAmount) {
+        newErrors.manual_vat = 'VAT amount must be less than total';
+      }
     }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -286,34 +317,86 @@ export function ExpenseModal({
 
               {/* VAT Breakdown */}
               {formData.include_vat && <div className="space-y-3 rounded-lg border bg-muted/50 p-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="vat-rate">VAT Rate</Label>
-                    <Select value={formData.vat_rate.toString()} onValueChange={value => setFormData({
-                  ...formData,
-                  vat_rate: parseInt(value)
-                })}>
-                      <SelectTrigger id="vat-rate">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {VAT_RATES.map(rate => <SelectItem key={rate} value={rate.toString()}>
-                            {rate}%
-                          </SelectItem>)}
-                      </SelectContent>
-                    </Select>
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-2 flex-1">
+                      <Label htmlFor="vat-rate">VAT Rate</Label>
+                      <Select 
+                        value={formData.vat_rate.toString()} 
+                        onValueChange={value => setFormData({
+                          ...formData,
+                          vat_rate: parseInt(value),
+                          manual_vat_override: false,
+                          manual_vat_amount: ''
+                        })}
+                        disabled={formData.manual_vat_override}
+                      >
+                        <SelectTrigger id="vat-rate" className={formData.manual_vat_override ? 'opacity-50' : ''}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {VAT_RATES.map(rate => <SelectItem key={rate} value={rate.toString()}>
+                              {rate}%
+                            </SelectItem>)}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {/* Manual VAT Override Toggle */}
+                  <div className="flex items-center gap-2">
+                    <Switch 
+                      id="manual-vat-override" 
+                      checked={formData.manual_vat_override} 
+                      onCheckedChange={checked => {
+                        // When enabling override, pre-fill with calculated VAT
+                        if (checked && !formData.manual_vat_amount) {
+                          setFormData({
+                            ...formData,
+                            manual_vat_override: checked,
+                            manual_vat_amount: vatBreakdown.vatAmount.toFixed(2)
+                          });
+                        } else {
+                          setFormData({
+                            ...formData,
+                            manual_vat_override: checked
+                          });
+                        }
+                      }} 
+                    />
+                    <Label htmlFor="manual-vat-override" className="cursor-pointer text-sm">
+                      Override calculated VAT amount
+                    </Label>
                   </div>
 
                   <Separator />
 
-                  <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
+                  <div className="space-y-2 text-sm">
+                    <div className="flex justify-between items-center">
                       <span className="text-muted-foreground">Amount (Ex VAT):</span>
                       <span className="font-medium">£{vatBreakdown.amountExVat.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span className="text-muted-foreground">VAT ({formData.vat_rate}%):</span>
-                      <span className="font-medium">£{vatBreakdown.vatAmount.toFixed(2)}</span>
+                    <div className="flex justify-between items-center">
+                      <span className="text-muted-foreground">
+                        VAT {formData.manual_vat_override ? '(Manual)' : `(${formData.vat_rate}%)`}:
+                      </span>
+                      {formData.manual_vat_override ? (
+                        <div className="w-28">
+                          <CurrencyInput
+                            value={formData.manual_vat_amount}
+                            onValueChange={value => setFormData({
+                              ...formData,
+                              manual_vat_amount: value
+                            })}
+                            error={errors.manual_vat}
+                          />
+                        </div>
+                      ) : (
+                        <span className="font-medium">£{vatBreakdown.vatAmount.toFixed(2)}</span>
+                      )}
                     </div>
+                    {errors.manual_vat && (
+                      <p className="text-sm text-destructive">{errors.manual_vat}</p>
+                    )}
                     <div className="flex justify-between border-t pt-1">
                       <span className="font-semibold">Total (Inc VAT):</span>
                       <span className="font-semibold">
