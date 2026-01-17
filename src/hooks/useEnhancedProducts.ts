@@ -143,9 +143,9 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
         const avgCost = inventoryInfo?.avg_cost || product.unit_cost;
         const inventoryValue = inventoryInfo?.inventory_value || (qtyOnHand * avgCost);
         
-        // Calculate margin percentage
-        const margin = product.unit_price > 0 
-          ? ((product.unit_price - product.unit_cost) / product.unit_price) * 100 
+        // Calculate markup percentage (Profit / Cost * 100) - jewellery industry standard
+        const margin = product.unit_cost > 0 
+          ? ((product.unit_price - product.unit_cost) / product.unit_cost) * 100 
           : 0;
 
         return {
