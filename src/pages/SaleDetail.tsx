@@ -199,10 +199,10 @@ export default function SaleDetail() {
         <div className="flex items-center justify-between">
           <Button
             variant="outline"
-            onClick={() => navigate('/sales/history')}
+            onClick={() => navigate('/sales')}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Sales History
+            Back to Sales
           </Button>
           
           <div className="flex gap-2">
