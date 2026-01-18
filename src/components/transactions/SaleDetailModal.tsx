@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useTheme } from 'next-themes';
-import { Printer, Mail, X, AlertCircle, Eye, Ban, Edit, Coins, Repeat, MapPin } from 'lucide-react';
+import { Printer, Mail, X, AlertCircle, Eye, Ban, Edit, Coins, Repeat, MapPin, User } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
 import { QuickSettlementModal } from '@/components/consignments/QuickSettlementModal';
@@ -298,13 +298,16 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                 )}
               </div>
             )}
-            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground mt-2">
-              <span>Processed by: {(sale as any).staff_member_name || sale.profiles?.full_name || 'Unknown'}</span>
+            <div className="flex flex-wrap items-center gap-2 mt-3">
+              <Badge variant="secondary" className="gap-1.5 px-2.5 py-1 text-xs font-normal">
+                <User className="h-3 w-3" />
+                {(sale as any).staff_member_name || sale.profiles?.full_name || 'Unknown'}
+              </Badge>
               {(sale as any).locations?.name && (
-                <span className="flex items-center gap-1">
+                <Badge variant="outline" className="gap-1.5 px-2.5 py-1 text-xs font-normal">
                   <MapPin className="h-3 w-3" />
                   {(sale as any).locations.name}
-                </span>
+                </Badge>
               )}
             </div>
           </DialogHeader>
