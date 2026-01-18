@@ -158,8 +158,8 @@ export default function SaleDetail() {
   };
 
   const isStaff = userRole === 'staff';
-  const backPath = isStaff ? '/sales/my-sales' : '/sales/transactions';
-  const backLabel = isStaff ? 'Back to My Sales' : 'Back to Sales History';
+  const backPath = isStaff ? '/sales/my-sales' : '/sales/items';
+  const backLabel = isStaff ? 'Back to My Sales' : 'Back to Sold Items';
   const handleBack = () => navigate(backPath);
 
   if (isLoading) {
