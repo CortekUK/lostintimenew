@@ -172,7 +172,8 @@ export function EnhancedTable<T>({
                 <th
                   key={index}
                   className={cn(
-                    'px-4 py-3 font-medium text-sm border-r last:border-r-0 text-left',
+                    'px-4 font-medium border-r last:border-r-0 text-left',
+                    isDense ? 'py-2 text-xs' : 'py-3 text-sm',
                     column.sortable ? 'cursor-pointer hover:bg-muted/50' : '',
                     column.align === 'right' ? 'text-right' : 
                     column.align === 'center' ? 'text-center' : 'text-left'
@@ -219,7 +220,7 @@ export function EnhancedTable<T>({
                           key={colIndex}
                           className={cn(
                             'px-4 overflow-hidden',
-                            isDense ? 'py-1 text-sm' : 'py-2',
+                            isDense ? 'py-1 text-xs' : 'py-3',
                             column.align === 'right' ? 'text-right' : 
                             column.align === 'center' ? 'text-center' : 'text-left'
                           )}
