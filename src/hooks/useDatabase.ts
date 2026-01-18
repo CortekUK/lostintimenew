@@ -468,7 +468,9 @@ export const useTransactionDetails = (saleId?: number) => {
             id, sold_at, staff_id, payment, customer_name, customer_email, signature_data, notes,
             subtotal, discount_total, tax_total, total, part_exchange_total,
             is_voided, voided_at, voided_by, void_reason, edited_at, edited_by, edit_reason,
-            profiles!fk_sales_staff_id ( full_name )
+            location_id,
+            profiles!fk_sales_staff_id ( full_name ),
+            locations!sales_location_id_fkey ( id, name )
           )
         `)
         .eq('sale_id', saleId);
