@@ -361,6 +361,19 @@ export default function SoldItemsReport() {
       }
     },
     {
+      key: 'location',
+      title: 'Location',
+      width: 120,
+      render: (value: any, row: any, index: number) => {
+        const locationName = (row?.sales as any)?.locations?.name;
+        return (
+          <div className="text-sm text-muted-foreground">
+            {locationName || '-'}
+          </div>
+        );
+      }
+    },
+    {
       key: 'actions',
       title: 'Actions',
       width: 100,
