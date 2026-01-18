@@ -9,20 +9,21 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
-  Package, Loader2, Search, Edit, Trash2, PackageCheck, Filter, X, 
+  Package, Loader2, Search, Edit, PackageCheck, Filter, X, 
   LayoutGrid, LayoutList, Download, Clock, TrendingUp, Calendar, User,
-  ExternalLink, ShoppingCart
+  ExternalLink, ShoppingCart, Pause, Play
 } from 'lucide-react';
 import { format, subDays, differenceInDays } from 'date-fns';
 import { useManagerOrAboveGuard } from '@/hooks/useOwnerGuard';
 import { ConvertPartExchangeDialog } from '@/components/pos/ConvertPartExchangeDialog';
 import { EditPartExchangeModal } from '@/components/pos/EditPartExchangeModal';
-import { useDiscardPartExchange } from '@/hooks/usePartExchanges';
+import { useHoldPartExchange, useReleaseHold } from '@/hooks/usePartExchanges';
 import { exportPartExchangesToCSV } from '@/utils/partExchangeExport';
 
 interface PendingPartExchange {
@@ -39,6 +40,8 @@ interface PendingPartExchange {
   notes: string | null;
   created_at: string;
   status: string;
+  hold_reason?: string | null;
+  hold_at?: string | null;
 }
 
 export default function PartExchangeIntake() {
@@ -54,11 +57,12 @@ export default function PartExchangeIntake() {
   // Modal state
   const [convertDialogOpen, setConvertDialogOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [discardDialogOpen, setDiscardDialogOpen] = useState(false);
+  const [holdDialogOpen, setHoldDialogOpen] = useState(false);
   const [selectedPX, setSelectedPX] = useState<PendingPartExchange | null>(null);
-  const [discardReason, setDiscardReason] = useState('');
+  const [holdReason, setHoldReason] = useState('');
 
-  const { data: pendingPXs, isLoading } = useQuery({
+  // Fetch pending items
+  const { data: pendingPXs, isLoading: loadingPending } = useQuery({
     queryKey: ['pending-part-exchanges'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -72,7 +76,24 @@ export default function PartExchangeIntake() {
     },
   });
 
-  const discardMutation = useDiscardPartExchange();
+  // Fetch items on hold
+  const { data: holdPXs, isLoading: loadingHold } = useQuery({
+    queryKey: ['hold-part-exchanges'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('part_exchanges')
+        .select('*')
+        .eq('status', 'hold')
+        .order('hold_at', { ascending: false });
+
+      if (error) throw error;
+      return data as PendingPartExchange[];
+    },
+  });
+
+  const holdMutation = useHoldPartExchange();
+  const releaseMutation = useReleaseHold();
+  const isLoading = loadingPending || loadingHold;
 
   // Calculate summary stats
   const summaryStats = useMemo(() => {
@@ -138,22 +159,26 @@ export default function PartExchangeIntake() {
     setEditModalOpen(true);
   };
 
-  const handleDiscardClick = (px: PendingPartExchange) => {
+  const handleHoldClick = (px: PendingPartExchange) => {
     setSelectedPX(px);
-    setDiscardDialogOpen(true);
+    setHoldDialogOpen(true);
   };
 
-  const handleDiscardConfirm = async () => {
-    if (!selectedPX) return;
+  const handleHoldConfirm = async () => {
+    if (!selectedPX || !holdReason.trim()) return;
     
-    await discardMutation.mutateAsync({
+    await holdMutation.mutateAsync({
       id: selectedPX.id,
-      reason: discardReason || undefined,
+      reason: holdReason,
     });
     
-    setDiscardDialogOpen(false);
+    setHoldDialogOpen(false);
     setSelectedPX(null);
-    setDiscardReason('');
+    setHoldReason('');
+  };
+
+  const handleReleaseHold = async (px: PendingPartExchange) => {
+    await releaseMutation.mutateAsync(px.id);
   };
 
   const clearFilters = () => {
@@ -440,11 +465,11 @@ export default function PartExchangeIntake() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          onClick={() => handleDiscardClick(px)}
+                          onClick={() => handleHoldClick(px)}
                           disabled={!canManage}
-                          className="text-destructive hover:text-destructive"
+                          title="Put on hold"
                         >
-                          <Trash2 className="h-4 w-4" />
+                          <Pause className="h-4 w-4" />
                         </Button>
                       </div>
                     </TableCell>
@@ -547,11 +572,11 @@ export default function PartExchangeIntake() {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => handleDiscardClick(px)}
+                      onClick={() => handleHoldClick(px)}
                       disabled={!canManage}
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                      title="Put on hold"
                     >
-                      <Trash2 className="h-4 w-4" />
+                      <Pause className="h-4 w-4" />
                     </Button>
                   </div>
 
@@ -564,6 +589,90 @@ export default function PartExchangeIntake() {
               </Card>
             ))}
           </div>
+        )}
+
+        {/* On Hold Section */}
+        {holdPXs && holdPXs.length > 0 && (
+          <Card className="border-warning/30 bg-warning/5">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Pause className="h-5 w-5 text-warning" />
+                  <CardTitle className="text-lg">On Hold ({holdPXs.length})</CardTitle>
+                </div>
+                <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
+                  {formatCurrency(holdPXs.reduce((sum, px) => sum + Number(px.allowance), 0))}
+                </Badge>
+              </div>
+              <CardDescription>Items awaiting servicing, authentication, or other work before conversion</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Item</TableHead>
+                    <TableHead>Hold Reason</TableHead>
+                    <TableHead>On Hold Since</TableHead>
+                    <TableHead className="text-right">Value</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {holdPXs.map((px) => (
+                    <TableRow key={px.id}>
+                      <TableCell>
+                        <div>
+                          <p className="font-medium">{px.title}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {px.category}{px.serial && ` • ${px.serial}`}
+                          </p>
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
+                          {px.hold_reason || 'No reason'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {px.hold_at ? (
+                          <span className="text-sm text-muted-foreground">
+                            {format(new Date(px.hold_at), 'dd MMM yyyy')}
+                          </span>
+                        ) : '—'}
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <span className="font-semibold text-[#D4AF37]">
+                          {formatCurrency(px.allowance)}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-1">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => handleReleaseHold(px)}
+                            disabled={!canManage || releaseMutation.isPending}
+                            title="Release hold"
+                          >
+                            <Play className="h-4 w-4 mr-1" />
+                            Release
+                          </Button>
+                          <Button
+                            size="sm"
+                            onClick={() => handleConvert(px)}
+                            disabled={!canManage}
+                          >
+                            <PackageCheck className="h-4 w-4 mr-1" />
+                            Convert
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </CardContent>
+          </Card>
         )}
       </div>
 
@@ -580,39 +689,46 @@ export default function PartExchangeIntake() {
         partExchange={selectedPX}
       />
 
-      <AlertDialog open={discardDialogOpen} onOpenChange={setDiscardDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Discard Trade-In</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to discard "{selectedPX?.title}"? This item will be marked as discarded and removed from the intake queue.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
+      {/* Hold Dialog */}
+      <Dialog open={holdDialogOpen} onOpenChange={setHoldDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Put Trade-In on Hold</DialogTitle>
+            <DialogDescription>
+              Place "{selectedPX?.title}" on hold while it awaits servicing, authentication, or cleaning.
+            </DialogDescription>
+          </DialogHeader>
           
           <div className="space-y-2">
-            <Label htmlFor="discard-reason">Reason (optional)</Label>
-            <Textarea
-              id="discard-reason"
-              placeholder="Why is this being discarded?"
-              value={discardReason}
-              onChange={(e) => setDiscardReason(e.target.value)}
-              rows={3}
-            />
+            <Label htmlFor="hold-reason">Reason for hold *</Label>
+            <Select value={holdReason} onValueChange={setHoldReason}>
+              <SelectTrigger>
+                <SelectValue placeholder="Select a reason..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Needs servicing">Needs servicing</SelectItem>
+                <SelectItem value="Awaiting authentication">Awaiting authentication</SelectItem>
+                <SelectItem value="Requires cleaning">Requires cleaning</SelectItem>
+                <SelectItem value="Missing parts/components">Missing parts/components</SelectItem>
+                <SelectItem value="Awaiting valuation">Awaiting valuation</SelectItem>
+                <SelectItem value="Other">Other</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDiscardReason('')}>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setHoldDialogOpen(false); setHoldReason(''); }}>
               Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleDiscardConfirm}
-              className="bg-destructive hover:bg-destructive/90"
+            </Button>
+            <Button
+              onClick={handleHoldConfirm}
+              disabled={!holdReason.trim() || holdMutation.isPending}
             >
-              Discard Trade-In
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+              {holdMutation.isPending ? 'Placing on hold...' : 'Place on Hold'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </AppLayout>
   );
 }
