@@ -375,11 +375,30 @@ export default function Transactions() {
     {
       key: 'customer',
       title: 'Customer',
-      render: (value, row, index) => (
-        <div className="text-sm truncate max-w-[150px]" title={row.customer_name || row.customer_email || ''}>
-          {row.customer_name || row.customer_email || <span className="text-muted-foreground">Walk-in</span>}
-        </div>
-      )
+      render: (value, row, index) => {
+        const customerDisplay = row.customer_name || row.customer_email;
+        
+        if (row.customer_id && customerDisplay) {
+          return (
+            <div 
+              className="text-sm truncate max-w-[150px] cursor-pointer text-primary hover:underline" 
+              title={customerDisplay}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/customers/${row.customer_id}`);
+              }}
+            >
+              {customerDisplay}
+            </div>
+          );
+        }
+        
+        return (
+          <div className="text-sm truncate max-w-[150px] text-muted-foreground" title={customerDisplay || ''}>
+            {customerDisplay || 'Walk-in'}
+          </div>
+        );
+      }
     },
     {
       key: 'actions',
