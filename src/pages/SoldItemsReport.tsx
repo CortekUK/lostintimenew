@@ -27,7 +27,8 @@ import {
   ArrowLeft,
   Eye,
   Printer,
-  X
+  X,
+  Ban
 } from 'lucide-react';
 import { SaleDetailModal } from '@/components/transactions/SaleDetailModal';
 import { ProductDetailModal } from '@/components/modals/ProductDetailModal';
@@ -230,15 +231,24 @@ export default function SoldItemsReport() {
       render: (value: any, row: any, index: number) => {
         const date = new Date(row.sold_at);
         const isValidDate = !isNaN(date.getTime());
+        const isVoided = row?.sales?.is_voided;
         
         if (!isValidDate) {
           return <div className="text-sm text-muted-foreground">Invalid date</div>;
         }
         
         return (
-          <div>
-            <div className="font-medium">{format(date, 'MMM dd, yyyy')}</div>
-            <div className="text-xs text-muted-foreground">{format(date, 'HH:mm')}</div>
+          <div className="flex items-center gap-2">
+            <div>
+              <div className={`font-medium ${isVoided ? 'line-through text-muted-foreground' : ''}`}>{format(date, 'MMM dd, yyyy')}</div>
+              <div className="text-xs text-muted-foreground">{format(date, 'HH:mm')}</div>
+            </div>
+            {isVoided && (
+              <Badge variant="destructive" className="text-xs flex items-center gap-1">
+                <Ban className="h-3 w-3" />
+                VOID
+              </Badge>
+            )}
           </div>
         );
       }
@@ -293,9 +303,14 @@ export default function SoldItemsReport() {
       title: 'Revenue',
       sortable: true,
       width: 120,
-      render: (value: any, row: any, index: number) => (
-        <span className="font-mono font-bold">£{(row.line_revenue || 0).toFixed(2)}</span>
-      )
+      render: (value: any, row: any, index: number) => {
+        const isVoided = row?.sales?.is_voided;
+        return (
+          <span className={`font-mono font-bold ${isVoided ? 'line-through text-muted-foreground' : ''}`}>
+            £{(row.line_revenue || 0).toFixed(2)}
+          </span>
+        );
+      }
     },
     {
       key: 'margin',
