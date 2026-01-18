@@ -279,7 +279,14 @@ export default function Transactions() {
       width: 120,
       render: (value, row, index) => (
         <div className="flex items-center gap-2">
-          <Badge variant={row.is_voided ? "destructive" : "outline"} className={row.is_voided ? "line-through" : ""}>
+          <Badge 
+            variant={row.is_voided ? "destructive" : "outline"} 
+            className={`${row.is_voided ? "line-through" : ""} cursor-pointer hover:bg-primary hover:text-primary-foreground transition-colors`}
+            onClick={(e) => {
+              e.stopPropagation();
+              navigate(`/sales/${row.id}`);
+            }}
+          >
             #{row.id}
           </Badge>
           {row.is_voided && (
