@@ -10,7 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useTheme } from 'next-themes';
-import { Printer, Mail, X, AlertCircle, Eye, Ban, Edit, Coins, Repeat } from 'lucide-react';
+import { Printer, Mail, X, AlertCircle, Eye, Ban, Edit, Coins, Repeat, MapPin } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
 import { QuickSettlementModal } from '@/components/consignments/QuickSettlementModal';
@@ -298,8 +298,14 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                 )}
               </div>
             )}
-            <div className="text-xs text-muted-foreground mt-2">
-              Processed by: {(sale as any).staff_member_name || sale.profiles?.full_name || 'Unknown'}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground mt-2">
+              <span>Processed by: {(sale as any).staff_member_name || sale.profiles?.full_name || 'Unknown'}</span>
+              {(sale as any).locations?.name && (
+                <span className="flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {(sale as any).locations.name}
+                </span>
+              )}
             </div>
           </DialogHeader>
 
