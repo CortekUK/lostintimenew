@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Settings as SettingsIcon, User, Building, ShoppingCart, Download, Upload, Smartphone, Sparkles, Filter, Clock, Package, Store, Plus, Pencil, Trash2, Watch, CircleDot, Gem, Star, Heart, Crown, Diamond, Zap, Tag, Percent, Users, ExternalLink } from 'lucide-react';
+import { Settings as SettingsIcon, User, Building, ShoppingCart, Download, Upload, Smartphone, Sparkles, Filter, Clock, Package, Store, Plus, Pencil, Trash2, Watch, CircleDot, Gem, Star, Heart, Crown, Diamond, Zap, Tag, Percent, Users, ExternalLink, KeyRound } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings, CustomFilter } from '@/contexts/SettingsContext';
 import { CustomFilterDialog } from '@/components/settings/CustomFilterDialog';
@@ -25,6 +25,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { productCSVHeaders, supplierCSVHeaders, expenseCSVHeaders, productTypeCoercion, expenseTypeCoercion } from '@/utils/csvUtils';
 import { CommissionSettingsModal } from '@/components/reports/CommissionSettingsModal';
 import { useStaffCommissionOverrides } from '@/hooks/useStaffCommissionOverrides';
+import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 
 // Timezone options grouped by region
 const timezoneOptions = [
@@ -74,6 +75,7 @@ export default function Settings() {
   
   // Commission modal state
   const [showCommissionModal, setShowCommissionModal] = useState(false);
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const { data: commissionOverrides = [] } = useStaffCommissionOverrides();
   
   // Profile state
@@ -639,8 +641,28 @@ export default function Settings() {
                   />
                 </div>
               </div>
+
+              <Separator />
+
+              {/* Change Password */}
+              <div>
+                <Label>Password</Label>
+                <p className="text-sm text-muted-foreground mb-2">
+                  Update your account password for security.
+                </p>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowPasswordModal(true)}
+                  className="gap-2"
+                >
+                  <KeyRound className="h-4 w-4" />
+                  Change Password
+                </Button>
+              </div>
             </CardContent>
           </Card>
+
+          <ChangePasswordModal open={showPasswordModal} onOpenChange={setShowPasswordModal} />
 
           {/* User Management */}
           <UserManagement />
