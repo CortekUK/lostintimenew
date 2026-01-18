@@ -115,7 +115,6 @@ export function ReceiptDocument({ data, settings }: ReceiptProps) {
       </header>
 
       <section className="rcpt-info">
-        <div>Receipt #: <strong>{sale.id}</strong></div>
         <div>Date: <strong>{formatDateTime(sale.sold_at)}</strong></div>
         <div>Customer: <strong>{sale.customer_name || 'Walk-in'}</strong></div>
         <div>Staff: <strong>{staff?.full_name || '—'}</strong></div>
