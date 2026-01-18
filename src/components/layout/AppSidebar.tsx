@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Repeat, Users, User, ReceiptPoundSterling, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Repeat, Users, User, ReceiptPoundSterling, KeyRound, type LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from 'next-themes';
@@ -11,6 +11,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { FlyoutSubmenu } from './FlyoutSubmenu';
+import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { useState } from 'react';
 interface SubNavigationItem {
   title: string;
@@ -129,6 +130,7 @@ export function AppSidebar() {
   const currentPath = location.pathname;
   const [salesExpanded, setSalesExpanded] = useState(currentPath.startsWith('/sales'));
   const [productsExpanded, setProductsExpanded] = useState(currentPath.startsWith('/products'));
+  const [showPasswordModal, setShowPasswordModal] = useState(false);
   const isActive = (path: string) => currentPath === path;
   const getNavClass = ({
     isActive
@@ -287,6 +289,18 @@ export function AppSidebar() {
                   <p>Toggle theme</p>
                 </TooltipContent>
               </Tooltip>
+
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Button variant="ghost" size="sm" onClick={() => setShowPasswordModal(true)} className={`transition-all duration-[160ms] hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-accent-foreground))] focus-visible:shadow-[0_0_0_2px_hsl(var(--sidebar-ring))] outline-none ${isCollapsed ? "w-11 h-11 p-0" : "flex-1"}`} aria-label="Change password">
+                    <KeyRound className="h-4 w-4" />
+                    {!isCollapsed && <span className="ml-2">Password</span>}
+                  </Button>
+                </TooltipTrigger>
+                <TooltipContent side="right">
+                  <p>Change password</p>
+                </TooltipContent>
+              </Tooltip>
               
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -302,6 +316,8 @@ export function AppSidebar() {
             </div>
           </div>
         </SidebarFooter>
+
+        <ChangePasswordModal open={showPasswordModal} onOpenChange={setShowPasswordModal} />
       </Sidebar>
     </TooltipProvider>;
 }
