@@ -4,8 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { ToggleChip } from '@/components/ui/toggle-chip';
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
-import { PoundSterling, Package, TrendingUp, ReceiptPoundSterling, ShoppingCart, AlertTriangle, ChevronDown, Users, Wallet, Eye, ExternalLink, ChevronRight, Plus, Receipt, FileText, UserPlus } from 'lucide-react';
+import { PoundSterling, Package, TrendingUp, ReceiptPoundSterling, ShoppingCart, Users, Wallet, Eye, ExternalLink, ChevronRight, Plus, Receipt, FileText, UserPlus } from 'lucide-react';
 import { useTodayStats, useRecentSales, useTrendsData, useExpenseSnapshot, useStaffActivity, useBusinessInsights } from '@/hooks/useDashboardData';
 import { useAuth } from '@/contexts/AuthContext';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -14,7 +13,7 @@ import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
 import { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { useStockStatus } from '@/hooks/useStockStatus';
+
 import { usePendingPartExchangesStats } from '@/hooks/usePartExchanges';
 import { PendingTradeInsCard } from '@/components/dashboard/PendingTradeInsCard';
 import { CashDrawerPanel } from '@/components/cash-drawer/CashDrawerPanel';
@@ -515,50 +514,12 @@ const StaffActivitySection = () => {
     </Card>;
 };
 
-// Collapsible Restock Alerts
-const RestockAlertsSection = () => {
-  const {
-    data: stockData,
-    isLoading
-  } = useStockStatus();
-  const [isOpen, setIsOpen] = useState(false);
-  const alertItems = stockData ? Array.from(stockData.values()).filter(item => item.is_out_of_stock || item.is_at_risk) : [];
-  if (isLoading || alertItems.length === 0) return null;
-  return <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-      <Card className="shadow-card">
-        <CollapsibleTrigger asChild>
-          <Button variant="ghost" className="w-full p-6 justify-between hover:bg-muted/50">
-            <div className="flex items-center gap-2">
-              <AlertTriangle className="h-4 w-4 text-amber-500" />
-              <span className="font-medium text-muted-foreground">
-                {alertItems.length} {alertItems.length === 1 ? 'item needs' : 'items need'} restocking
-              </span>
-            </div>
-            <ChevronDown className={`h-4 w-4 text-muted-foreground transition-transform ${isOpen ? 'rotate-180' : ''}`} />
-          </Button>
-        </CollapsibleTrigger>
-        <CollapsibleContent>
-          <div className="px-6 pb-6 space-y-2">
-            {alertItems.map(item => <div key={item.product_id} className="flex items-center justify-between p-2 rounded-lg bg-muted/30">
-                <div>
-                  <p className="text-sm font-medium">Product #{item.product_id}</p>
-                  <p className="text-xs text-muted-foreground">Stock Level: {item.qty_on_hand} / {item.reorder_threshold}</p>
-                </div>
-                <Badge variant="secondary" className={`${item.is_out_of_stock ? 'text-amber-600 dark:text-amber-400' : 'text-muted-foreground'}`}>
-                  {item.is_out_of_stock ? 'Sold Out' : `${item.qty_on_hand} left`}
-                </Badge>
-              </div>)}
-          </div>
-        </CollapsibleContent>
-      </Card>
-    </Collapsible>;
-};
 export default function Dashboard() {
   const {
     user,
     loading: authLoading
   } = useAuth();
-  const { isOwner } = usePermissions();
+  const { isOwner, isAtLeast } = usePermissions();
   const {
     data: todayStats,
     isLoading
@@ -661,7 +622,7 @@ export default function Dashboard() {
       </div>
 
       {/* Cash Drawer Status - Owner/Manager only */}
-      {isOwner && (
+      {isAtLeast('manager') && (
         <div className="mb-6 md:mb-8">
           <CashDrawerPanel />
         </div>
@@ -678,7 +639,5 @@ export default function Dashboard() {
         <StaffActivitySection />
       </div>
 
-      {/* Collapsible Restock Alerts */}
-      <RestockAlertsSection />
     </AppLayout>;
 }
