@@ -429,7 +429,7 @@ export const useTransactions = () => {
         .select(`
           id, sold_at, subtotal, tax_total, discount_total, total, payment,
           part_exchange_total,
-          staff_id, customer_name, customer_email, is_voided, voided_at, void_reason,
+          staff_id, customer_id, customer_name, customer_email, is_voided, voided_at, void_reason,
           edited_at, edit_reason,
           profiles!fk_sales_staff_id ( full_name ),
           sale_items ( 
