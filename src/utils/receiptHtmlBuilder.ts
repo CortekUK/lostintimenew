@@ -284,6 +284,7 @@ export function buildReceiptHtml(data: ReceiptData, settings: SettingsData, isDa
     <div class="rcpt-info">
       <div><strong>Transaction #:</strong> ${sale.id.toString().padStart(6, '0')}</div>
       <div><strong>Date:</strong> ${formatDateTime(sale.sold_at)}</div>
+      <div><strong>Customer:</strong> ${escapeHtml(sale.customer_name) || 'Walk-in'}</div>
       <div><strong>Payment:</strong> ${escapeHtml(sale.payment.charAt(0).toUpperCase() + sale.payment.slice(1))}</div>
       ${staff?.full_name ? `<div><strong>Served by:</strong> ${escapeHtml(staff.full_name)}</div>` : ''}
     </div>
