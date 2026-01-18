@@ -677,6 +677,9 @@ export type Database = {
           customer_name: string | null
           customer_supplier_id: number | null
           description: string | null
+          hold_at: string | null
+          hold_by: string | null
+          hold_reason: string | null
           id: number
           notes: string | null
           product_id: number | null
@@ -693,6 +696,9 @@ export type Database = {
           customer_name?: string | null
           customer_supplier_id?: number | null
           description?: string | null
+          hold_at?: string | null
+          hold_by?: string | null
+          hold_reason?: string | null
           id?: number
           notes?: string | null
           product_id?: number | null
@@ -709,6 +715,9 @@ export type Database = {
           customer_name?: string | null
           customer_supplier_id?: number | null
           description?: string | null
+          hold_at?: string | null
+          hold_by?: string | null
+          hold_reason?: string | null
           id?: number
           notes?: string | null
           product_id?: number | null

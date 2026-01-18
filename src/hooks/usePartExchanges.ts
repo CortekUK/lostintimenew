@@ -189,33 +189,23 @@ export const useDeletePartExchange = () => {
   });
 };
 
-// Discard part exchange (soft delete by changing status)
-export const useDiscardPartExchange = () => {
+// Put part exchange on hold
+export const useHoldPartExchange = () => {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async ({ id, reason }: { id: number; reason?: string }) => {
-      const updates: any = {
-        status: 'discarded',
-      };
-
-      // Append discard reason to notes if provided
-      if (reason) {
-        const { data: current } = await supabase
-          .from('part_exchanges')
-          .select('notes')
-          .eq('id', id)
-          .single();
-
-        const timestamp = new Date().toISOString();
-        const discardNote = `\n\n[DISCARDED ${timestamp}]: ${reason}`;
-        updates.notes = (current?.notes || '') + discardNote;
-      }
-
+    mutationFn: async ({ id, reason }: { id: number; reason: string }) => {
+      const { data: { user } } = await supabase.auth.getUser();
+      
       const { error } = await supabase
         .from('part_exchanges')
-        .update(updates)
+        .update({
+          status: 'hold',
+          hold_reason: reason,
+          hold_at: new Date().toISOString(),
+          hold_by: user?.id || null,
+        })
         .eq('id', id);
 
       if (error) throw error;
@@ -223,14 +213,53 @@ export const useDiscardPartExchange = () => {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['part-exchanges'] });
       queryClient.invalidateQueries({ queryKey: ['pending-part-exchanges'] });
+      queryClient.invalidateQueries({ queryKey: ['hold-part-exchanges'] });
       toast({
-        title: "Trade-in discarded",
-        description: "Item has been marked as discarded.",
+        title: "Trade-in on hold",
+        description: "Item has been placed on hold.",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Error discarding trade-in",
+        title: "Error placing on hold",
+        description: error.message,
+        variant: "destructive",
+      });
+    },
+  });
+};
+
+// Release part exchange from hold back to pending
+export const useReleaseHold = () => {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: number) => {
+      const { error } = await supabase
+        .from('part_exchanges')
+        .update({
+          status: 'pending',
+          hold_reason: null,
+          hold_at: null,
+          hold_by: null,
+        })
+        .eq('id', id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['part-exchanges'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-part-exchanges'] });
+      queryClient.invalidateQueries({ queryKey: ['hold-part-exchanges'] });
+      toast({
+        title: "Hold released",
+        description: "Item is back in the pending queue.",
+      });
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error releasing hold",
         description: error.message,
         variant: "destructive",
       });
