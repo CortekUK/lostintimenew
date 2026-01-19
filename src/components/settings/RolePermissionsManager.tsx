@@ -247,7 +247,7 @@ export function RolePermissionsManager() {
 
         <p className="text-xs text-muted-foreground flex items-center gap-1">
           <Info className="h-3 w-3" />
-          Blue dots indicate permissions that differ from defaults.
+          Yellow dots indicate permissions that differ from defaults.
         </p>
       </div>
     );
