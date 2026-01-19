@@ -11,7 +11,7 @@ import { PartExchangeItem } from '@/types';
 import { useFilterOptions } from '@/hooks/useFilterOptions';
 import { InlineSupplierAdd } from '@/components/forms/InlineSupplierAdd';
 import { useSuppliers } from '@/hooks/useSuppliers';
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+// Removed ToggleGroup - PX source is always customer at POS
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
@@ -36,7 +36,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
     notes: '',
   });
 
-  const [tradeInSource, setTradeInSource] = useState<'customer' | 'supplier'>('customer');
+  // Trade-in source is always customer at POS (suppliers are added via Products/Suppliers section)
   const [selectedPerson, setSelectedPerson] = useState<{ id: number; name: string; type: string } | null>(null);
   const [quickAddMode, setQuickAddMode] = useState(false);
   const [quickName, setQuickName] = useState('');
@@ -63,15 +63,9 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
       newErrors.allowance = "Allowance must be greater than 0";
     }
 
-    // Validate trade-in source
-    if (tradeInSource === 'customer') {
-      if (!selectedPerson && !quickName.trim()) {
-        newErrors.source = "Please select a customer or enter a quick name";
-      }
-    } else {
-      if (!selectedPerson) {
-        newErrors.source = "Please select a supplier";
-      }
+    // Validate customer selection
+    if (!selectedPerson && !quickName.trim()) {
+      newErrors.source = "Please select a customer or enter a quick name";
     }
 
     setErrors(newErrors);
@@ -102,7 +96,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
     if (selectedPerson || quickName) {
       console.log('px_person_attached', {
         mode: selectedPerson ? 'record' : 'quick',
-        person_type: tradeInSource,
+        person_type: 'customer',
       });
     }
 
@@ -117,7 +111,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
       allowance: '',
       notes: '',
     });
-    setTradeInSource('customer');
+    // tradeInSource removed - always customer
     setSelectedPerson(null);
     setQuickAddMode(false);
     setQuickName('');
@@ -250,33 +244,9 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
             )}
           </div>
 
-          {/* Trade-in Source Selection */}
+          {/* Customer Selection */}
           <div className="space-y-3">
-            <Label>Trade-in Source *</Label>
-            
-            {/* Toggle between Customer and Supplier */}
-            <ToggleGroup
-              type="single"
-              value={tradeInSource}
-              onValueChange={(value) => {
-                if (value) {
-                  setTradeInSource(value as 'customer' | 'supplier');
-                  setSelectedPerson(null);
-                  setQuickAddMode(false);
-                  setQuickName('');
-                  setQuickContact('');
-                  setErrors(prev => ({ ...prev, source: '' }));
-                }
-              }}
-              className="justify-start"
-            >
-              <ToggleGroupItem value="customer" className="px-6">
-                Customer
-              </ToggleGroupItem>
-              <ToggleGroupItem value="supplier" className="px-6">
-                Supplier
-              </ToggleGroupItem>
-            </ToggleGroup>
+            <Label>Customer *</Label>
 
             {/* Contextual Person Selector */}
             <div className="space-y-3">
@@ -311,29 +281,17 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
                         className="flex-1 justify-start text-muted-foreground font-normal"
                       >
                         <Search className="h-4 w-4 mr-2" />
-                        {tradeInSource === 'customer'
-                          ? 'Find customer by name, phone, or email…'
-                          : 'Find supplier by name…'}
+                        Find customer by name, phone, or email…
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-[400px] p-0" align="start">
                       <Command>
-                        <CommandInput
-                          placeholder={
-                            tradeInSource === 'customer'
-                              ? 'Search customers...'
-                              : 'Search suppliers...'
-                          }
-                        />
+                        <CommandInput placeholder="Search customers..." />
                         <CommandList>
                           <CommandEmpty>No results found.</CommandEmpty>
                           <CommandGroup>
                             {suppliers
-                              ?.filter(s => 
-                                tradeInSource === 'customer' 
-                                  ? s.supplier_type === 'customer'
-                                  : s.supplier_type === 'registered'
-                              )
+                              ?.filter(s => s.supplier_type === 'customer')
                               ?.map((person) => (
                                 <CommandItem
                                   key={person.id}
@@ -341,7 +299,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
                                     setSelectedPerson({
                                       id: person.id,
                                       name: person.name,
-                                      type: tradeInSource,
+                                      type: 'customer',
                                     });
                                     setSearchOpen(false);
                                     setErrors(prev => ({ ...prev, source: '' }));
@@ -366,13 +324,13 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
                     variant="outline"
                     onClick={() => setShowNewPersonModal(true)}
                   >
-                    + New {tradeInSource === 'customer' ? 'Customer' : 'Supplier'}
+                    + New Customer
                   </Button>
                 </div>
               )}
 
-              {/* Quick Add for Customers Only */}
-              {tradeInSource === 'customer' && !selectedPerson && (
+              {/* Quick Add Option */}
+              {!selectedPerson && (
                 <div className="space-y-2">
                   <button
                     type="button"
@@ -472,13 +430,13 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
               setSelectedPerson({
                 id: newPerson.id,
                 name: newPerson.name,
-                type: tradeInSource,
+                type: 'customer',
               });
               setErrors(prev => ({ ...prev, source: '' }));
             }
             setShowNewPersonModal(false);
           }}
-          defaultType={tradeInSource === 'supplier' ? 'registered' : 'customer'}
+          defaultType="customer"
           lockType
         />
       </DialogContent>
