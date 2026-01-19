@@ -182,6 +182,12 @@ export default function EnhancedSales() {
   // Part Exchange handlers
   const addPartExchange = (partExchange: PartExchangeItem) => {
     setPartExchanges([...partExchanges, partExchange]);
+    
+    // Auto-fill customer name from PX if checkout customer is empty
+    if (partExchange.customer_name && !customerName.trim()) {
+      setCustomerName(partExchange.customer_name);
+    }
+    
     toast({
       title: 'Part exchange added',
       description: `${partExchange.product_name} trade-in for ${formatCurrency(partExchange.allowance)}`,
