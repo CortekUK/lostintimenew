@@ -13,7 +13,7 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
-import { useOwnerGuard } from '@/hooks/useOwnerGuard';
+import { useOwnerGuard, useManagerOrAboveGuard } from '@/hooks/useOwnerGuard';
 import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { matchOrCreateCustomer } from '@/hooks/useCustomerMatchOrCreate';
 import { useRecordCashMovement } from '@/hooks/useCashDrawer';
@@ -25,6 +25,7 @@ export default function EnhancedSales() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isOwner = useOwnerGuard();
+  const isManagerOrAbove = useManagerOrAboveGuard();
   const { canCreate } = usePermissions();
   const canCreateSales = canCreate(CRM_MODULES.SALES);
   const recordCashMovement = useRecordCashMovement();
@@ -557,7 +558,7 @@ export default function EnhancedSales() {
               onPaymentMethodChange={setPaymentMethod}
               onCompleteSale={() => completeSaleMutation.mutate()}
               isProcessing={completeSaleMutation.isPending}
-              requiresOwnerApproval={netTotal < 0 && !isOwner}
+              requiresOwnerApproval={netTotal < 0 && !isManagerOrAbove}
               signature={signature}
               onSignatureChange={setSignature}
               staffMember={staffMember}

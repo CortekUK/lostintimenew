@@ -264,7 +264,7 @@ export function CheckoutForm({
           </div>
           {netTotal < 0 && <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-3 mt-2">
               <p className="text-sm text-red-700 dark:text-red-400 font-medium">
-                ⚠️ Owner approval required for negative balance
+                ⚠️ Manager or Owner approval required for negative balance
               </p>
             </div>}
         </div>
@@ -360,7 +360,7 @@ export function CheckoutForm({
           </p>}
 
         {requiresOwnerApproval && netTotal < 0 && <p className="text-center text-sm text-red-600">
-            Owner approval required for transactions where customer is owed money
+            Manager or Owner approval required for transactions where customer is owed money
           </p>}
       </CardContent>
     </Card>;
