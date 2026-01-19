@@ -6,7 +6,9 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2, X } from 'lucide-react';
+import { Switch } from '@/components/ui/switch';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Loader2, X, Building2, Mail, FileText } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
 interface Supplier {
@@ -28,6 +30,8 @@ interface EditSupplierDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const presetTags = ['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'];
+
 export function EditSupplierDialog({ supplier, open, onOpenChange }: EditSupplierDialogProps) {
   const [editForm, setEditForm] = useState({
     name: '',
@@ -43,7 +47,6 @@ export function EditSupplierDialog({ supplier, open, onOpenChange }: EditSupplie
 
   const updateMutation = useUpdateSupplier();
 
-  // Update form when supplier changes or dialog opens
   useEffect(() => {
     if (supplier && open) {
       setEditForm({
@@ -71,19 +74,52 @@ export function EditSupplierDialog({ supplier, open, onOpenChange }: EditSupplie
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle>Edit {supplier.supplier_type === 'customer' ? 'Individual' : 'Supplier'}</DialogTitle>
           <DialogDescription>
-            Update the details for {supplier.name}
+            Update details for {supplier.name}
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-4 py-4">
-          <div className="grid grid-cols-2 gap-4">
+        <Tabs defaultValue="details" className="w-full">
+          <TabsList className="grid w-full grid-cols-3 mb-4">
+            <TabsTrigger value="details" className="text-xs gap-1.5">
+              <Building2 className="h-3.5 w-3.5" />
+              Details
+            </TabsTrigger>
+            <TabsTrigger value="contact" className="text-xs gap-1.5">
+              <Mail className="h-3.5 w-3.5" />
+              Contact
+            </TabsTrigger>
+            <TabsTrigger value="extras" className="text-xs gap-1.5">
+              <FileText className="h-3.5 w-3.5" />
+              Extras
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="details" className="space-y-4 mt-0">
+            <div className="space-y-2">
+              <Label htmlFor="supplier_type">Type</Label>
+              <Select
+                value={editForm.supplier_type}
+                onValueChange={(value: 'registered' | 'customer') =>
+                  setEditForm({ ...editForm, supplier_type: value })
+                }
+              >
+                <SelectTrigger id="supplier_type">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="registered">Registered Supplier</SelectItem>
+                  <SelectItem value="customer">Individual Supplier</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             <div className="space-y-2">
               <Label htmlFor="name">
-                {supplier.supplier_type === 'customer' ? 'Individual' : 'Supplier'} Name *
+                {editForm.supplier_type === 'customer' ? 'Full Name *' : 'Company Name *'}
               </Label>
               <Input
                 id="name"
@@ -94,53 +130,17 @@ export function EditSupplierDialog({ supplier, open, onOpenChange }: EditSupplie
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="supplier_type">Type</Label>
-              <Select
-                value={editForm.supplier_type}
-                onValueChange={(value: 'registered' | 'customer') =>
-                  setEditForm({ ...editForm, supplier_type: value })
-                }
-              >
-                <SelectTrigger id="supplier_type" className="h-auto py-3 focus:ring-offset-0">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="registered">Registered Supplier</SelectItem>
-                  <SelectItem value="customer">Individual Supplier</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="contact_name">Contact Name</Label>
+              <Label htmlFor="contact_name">Contact Person</Label>
               <Input
                 id="contact_name"
                 value={editForm.contact_name}
                 onChange={(e) => setEditForm({ ...editForm, contact_name: e.target.value })}
-                placeholder="Contact person"
+                placeholder="Primary contact"
               />
             </div>
+          </TabsContent>
 
-            <div className="space-y-2">
-              <Label htmlFor="status">Status</Label>
-              <Select
-                value={editForm.status}
-                onValueChange={(value) => setEditForm({ ...editForm, status: value })}
-              >
-                <SelectTrigger id="status">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
+          <TabsContent value="contact" className="space-y-4 mt-0">
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input
@@ -162,112 +162,118 @@ export function EditSupplierDialog({ supplier, open, onOpenChange }: EditSupplie
                 placeholder="+44 20 1234 5678"
               />
             </div>
-          </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="address">Address</Label>
-            <Textarea
-              id="address"
-              value={editForm.address}
-              onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
-              placeholder="Enter address"
-              rows={2}
-            />
-          </div>
+            <div className="space-y-2">
+              <Label htmlFor="address">Address</Label>
+              <Textarea
+                id="address"
+                value={editForm.address}
+                onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                placeholder="Full address"
+                rows={3}
+              />
+            </div>
+          </TabsContent>
 
-          <div className="space-y-3">
-            <div>
+          <TabsContent value="extras" className="space-y-4 mt-0">
+            <div className="flex items-center justify-between rounded-lg border p-3">
+              <div className="space-y-0.5">
+                <Label htmlFor="status" className="text-sm font-medium">Active Supplier</Label>
+                <p className="text-xs text-muted-foreground">
+                  Appears in dropdowns
+                </p>
+              </div>
+              <Switch
+                id="status"
+                checked={editForm.status === 'active'}
+                onCheckedChange={(checked) => setEditForm({ ...editForm, status: checked ? 'active' : 'inactive' })}
+              />
+            </div>
+
+            <div className="space-y-2">
               <Label>Tags</Label>
-              <p className="text-xs text-muted-foreground mt-1">Click to add or remove tags</p>
-            </div>
-            
-            {/* Preset tag suggestions */}
-            <div className="flex flex-wrap gap-2">
-              {['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'].map(tag => (
-                <Badge
-                  key={tag}
-                  variant={editForm.tags.includes(tag) ? 'default' : 'outline'}
-                  className="cursor-pointer hover:bg-primary/10 transition-colors"
-                  onClick={() => {
-                    setEditForm(prev => ({
-                      ...prev,
-                      tags: prev.tags.includes(tag) 
-                        ? prev.tags.filter(t => t !== tag)
-                        : [...prev.tags, tag]
-                    }));
+              <div className="flex flex-wrap gap-1.5">
+                {presetTags.map(tag => (
+                  <Badge
+                    key={tag}
+                    variant={editForm.tags.includes(tag) ? 'default' : 'outline'}
+                    className="cursor-pointer text-xs"
+                    onClick={() => {
+                      setEditForm(prev => ({
+                        ...prev,
+                        tags: prev.tags.includes(tag) 
+                          ? prev.tags.filter(t => t !== tag)
+                          : [...prev.tags, tag]
+                      }));
+                    }}
+                  >
+                    {tag}
+                    {editForm.tags.includes(tag) && <X className="h-3 w-3 ml-1" />}
+                  </Badge>
+                ))}
+              </div>
+              <div className="flex gap-2 mt-2">
+                <Input
+                  placeholder="Custom tag..."
+                  className="text-sm"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      const input = e.currentTarget;
+                      const tag = input.value.trim();
+                      if (tag && !editForm.tags.includes(tag)) {
+                        setEditForm(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+                        input.value = '';
+                      }
+                    }
                   }}
-                >
-                  {tag}
-                  {editForm.tags.includes(tag) && <X className="h-3 w-3 ml-1" />}
-                </Badge>
-              ))}
-            </div>
-            
-            {/* Custom tag input */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Add custom tag..."
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const input = e.currentTarget;
+                />
+                <Button 
+                  type="button" 
+                  variant="outline" 
+                  size="sm"
+                  onClick={(e) => {
+                    const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
                     const tag = input.value.trim();
                     if (tag && !editForm.tags.includes(tag)) {
                       setEditForm(prev => ({ ...prev, tags: [...prev.tags, tag] }));
                       input.value = '';
                     }
-                  }
-                }}
-                className="flex-1"
-              />
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm"
-                onClick={(e) => {
-                  const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
-                  const tag = input.value.trim();
-                  if (tag && !editForm.tags.includes(tag)) {
-                    setEditForm(prev => ({ ...prev, tags: [...prev.tags, tag] }));
-                    input.value = '';
-                  }
-                }}
-              >
-                Add
-              </Button>
-            </div>
-            
-            {/* Display custom tags (non-preset) */}
-            {editForm.tags.filter(t => !['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'].includes(t)).length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                <span className="text-xs text-muted-foreground mr-1">Custom:</span>
-                {editForm.tags.filter(t => !['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'].includes(t)).map(tag => (
-                  <Badge 
-                    key={tag} 
-                    variant="secondary" 
-                    className="cursor-pointer hover:bg-destructive/10"
-                    onClick={() => setEditForm(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))}
-                  >
-                    {tag} <X className="h-3 w-3 ml-1" />
-                  </Badge>
-                ))}
+                  }}
+                >
+                  Add
+                </Button>
               </div>
-            )}
-          </div>
+              {editForm.tags.filter(t => !presetTags.includes(t)).length > 0 && (
+                <div className="flex flex-wrap gap-1 mt-2">
+                  {editForm.tags.filter(t => !presetTags.includes(t)).map(tag => (
+                    <Badge 
+                      key={tag} 
+                      variant="secondary" 
+                      className="cursor-pointer text-xs"
+                      onClick={() => setEditForm(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))}
+                    >
+                      {tag} <X className="h-3 w-3 ml-1" />
+                    </Badge>
+                  ))}
+                </div>
+              )}
+            </div>
 
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={editForm.notes}
-              onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-              placeholder="Additional notes"
-              rows={3}
-            />
-          </div>
-        </div>
+            <div className="space-y-2">
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={editForm.notes}
+                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                placeholder="Additional notes..."
+                rows={3}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
 
-        <DialogFooter>
+        <DialogFooter className="mt-4">
           <Button
             variant="outline"
             onClick={() => onOpenChange(false)}
