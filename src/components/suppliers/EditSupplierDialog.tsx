@@ -6,7 +6,8 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Loader2 } from 'lucide-react';
+import { Loader2, X } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 interface Supplier {
   id: number;
@@ -100,7 +101,7 @@ export function EditSupplierDialog({ supplier, open, onOpenChange }: EditSupplie
                   setEditForm({ ...editForm, supplier_type: value })
                 }
               >
-                <SelectTrigger id="supplier_type">
+                <SelectTrigger id="supplier_type" className="h-auto py-3">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -172,6 +173,86 @@ export function EditSupplierDialog({ supplier, open, onOpenChange }: EditSupplie
               placeholder="Enter address"
               rows={2}
             />
+          </div>
+
+          <div className="space-y-3">
+            <div>
+              <Label>Tags</Label>
+              <p className="text-xs text-muted-foreground mt-1">Click to add or remove tags</p>
+            </div>
+            
+            {/* Preset tag suggestions */}
+            <div className="flex flex-wrap gap-2">
+              {['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'].map(tag => (
+                <Badge
+                  key={tag}
+                  variant={editForm.tags.includes(tag) ? 'default' : 'outline'}
+                  className="cursor-pointer hover:bg-primary/10 transition-colors"
+                  onClick={() => {
+                    setEditForm(prev => ({
+                      ...prev,
+                      tags: prev.tags.includes(tag) 
+                        ? prev.tags.filter(t => t !== tag)
+                        : [...prev.tags, tag]
+                    }));
+                  }}
+                >
+                  {tag}
+                  {editForm.tags.includes(tag) && <X className="h-3 w-3 ml-1" />}
+                </Badge>
+              ))}
+            </div>
+            
+            {/* Custom tag input */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Add custom tag..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const input = e.currentTarget;
+                    const tag = input.value.trim();
+                    if (tag && !editForm.tags.includes(tag)) {
+                      setEditForm(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+                      input.value = '';
+                    }
+                  }
+                }}
+                className="flex-1"
+              />
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={(e) => {
+                  const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                  const tag = input.value.trim();
+                  if (tag && !editForm.tags.includes(tag)) {
+                    setEditForm(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+                    input.value = '';
+                  }
+                }}
+              >
+                Add
+              </Button>
+            </div>
+            
+            {/* Display custom tags (non-preset) */}
+            {editForm.tags.filter(t => !['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'].includes(t)).length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                <span className="text-xs text-muted-foreground mr-1">Custom:</span>
+                {editForm.tags.filter(t => !['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'].includes(t)).map(tag => (
+                  <Badge 
+                    key={tag} 
+                    variant="secondary" 
+                    className="cursor-pointer hover:bg-destructive/10"
+                    onClick={() => setEditForm(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))}
+                  >
+                    {tag} <X className="h-3 w-3 ml-1" />
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
 
           <div className="space-y-2">
