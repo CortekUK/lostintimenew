@@ -14,7 +14,8 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Mail, Phone, User, Edit, Trash2, Eye, MapPin, Truck, Package, TrendingUp, Tag, Loader2, Search, AlertCircle, Building2, LayoutGrid, LayoutList, X } from 'lucide-react';
+import { Plus, Mail, Phone, User, Edit, Trash2, Eye, MapPin, Truck, Package, TrendingUp, Tag, Loader2, Search, AlertCircle, Building2, LayoutGrid, LayoutList, X, FileText } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { z } from 'zod';
@@ -637,16 +638,33 @@ function AddSupplierDialog({ open, onOpenChange }: AddSupplierDialogProps) {
     });
   };
 
+  const presetTags = ['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'];
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md">
         <DialogHeader>
           <DialogTitle className="font-luxury">Add New Supplier</DialogTitle>
           <DialogDescription>Enter supplier information</DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid md:grid-cols-2 gap-4">
-            <div className="space-y-4">
+        <form onSubmit={handleSubmit}>
+          <Tabs defaultValue="details" className="w-full">
+            <TabsList className="grid w-full grid-cols-3 mb-4">
+              <TabsTrigger value="details" className="text-xs gap-1.5">
+                <Building2 className="h-3.5 w-3.5" />
+                Details
+              </TabsTrigger>
+              <TabsTrigger value="contact" className="text-xs gap-1.5">
+                <Mail className="h-3.5 w-3.5" />
+                Contact
+              </TabsTrigger>
+              <TabsTrigger value="extras" className="text-xs gap-1.5">
+                <FileText className="h-3.5 w-3.5" />
+                Extras
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="details" className="space-y-4 mt-0">
               <div className="space-y-2">
                 <Label htmlFor="supplier_type">Supplier Type *</Label>
                 <Select
@@ -656,31 +674,27 @@ function AddSupplierDialog({ open, onOpenChange }: AddSupplierDialogProps) {
                     supplier_type: value as 'registered' | 'customer' 
                   })}
                 >
-                  <SelectTrigger id="supplier_type" className="h-auto py-3 focus:ring-offset-0">
+                  <SelectTrigger id="supplier_type">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="registered">
-                      <div>
-                        <div className="font-medium">Registered Supplier</div>
-                        <div className="text-xs text-muted-foreground">
-                          Business vendor or wholesale supplier
-                        </div>
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">Registered Supplier</span>
+                        <span className="text-xs text-muted-foreground">Business vendor</span>
                       </div>
                     </SelectItem>
                     <SelectItem value="customer">
-                      <div>
-                        <div className="font-medium">Individual Supplier</div>
-                        <div className="text-xs text-muted-foreground">
-                          Walk-in individual for trade-in or consignment
-                        </div>
+                      <div className="flex flex-col items-start">
+                        <span className="font-medium">Individual Supplier</span>
+                        <span className="text-xs text-muted-foreground">Walk-in for trade-in</span>
                       </div>
                     </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="name">
                   {formData.supplier_type === 'customer' ? 'Full Name *' : 'Company Name *'}
                 </Label>
@@ -689,45 +703,29 @@ function AddSupplierDialog({ open, onOpenChange }: AddSupplierDialogProps) {
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className={cn(errors.name && "border-destructive")}
-                  required
+                  placeholder={formData.supplier_type === 'customer' ? 'John Smith' : 'Acme Watches Ltd'}
                 />
                 {errors.name && (
-                  <div className="flex items-center space-x-1 text-sm text-destructive mt-1">
-                    <AlertCircle className="h-4 w-4" />
+                  <div className="flex items-center gap-1 text-sm text-destructive">
+                    <AlertCircle className="h-3.5 w-3.5" />
                     <span>{errors.name}</span>
                   </div>
                 )}
               </div>
-              <div>
+
+              <div className="space-y-2">
                 <Label htmlFor="contact">Contact Person</Label>
                 <Input
                   id="contact"
                   value={formData.contact_name}
                   onChange={(e) => setFormData({ ...formData, contact_name: e.target.value })}
-                  className={cn(errors.contact_name && "border-destructive")}
-                />
-                {errors.contact_name && (
-                  <div className="flex items-center space-x-1 text-sm text-destructive mt-1">
-                    <AlertCircle className="h-4 w-4" />
-                    <span>{errors.contact_name}</span>
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="status">Status</Label>
-                  <p className="text-xs text-muted-foreground">Start as active supplier</p>
-                </div>
-                <Switch
-                  id="status"
-                  checked={formData.status === 'active'}
-                  onCheckedChange={(checked) => setFormData({ ...formData, status: checked ? 'active' : 'inactive' })}
+                  placeholder="Primary contact name"
                 />
               </div>
-            </div>
-            
-            <div className="space-y-4">
-              <div>
+            </TabsContent>
+
+            <TabsContent value="contact" className="space-y-4 mt-0">
+              <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
@@ -735,15 +733,17 @@ function AddSupplierDialog({ open, onOpenChange }: AddSupplierDialogProps) {
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   className={cn(errors.email && "border-destructive")}
+                  placeholder="supplier@example.com"
                 />
                 {errors.email && (
-                  <div className="flex items-center space-x-1 text-sm text-destructive mt-1">
-                    <AlertCircle className="h-4 w-4" />
+                  <div className="flex items-center gap-1 text-sm text-destructive">
+                    <AlertCircle className="h-3.5 w-3.5" />
                     <span>{errors.email}</span>
                   </div>
                 )}
               </div>
-              <div>
+
+              <div className="space-y-2">
                 <Label htmlFor="phone">Phone</Label>
                 <Input
                   id="phone"
@@ -751,129 +751,127 @@ function AddSupplierDialog({ open, onOpenChange }: AddSupplierDialogProps) {
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   className={cn(errors.phone && "border-destructive")}
+                  placeholder="+44 20 1234 5678"
                 />
                 {errors.phone && (
-                  <div className="flex items-center space-x-1 text-sm text-destructive mt-1">
-                    <AlertCircle className="h-4 w-4" />
+                  <div className="flex items-center gap-1 text-sm text-destructive">
+                    <AlertCircle className="h-3.5 w-3.5" />
                     <span>{errors.phone}</span>
                   </div>
                 )}
               </div>
-              <div>
+
+              <div className="space-y-2">
                 <Label htmlFor="address">Address</Label>
-                <Input
+                <Textarea
                   id="address"
                   value={formData.address}
                   onChange={(e) => setFormData({ ...formData, address: e.target.value })}
-                  className={cn(errors.address && "border-destructive")}
+                  placeholder="Full address"
+                  rows={3}
                 />
-                {errors.address && (
-                  <div className="flex items-center space-x-1 text-sm text-destructive mt-1">
-                    <AlertCircle className="h-4 w-4" />
-                    <span>{errors.address}</span>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="extras" className="space-y-4 mt-0">
+              <div className="flex items-center justify-between rounded-lg border p-3">
+                <div className="space-y-0.5">
+                  <Label htmlFor="status" className="text-sm font-medium">Active Supplier</Label>
+                  <p className="text-xs text-muted-foreground">
+                    Appears in dropdowns
+                  </p>
+                </div>
+                <Switch
+                  id="status"
+                  checked={formData.status === 'active'}
+                  onCheckedChange={(checked) => setFormData({ ...formData, status: checked ? 'active' : 'inactive' })}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label>Tags</Label>
+                <div className="flex flex-wrap gap-1.5">
+                  {presetTags.map(tag => (
+                    <Badge
+                      key={tag}
+                      variant={formData.tags.includes(tag) ? 'default' : 'outline'}
+                      className="cursor-pointer text-xs"
+                      onClick={() => {
+                        setFormData(prev => ({
+                          ...prev,
+                          tags: prev.tags.includes(tag) 
+                            ? prev.tags.filter(t => t !== tag)
+                            : [...prev.tags, tag]
+                        }));
+                      }}
+                    >
+                      {tag}
+                      {formData.tags.includes(tag) && <X className="h-3 w-3 ml-1" />}
+                    </Badge>
+                  ))}
+                </div>
+                <div className="flex gap-2 mt-2">
+                  <Input
+                    placeholder="Custom tag..."
+                    className="text-sm"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        const input = e.currentTarget;
+                        const tag = input.value.trim();
+                        if (tag && !formData.tags.includes(tag)) {
+                          setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+                          input.value = '';
+                        }
+                      }
+                    }}
+                  />
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={(e) => {
+                      const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                      const tag = input.value.trim();
+                      if (tag && !formData.tags.includes(tag)) {
+                        setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+                        input.value = '';
+                      }
+                    }}
+                  >
+                    Add
+                  </Button>
+                </div>
+                {formData.tags.filter(t => !presetTags.includes(t)).length > 0 && (
+                  <div className="flex flex-wrap gap-1 mt-2">
+                    {formData.tags.filter(t => !presetTags.includes(t)).map(tag => (
+                      <Badge 
+                        key={tag} 
+                        variant="secondary" 
+                        className="cursor-pointer text-xs"
+                        onClick={() => setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))}
+                      >
+                        {tag} <X className="h-3 w-3 ml-1" />
+                      </Badge>
+                    ))}
                   </div>
                 )}
               </div>
-            </div>
-          </div>
 
-          <div className="space-y-3">
-            <div>
-              <Label>Tags</Label>
-              <p className="text-xs text-muted-foreground mt-1">Click to add or remove tags</p>
-            </div>
-            
-            {/* Preset tag suggestions */}
-            <div className="flex flex-wrap gap-2">
-              {['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'].map(tag => (
-                <Badge
-                  key={tag}
-                  variant={formData.tags.includes(tag) ? 'default' : 'outline'}
-                  className="cursor-pointer hover:bg-primary/10 transition-colors"
-                  onClick={() => {
-                    setFormData(prev => ({
-                      ...prev,
-                      tags: prev.tags.includes(tag) 
-                        ? prev.tags.filter(t => t !== tag)
-                        : [...prev.tags, tag]
-                    }));
-                  }}
-                >
-                  {tag}
-                  {formData.tags.includes(tag) && <X className="h-3 w-3 ml-1" />}
-                </Badge>
-              ))}
-            </div>
-            
-            {/* Custom tag input */}
-            <div className="flex gap-2">
-              <Input
-                placeholder="Add custom tag..."
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    const input = e.currentTarget;
-                    const tag = input.value.trim();
-                    if (tag && !formData.tags.includes(tag)) {
-                      setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }));
-                      input.value = '';
-                    }
-                  }
-                }}
-                className="flex-1"
-              />
-              <Button 
-                type="button" 
-                variant="outline" 
-                size="sm"
-                onClick={(e) => {
-                  const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
-                  const tag = input.value.trim();
-                  if (tag && !formData.tags.includes(tag)) {
-                    setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }));
-                    input.value = '';
-                  }
-                }}
-              >
-                Add
-              </Button>
-            </div>
-            
-            {/* Display custom tags (non-preset) */}
-            {formData.tags.filter(t => !['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'].includes(t)).length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                <span className="text-xs text-muted-foreground mr-1">Custom:</span>
-                {formData.tags.filter(t => !['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'].includes(t)).map(tag => (
-                  <Badge 
-                    key={tag} 
-                    variant="secondary" 
-                    className="cursor-pointer hover:bg-destructive/10"
-                    onClick={() => setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))}
-                  >
-                    {tag} <X className="h-3 w-3 ml-1" />
-                  </Badge>
-                ))}
+              <div className="space-y-2">
+                <Label htmlFor="notes">Notes</Label>
+                <Textarea
+                  id="notes"
+                  value={formData.notes}
+                  onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                  placeholder="Additional notes..."
+                  rows={3}
+                />
               </div>
-            )}
-          </div>
-          
-          <div>
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className={cn(errors.notes && "border-destructive")}
-              rows={3}
-            />
-            {errors.notes && (
-              <div className="flex items-center space-x-1 text-sm text-destructive mt-1">
-                <AlertCircle className="h-4 w-4" />
-                <span>{errors.notes}</span>
-              </div>
-            )}
-          </div>
-          <DialogFooter>
+            </TabsContent>
+          </Tabs>
+
+          <DialogFooter className="mt-6">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
