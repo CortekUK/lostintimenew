@@ -161,47 +161,50 @@ export function InlineSupplierAdd({
             Quick Add {defaultType === 'customer' ? 'Customer' : 'Supplier'}
           </DialogTitle>
           <DialogDescription>
-            Add a new {defaultType === 'customer' ? 'individual supplier (walk-in/trade-in)' : 'registered supplier'} with basic information
+            Add a new {defaultType === 'customer' ? 'customer' : 'registered supplier'} with basic information
           </DialogDescription>
         </DialogHeader>
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="supplier_type">Supplier Type *</Label>
-            {lockType ? (
-              <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted/50 px-3 text-sm text-muted-foreground">
-                {formData.supplier_type === 'registered' ? 'Registered Supplier' : 'Individual Supplier'}
-              </div>
-            ) : (
-              <Select
-                value={formData.supplier_type}
-                onValueChange={(value) => setFormData({ ...formData, supplier_type: value as 'registered' | 'customer' })}
-              >
-                <SelectTrigger id="supplier_type">
-                  <SelectValue>
-                    {formData.supplier_type === 'registered' ? 'Registered Supplier' : 'Individual Supplier'}
-                  </SelectValue>
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="registered">
-                    <div>
-                      <div className="font-medium">Registered Supplier</div>
-                      <div className="text-xs text-muted-foreground">
-                        Business vendor or wholesale supplier
+          {/* Hide supplier type selector when locked to customer type */}
+          {!(lockType && defaultType === 'customer') && (
+            <div className="space-y-2">
+              <Label htmlFor="supplier_type">Supplier Type *</Label>
+              {lockType ? (
+                <div className="flex h-10 w-full items-center rounded-md border border-input bg-muted/50 px-3 text-sm text-muted-foreground">
+                  {formData.supplier_type === 'registered' ? 'Registered Supplier' : 'Individual Supplier'}
+                </div>
+              ) : (
+                <Select
+                  value={formData.supplier_type}
+                  onValueChange={(value) => setFormData({ ...formData, supplier_type: value as 'registered' | 'customer' })}
+                >
+                  <SelectTrigger id="supplier_type">
+                    <SelectValue>
+                      {formData.supplier_type === 'registered' ? 'Registered Supplier' : 'Individual Supplier'}
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="registered">
+                      <div>
+                        <div className="font-medium">Registered Supplier</div>
+                        <div className="text-xs text-muted-foreground">
+                          Business vendor or wholesale supplier
+                        </div>
                       </div>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="customer">
-                    <div>
-                      <div className="font-medium">Individual Supplier</div>
-                      <div className="text-xs text-muted-foreground">
-                        Walk-in individual for trade-in or consignment
+                    </SelectItem>
+                    <SelectItem value="customer">
+                      <div>
+                        <div className="font-medium">Individual Supplier</div>
+                        <div className="text-xs text-muted-foreground">
+                          Walk-in individual for trade-in or consignment
+                        </div>
                       </div>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
-            )}
-          </div>
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              )}
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label htmlFor="name">
@@ -211,7 +214,7 @@ export function InlineSupplierAdd({
               id="name"
               value={formData.name}
               onChange={(e) => setFormData({...formData, name: e.target.value})}
-              placeholder={formData.supplier_type === 'customer' ? "Enter individual's name" : 'Enter supplier name'}
+              placeholder={formData.supplier_type === 'customer' ? "Enter customer's name" : 'Enter supplier name'}
               className={cn(errors.name && "border-destructive")}
               required
             />
@@ -231,7 +234,7 @@ export function InlineSupplierAdd({
                 type="email"
                 value={formData.email}
                 onChange={(e) => setFormData({...formData, email: e.target.value})}
-                placeholder="supplier@example.com"
+                placeholder={formData.supplier_type === 'customer' ? "customer@example.com" : "supplier@example.com"}
                 className={cn(errors.email && "border-destructive")}
               />
               {errors.email && (
