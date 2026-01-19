@@ -68,25 +68,25 @@ function AppInner() {
           <Route path="/auth" element={<Auth />} />
           
           {/* Protected Routes */}
-          <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-          <Route path="/products" element={<ProtectedRoute><Products /></ProtectedRoute>} />
-          <Route path="/products/intake" element={<ProtectedRoute><PartExchangeIntake /></ProtectedRoute>} />
-          <Route path="/suppliers" element={<ProtectedRoute><Suppliers /></ProtectedRoute>} />
-          <Route path="/suppliers/:id" element={<ProtectedRoute><SupplierDetail /></ProtectedRoute>} />
+          <Route path="/" element={<ProtectedRoute module="dashboard"><Dashboard /></ProtectedRoute>} />
+          <Route path="/products" element={<ProtectedRoute module="products"><Products /></ProtectedRoute>} />
+          <Route path="/products/intake" element={<ProtectedRoute module="products"><PartExchangeIntake /></ProtectedRoute>} />
+          <Route path="/suppliers" element={<ProtectedRoute module="suppliers"><Suppliers /></ProtectedRoute>} />
+          <Route path="/suppliers/:id" element={<ProtectedRoute module="suppliers"><SupplierDetail /></ProtectedRoute>} />
           <Route path="/customers" element={<ProtectedRoute module="customers"><Customers /></ProtectedRoute>} />
           <Route path="/customers/:id" element={<ProtectedRoute module="customers"><CustomerDetail /></ProtectedRoute>} />
-          <Route path="/consignments" element={<ProtectedRoute><Consignments /></ProtectedRoute>} />
-          <Route path="/sales" element={<ProtectedRoute><EnhancedSales /></ProtectedRoute>} />
-          <Route path="/sales/my-sales" element={<ProtectedRoute><MySales /></ProtectedRoute>} />
-          <Route path="/sales/transactions" element={<ProtectedRoute module="reports"><Transactions /></ProtectedRoute>} />
-          <Route path="/sales/items" element={<ProtectedRoute><SoldItemsReport /></ProtectedRoute>} />
+          <Route path="/consignments" element={<ProtectedRoute module="consignments"><Consignments /></ProtectedRoute>} />
+          <Route path="/sales" element={<ProtectedRoute module="sales"><EnhancedSales /></ProtectedRoute>} />
+          <Route path="/sales/my-sales" element={<ProtectedRoute module="sales"><MySales /></ProtectedRoute>} />
+          <Route path="/sales/transactions" element={<ProtectedRoute module="sales"><Transactions /></ProtectedRoute>} />
+          <Route path="/sales/items" element={<ProtectedRoute module="sales"><SoldItemsReport /></ProtectedRoute>} />
           {/* Legacy redirects */}
-          <Route path="/sales/history" element={<ProtectedRoute><SalesHistory /></ProtectedRoute>} />
-          <Route path="/sales/sold-items" element={<ProtectedRoute><SoldItems /></ProtectedRoute>} />
-          <Route path="/sales/:id" element={<ProtectedRoute><SaleDetail /></ProtectedRoute>} />
-          <Route path="/receipt/:id" element={<ProtectedRoute><Receipt /></ProtectedRoute>} />
-          <Route path="/pos/receipt/:saleId" element={<ProtectedRoute><ReceiptPreview /></ProtectedRoute>} />
-          <Route path="/expenses" element={<ProtectedRoute><Expenses /></ProtectedRoute>} />
+          <Route path="/sales/history" element={<ProtectedRoute module="sales"><SalesHistory /></ProtectedRoute>} />
+          <Route path="/sales/sold-items" element={<ProtectedRoute module="sales"><SoldItems /></ProtectedRoute>} />
+          <Route path="/sales/:id" element={<ProtectedRoute module="sales"><SaleDetail /></ProtectedRoute>} />
+          <Route path="/receipt/:id" element={<ProtectedRoute module="sales"><Receipt /></ProtectedRoute>} />
+          <Route path="/pos/receipt/:saleId" element={<ProtectedRoute module="sales"><ReceiptPreview /></ProtectedRoute>} />
+          <Route path="/expenses" element={<ProtectedRoute module="expenses"><Expenses /></ProtectedRoute>} />
           
           {/* Manager+ Routes (Reports & Analytics) */}
           <Route path="/reports" element={<ProtectedRoute module="reports"><Reports /></ProtectedRoute>} />
