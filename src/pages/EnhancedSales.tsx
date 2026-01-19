@@ -183,9 +183,20 @@ export default function EnhancedSales() {
   const addPartExchange = (partExchange: PartExchangeItem) => {
     setPartExchanges([...partExchanges, partExchange]);
     
-    // Auto-fill customer name from PX if checkout customer is empty
-    if (partExchange.customer_name && !customerName.trim()) {
-      setCustomerName(partExchange.customer_name);
+    // Auto-fill customer details from PX if checkout customer is empty
+    if (!customerName.trim()) {
+      if (partExchange.customer_name) {
+        setCustomerName(partExchange.customer_name);
+      }
+      if (partExchange.customer_email) {
+        setCustomerEmail(partExchange.customer_email);
+      }
+      if (partExchange.customer_phone) {
+        setCustomerPhone(partExchange.customer_phone);
+      }
+      if (partExchange.supplier_id) {
+        setSelectedCustomerId(partExchange.supplier_id);
+      }
     }
     
     toast({
