@@ -378,7 +378,7 @@ export function EditExpenseModal({ open, onOpenChange, expense, onSave, onDelete
                 <Label htmlFor="supplier">Supplier (Optional)</Label>
                 <Select value={formData.supplier_id} onValueChange={(value) => setFormData({ ...formData, supplier_id: value })}>
                   <SelectTrigger id="supplier">
-                    <SelectValue placeholder="Select supplier" />
+                    <SelectValue placeholder="Select Supplier" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">None</SelectItem>

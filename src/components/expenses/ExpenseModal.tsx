@@ -469,7 +469,7 @@ export function ExpenseModal({
                 }
               }}>
                   <SelectTrigger id="supplier">
-                    <SelectValue placeholder="Select supplier" />
+                    <SelectValue placeholder="Select Supplier" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">None</SelectItem>

@@ -308,7 +308,7 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                 <div className="space-y-3">
                   <Select value={formData.supplier_id} onValueChange={(value) => setFormData({...formData, supplier_id: value})}>
                     <SelectTrigger>
-                      <SelectValue placeholder="Select supplier" />
+                      <SelectValue placeholder="Select Supplier" />
                     </SelectTrigger>
                     <SelectContent>
                       {suppliers?.filter(s => s.supplier_type === 'registered').map((supplier) => (
