@@ -32,9 +32,10 @@ interface ProductDetailModalProps {
     salePrice: number;
     saleId: number;
   };
+  hideViewSale?: boolean;
 }
 
-export function ProductDetailModal({ product, open, onOpenChange, onEditClick, onDuplicateClick, soldInfo }: ProductDetailModalProps) {
+export function ProductDetailModal({ product, open, onOpenChange, onEditClick, onDuplicateClick, soldInfo, hideViewSale }: ProductDetailModalProps) {
   const [stockModalOpen, setStockModalOpen] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
   const navigate = useNavigate();
@@ -117,15 +118,17 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
                       </p>
                     </div>
                   </div>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => navigate(`/sales/transactions?sale=${soldInfo.saleId}`)}
-                    className="gap-2 shrink-0"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    View Sale
-                  </Button>
+                  {!hideViewSale && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => navigate(`/sales/transactions?sale=${soldInfo.saleId}`)}
+                      className="gap-2 shrink-0"
+                    >
+                      <ExternalLink className="h-4 w-4" />
+                      View Sale
+                    </Button>
+                  )}
                 </div>
               </div>
             )}

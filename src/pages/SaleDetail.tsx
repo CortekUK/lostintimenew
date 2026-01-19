@@ -529,6 +529,7 @@ export default function SaleDetail() {
               })()
             : undefined
         }
+        hideViewSale={true}
         onEditClick={() => {
           setProductDetailOpen(false);
           navigate(`/products?id=${selectedProductId}`);
