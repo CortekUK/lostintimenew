@@ -647,7 +647,7 @@ function AddSupplierDialog({ open, onOpenChange }: AddSupplierDialogProps) {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid md:grid-cols-2 gap-4">
             <div className="space-y-4">
-              <div>
+              <div className="space-y-2">
                 <Label htmlFor="supplier_type">Supplier Type *</Label>
                 <Select
                   value={formData.supplier_type}
@@ -656,7 +656,7 @@ function AddSupplierDialog({ open, onOpenChange }: AddSupplierDialogProps) {
                     supplier_type: value as 'registered' | 'customer' 
                   })}
                 >
-                  <SelectTrigger id="supplier_type" className="h-auto py-3">
+                  <SelectTrigger id="supplier_type" className="h-auto py-3 focus:ring-offset-0">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
