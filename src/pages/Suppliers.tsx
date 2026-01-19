@@ -34,6 +34,8 @@ import { cn } from '@/lib/utils';
     status: z.enum(["active", "inactive"])
   });
 
+const presetTags = ['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'];
+
 interface Supplier {
   id: number;
   name: string;
@@ -201,15 +203,30 @@ function SupplierCard({ supplier, onView }: SupplierCardProps) {
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="font-luxury">Edit Supplier</DialogTitle>
             <DialogDescription>Update supplier information</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleEditSubmit} className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div>
+          <form onSubmit={handleEditSubmit}>
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="details" className="text-xs gap-1.5">
+                  <Building2 className="h-3.5 w-3.5" />
+                  Details
+                </TabsTrigger>
+                <TabsTrigger value="contact" className="text-xs gap-1.5">
+                  <Mail className="h-3.5 w-3.5" />
+                  Contact
+                </TabsTrigger>
+                <TabsTrigger value="extras" className="text-xs gap-1.5">
+                  <FileText className="h-3.5 w-3.5" />
+                  Extras
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="details" className="space-y-4 mt-0">
+                <div className="space-y-2">
                   <Label htmlFor="edit-name">Company Name *</Label>
                   <Input
                     id="edit-name"
@@ -218,7 +235,7 @@ function SupplierCard({ supplier, onView }: SupplierCardProps) {
                     required
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="edit-contact">Contact Person</Label>
                   <Input
                     id="edit-contact"
@@ -226,21 +243,10 @@ function SupplierCard({ supplier, onView }: SupplierCardProps) {
                     onChange={(e) => setEditForm({ ...editForm, contact_name: e.target.value })}
                   />
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="edit-status">Status</Label>
-                    <p className="text-xs text-muted-foreground">Active suppliers appear in search</p>
-                  </div>
-                  <Switch
-                    id="edit-status"
-                    checked={editForm.status === 'active'}
-                    onCheckedChange={(checked) => setEditForm({ ...editForm, status: checked ? 'active' : 'inactive' })}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
+              </TabsContent>
+
+              <TabsContent value="contact" className="space-y-4 mt-0">
+                <div className="space-y-2">
                   <Label htmlFor="edit-email">Email</Label>
                   <Input
                     id="edit-email"
@@ -249,7 +255,7 @@ function SupplierCard({ supplier, onView }: SupplierCardProps) {
                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="edit-phone">Phone</Label>
                   <Input
                     id="edit-phone"
@@ -258,40 +264,113 @@ function SupplierCard({ supplier, onView }: SupplierCardProps) {
                     onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="edit-address">Address</Label>
-                  <Input
+                  <Textarea
                     id="edit-address"
                     value={editForm.address}
                     onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                    rows={3}
                   />
                 </div>
-              </div>
-            </div>
+              </TabsContent>
 
-            <div>
-              <Label htmlFor="edit-tags">Tags (comma-separated)</Label>
-              <Input
-                id="edit-tags"
-                value={editForm.tags?.join(', ') || ''}
-                onChange={(e) => setEditForm({ 
-                  ...editForm, 
-                  tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) 
-                })}
-                placeholder="e.g. Luxury Watches, Diamonds, Gold"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="edit-notes">Notes</Label>
-              <Textarea
-                id="edit-notes"
-                value={editForm.notes}
-                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-                rows={3}
-              />
-            </div>
-            <DialogFooter>
+              <TabsContent value="extras" className="space-y-4 mt-0">
+                <div className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="edit-status" className="text-sm font-medium">Active Supplier</Label>
+                    <p className="text-xs text-muted-foreground">Appears in dropdowns</p>
+                  </div>
+                  <Switch
+                    id="edit-status"
+                    checked={editForm.status === 'active'}
+                    onCheckedChange={(checked) => setEditForm({ ...editForm, status: checked ? 'active' : 'inactive' })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Tags</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {presetTags.map(tag => (
+                      <Badge
+                        key={tag}
+                        variant={editForm.tags?.includes(tag) ? 'default' : 'outline'}
+                        className="cursor-pointer text-xs"
+                        onClick={() => {
+                          setEditForm(prev => ({
+                            ...prev,
+                            tags: prev.tags?.includes(tag) 
+                              ? prev.tags.filter(t => t !== tag)
+                              : [...(prev.tags || []), tag]
+                          }));
+                        }}
+                      >
+                        {tag}
+                        {editForm.tags?.includes(tag) && <X className="h-3 w-3 ml-1" />}
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      placeholder="Custom tag..."
+                      className="text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const input = e.currentTarget;
+                          const tag = input.value.trim();
+                          if (tag && !editForm.tags?.includes(tag)) {
+                            setEditForm(prev => ({ ...prev, tags: [...(prev.tags || []), tag] }));
+                            input.value = '';
+                          }
+                        }
+                      }}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={(e) => {
+                        const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                        const tag = input.value.trim();
+                        if (tag && !editForm.tags?.includes(tag)) {
+                          setEditForm(prev => ({ ...prev, tags: [...(prev.tags || []), tag] }));
+                          input.value = '';
+                        }
+                      }}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                  {editForm.tags?.filter(t => !presetTags.includes(t)).length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {editForm.tags?.filter(t => !presetTags.includes(t)).map(tag => (
+                        <Badge 
+                          key={tag} 
+                          variant="secondary" 
+                          className="cursor-pointer text-xs"
+                          onClick={() => setEditForm(prev => ({ ...prev, tags: prev.tags?.filter(t => t !== tag) }))}
+                        >
+                          {tag} <X className="h-3 w-3 ml-1" />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-notes">Notes</Label>
+                  <Textarea
+                    id="edit-notes"
+                    value={editForm.notes}
+                    onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <DialogFooter className="mt-6">
               <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
                 Cancel
               </Button>
@@ -430,15 +509,30 @@ function SupplierTableRow({ supplier, onView }: SupplierCardProps) {
 
       {/* Edit Dialog */}
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogContent className="max-w-md">
           <DialogHeader>
             <DialogTitle className="font-luxury">Edit Supplier</DialogTitle>
             <DialogDescription>Update supplier information</DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleEditSubmit} className="space-y-4">
-            <div className="grid md:grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div>
+          <form onSubmit={handleEditSubmit}>
+            <Tabs defaultValue="details" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 mb-4">
+                <TabsTrigger value="details" className="text-xs gap-1.5">
+                  <Building2 className="h-3.5 w-3.5" />
+                  Details
+                </TabsTrigger>
+                <TabsTrigger value="contact" className="text-xs gap-1.5">
+                  <Mail className="h-3.5 w-3.5" />
+                  Contact
+                </TabsTrigger>
+                <TabsTrigger value="extras" className="text-xs gap-1.5">
+                  <FileText className="h-3.5 w-3.5" />
+                  Extras
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="details" className="space-y-4 mt-0">
+                <div className="space-y-2">
                   <Label htmlFor="edit-name-table">Company Name *</Label>
                   <Input
                     id="edit-name-table"
@@ -447,7 +541,7 @@ function SupplierTableRow({ supplier, onView }: SupplierCardProps) {
                     required
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="edit-contact-table">Contact Person</Label>
                   <Input
                     id="edit-contact-table"
@@ -455,21 +549,10 @@ function SupplierTableRow({ supplier, onView }: SupplierCardProps) {
                     onChange={(e) => setEditForm({ ...editForm, contact_name: e.target.value })}
                   />
                 </div>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <Label htmlFor="edit-status-table">Status</Label>
-                    <p className="text-xs text-muted-foreground">Active suppliers appear in search</p>
-                  </div>
-                  <Switch
-                    id="edit-status-table"
-                    checked={editForm.status === 'active'}
-                    onCheckedChange={(checked) => setEditForm({ ...editForm, status: checked ? 'active' : 'inactive' })}
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
+              </TabsContent>
+
+              <TabsContent value="contact" className="space-y-4 mt-0">
+                <div className="space-y-2">
                   <Label htmlFor="edit-email-table">Email</Label>
                   <Input
                     id="edit-email-table"
@@ -478,7 +561,7 @@ function SupplierTableRow({ supplier, onView }: SupplierCardProps) {
                     onChange={(e) => setEditForm({ ...editForm, email: e.target.value })}
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="edit-phone-table">Phone</Label>
                   <Input
                     id="edit-phone-table"
@@ -487,40 +570,113 @@ function SupplierTableRow({ supplier, onView }: SupplierCardProps) {
                     onChange={(e) => setEditForm({ ...editForm, phone: e.target.value })}
                   />
                 </div>
-                <div>
+                <div className="space-y-2">
                   <Label htmlFor="edit-address-table">Address</Label>
-                  <Input
+                  <Textarea
                     id="edit-address-table"
                     value={editForm.address}
                     onChange={(e) => setEditForm({ ...editForm, address: e.target.value })}
+                    rows={3}
                   />
                 </div>
-              </div>
-            </div>
+              </TabsContent>
 
-            <div>
-              <Label htmlFor="edit-tags-table">Tags (comma-separated)</Label>
-              <Input
-                id="edit-tags-table"
-                value={editForm.tags?.join(', ') || ''}
-                onChange={(e) => setEditForm({ 
-                  ...editForm, 
-                  tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) 
-                })}
-                placeholder="e.g. Luxury Watches, Diamonds, Gold"
-              />
-            </div>
-            
-            <div>
-              <Label htmlFor="edit-notes-table">Notes</Label>
-              <Textarea
-                id="edit-notes-table"
-                value={editForm.notes}
-                onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
-                rows={3}
-              />
-            </div>
-            <DialogFooter>
+              <TabsContent value="extras" className="space-y-4 mt-0">
+                <div className="flex items-center justify-between rounded-lg border p-3">
+                  <div className="space-y-0.5">
+                    <Label htmlFor="edit-status-table" className="text-sm font-medium">Active Supplier</Label>
+                    <p className="text-xs text-muted-foreground">Appears in dropdowns</p>
+                  </div>
+                  <Switch
+                    id="edit-status-table"
+                    checked={editForm.status === 'active'}
+                    onCheckedChange={(checked) => setEditForm({ ...editForm, status: checked ? 'active' : 'inactive' })}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label>Tags</Label>
+                  <div className="flex flex-wrap gap-1.5">
+                    {presetTags.map(tag => (
+                      <Badge
+                        key={tag}
+                        variant={editForm.tags?.includes(tag) ? 'default' : 'outline'}
+                        className="cursor-pointer text-xs"
+                        onClick={() => {
+                          setEditForm(prev => ({
+                            ...prev,
+                            tags: prev.tags?.includes(tag) 
+                              ? prev.tags.filter(t => t !== tag)
+                              : [...(prev.tags || []), tag]
+                          }));
+                        }}
+                      >
+                        {tag}
+                        {editForm.tags?.includes(tag) && <X className="h-3 w-3 ml-1" />}
+                      </Badge>
+                    ))}
+                  </div>
+                  <div className="flex gap-2 mt-2">
+                    <Input
+                      placeholder="Custom tag..."
+                      className="text-sm"
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          const input = e.currentTarget;
+                          const tag = input.value.trim();
+                          if (tag && !editForm.tags?.includes(tag)) {
+                            setEditForm(prev => ({ ...prev, tags: [...(prev.tags || []), tag] }));
+                            input.value = '';
+                          }
+                        }
+                      }}
+                    />
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={(e) => {
+                        const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                        const tag = input.value.trim();
+                        if (tag && !editForm.tags?.includes(tag)) {
+                          setEditForm(prev => ({ ...prev, tags: [...(prev.tags || []), tag] }));
+                          input.value = '';
+                        }
+                      }}
+                    >
+                      Add
+                    </Button>
+                  </div>
+                  {editForm.tags?.filter(t => !presetTags.includes(t)).length > 0 && (
+                    <div className="flex flex-wrap gap-1 mt-2">
+                      {editForm.tags?.filter(t => !presetTags.includes(t)).map(tag => (
+                        <Badge 
+                          key={tag} 
+                          variant="secondary" 
+                          className="cursor-pointer text-xs"
+                          onClick={() => setEditForm(prev => ({ ...prev, tags: prev.tags?.filter(t => t !== tag) }))}
+                        >
+                          {tag} <X className="h-3 w-3 ml-1" />
+                        </Badge>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-notes-table">Notes</Label>
+                  <Textarea
+                    id="edit-notes-table"
+                    value={editForm.notes}
+                    onChange={(e) => setEditForm({ ...editForm, notes: e.target.value })}
+                    rows={3}
+                  />
+                </div>
+              </TabsContent>
+            </Tabs>
+
+            <DialogFooter className="mt-6">
               <Button type="button" variant="outline" onClick={() => setIsEditOpen(false)}>
                 Cancel
               </Button>
