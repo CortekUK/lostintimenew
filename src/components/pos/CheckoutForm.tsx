@@ -49,6 +49,7 @@ interface CheckoutFormProps {
   locationId: number | null;
   onLocationChange: (locationId: number | null) => void;
   locationLocked?: boolean;
+  disabled?: boolean;
 }
 const paymentMethods = [{
   value: 'cash' as PaymentMethod,
@@ -95,7 +96,8 @@ export function CheckoutForm({
   onStaffMemberChange,
   locationId,
   onLocationChange,
-  locationLocked
+  locationLocked,
+  disabled
 }: CheckoutFormProps) {
   const [discountInput, setDiscountInput] = useState(discount.toString());
   const signaturePadRef = useRef<SignaturePadRef>(null);
@@ -129,7 +131,7 @@ export function CheckoutForm({
     setDiscountInput(clampedValue.toString());
     onDiscountChange(clampedValue);
   };
-  const canCompleteSale = (items.length > 0 || partExchanges.length > 0) && paymentMethod && staffMember && locationId && customerName.trim() && !isProcessing && (!requiresOwnerApproval || netTotal >= 0);
+  const canCompleteSale = (items.length > 0 || partExchanges.length > 0) && paymentMethod && staffMember && locationId && customerName.trim() && !isProcessing && (!requiresOwnerApproval || netTotal >= 0) && !disabled;
   return <Card className="shadow-card">
       <CardHeader>
         <CardTitle className="font-luxury">Checkout</CardTitle>
@@ -333,7 +335,11 @@ export function CheckoutForm({
             </>}
         </Button>
         
-        {items.length === 0 && partExchanges.length === 0 && <p className="text-center text-sm text-muted-foreground">
+        {disabled && <p className="text-center text-sm text-destructive">
+            You don't have permission to create sales
+          </p>}
+
+        {!disabled && items.length === 0 && partExchanges.length === 0 && <p className="text-center text-sm text-muted-foreground">
             Add items to cart or part exchanges to enable checkout
           </p>}
         

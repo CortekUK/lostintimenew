@@ -2,6 +2,7 @@ import { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { useSuppliers, useCreateSupplier, useUpdateSupplier, useDeleteSupplier } from '@/hooks/useSuppliers';
+import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { useSupplierMetricsSummary } from '@/hooks/useSupplierMetrics';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -55,10 +56,14 @@ interface SupplierCardProps {
 }
 
 function SupplierCard({ supplier, onView }: SupplierCardProps) {
+  const { canEdit, canDelete } = usePermissions();
+  const canEditSuppliers = canEdit(CRM_MODULES.SUPPLIERS);
+  const canDeleteSuppliers = canDelete(CRM_MODULES.SUPPLIERS);
+
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isViewOpen, setIsViewOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  
+
   const [editForm, setEditForm] = useState({
     name: supplier.name,
     contact_name: supplier.contact_name || '',
@@ -171,20 +176,24 @@ function SupplierCard({ supplier, onView }: SupplierCardProps) {
             >
               View Detail
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsEditOpen(true)}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setIsDeleteOpen(true)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {canEditSuppliers && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsEditOpen(true)}
+              >
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+            {canDeleteSuppliers && (
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsDeleteOpen(true)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </div>
       </CardContent>
@@ -329,9 +338,13 @@ function SupplierCard({ supplier, onView }: SupplierCardProps) {
 }
 
 function SupplierTableRow({ supplier, onView }: SupplierCardProps) {
+  const { canEdit, canDelete } = usePermissions();
+  const canEditSuppliers = canEdit(CRM_MODULES.SUPPLIERS);
+  const canDeleteSuppliers = canDelete(CRM_MODULES.SUPPLIERS);
+
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [isDeleteOpen, setIsDeleteOpen] = useState(false);
-  
+
   const [editForm, setEditForm] = useState({
     name: supplier.name,
     contact_name: supplier.contact_name || '',
@@ -400,12 +413,16 @@ function SupplierTableRow({ supplier, onView }: SupplierCardProps) {
             <Button size="sm" variant="ghost" onClick={() => onView(supplier.id)}>
               <Eye className="h-4 w-4" />
             </Button>
-            <Button size="sm" variant="ghost" onClick={() => setIsEditOpen(true)}>
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button size="sm" variant="ghost" onClick={() => setIsDeleteOpen(true)}>
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {canEditSuppliers && (
+              <Button size="sm" variant="ghost" onClick={() => setIsEditOpen(true)}>
+                <Edit className="h-4 w-4" />
+              </Button>
+            )}
+            {canDeleteSuppliers && (
+              <Button size="sm" variant="ghost" onClick={() => setIsDeleteOpen(true)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            )}
           </div>
         </TableCell>
       </TableRow>
@@ -812,6 +829,9 @@ function AddSupplierDialog({ open, onOpenChange }: AddSupplierDialogProps) {
 
 export default function Suppliers() {
   const navigate = useNavigate();
+  const { canCreate } = usePermissions();
+  const canCreateSuppliers = canCreate(CRM_MODULES.SUPPLIERS);
+
   const [searchTerm, setSearchTerm] = useState('');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [sortBy, setSortBy] = useState('name');
@@ -923,10 +943,12 @@ export default function Suppliers() {
               <LayoutList className="h-4 w-4" />
             </ToggleGroupItem>
           </ToggleGroup>
-          <Button onClick={() => setIsAddDialogOpen(true)} variant="premium" className="whitespace-nowrap">
-            <Plus className="h-4 w-4 mr-2" />
-            Add Supplier
-          </Button>
+          {canCreateSuppliers && (
+            <Button onClick={() => setIsAddDialogOpen(true)} variant="premium" className="whitespace-nowrap">
+              <Plus className="h-4 w-4 mr-2" />
+              Add Supplier
+            </Button>
+          )}
         </div>
 
         {/* Summary Cards */}
@@ -992,7 +1014,7 @@ export default function Suppliers() {
                     : 'Suppliers help you manage inventory sourcing and consignment relationships'}
                 </p>
               </div>
-              {!searchTerm && filterStatus === 'all' && (
+              {!searchTerm && filterStatus === 'all' && canCreateSuppliers && (
                 <Button onClick={() => setIsAddDialogOpen(true)} size="lg">
                   <Plus className="h-4 w-4 mr-2" />
                   Add Supplier

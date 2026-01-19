@@ -10,6 +10,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useCreateExpense, useUpdateExpense, useDeleteExpense, useSuppliers, useCreateSupplier } from '@/hooks/useDatabase';
 import { ExpenseCategory } from '@/types';
 import { useAuth } from '@/contexts/AuthContext';
+import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { useAllExpenseCategories, useAddCustomCategory, formatCategoryDisplay } from '@/hooks/useCustomCategories';
 import { ExpenseHelpTooltips } from '@/components/expenses/ExpenseHelpTooltips';
 import { ExpenseCardSkeleton, StatsCardSkeleton } from '@/components/ui/loading-states';
@@ -49,6 +50,8 @@ import { getDateRange, DateRangePeriod } from '@/lib/utils';
 
 export default function Expenses() {
   const { loading: authLoading } = useAuth();
+  const { canCreate } = usePermissions();
+  const canCreateExpenses = canCreate(CRM_MODULES.EXPENSES);
   const createExpense = useCreateExpense();
   const updateExpense = useUpdateExpense();
   const deleteExpense = useDeleteExpense();
@@ -297,10 +300,12 @@ export default function Expenses() {
               </DropdownMenuContent>
             </DropdownMenu>
 
-            <Button variant="premium" size="sm" onClick={() => { setShowModal(true); setEditingExpense(null); }}>
-              <Plus className="mr-2 h-4 w-4" />
-              Record Expense
-            </Button>
+            {canCreateExpenses && (
+              <Button variant="premium" size="sm" onClick={() => { setShowModal(true); setEditingExpense(null); }}>
+                <Plus className="mr-2 h-4 w-4" />
+                Record Expense
+              </Button>
+            )}
           </div>
         </div>
 
@@ -405,7 +410,7 @@ export default function Expenses() {
                       : 'Add your first expense to start tracking your business costs'
                   }
                 </p>
-                {!searchQuery.trim() && (
+                {!searchQuery.trim() && canCreateExpenses && (
                   <Button onClick={() => { setShowModal(true); setEditingExpense(null); }}>
                     <Plus className="mr-2 h-4 w-4" />
                     Record Expense

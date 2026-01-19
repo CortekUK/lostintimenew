@@ -12,6 +12,7 @@ import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { useCreateProduct, useUpdateProduct, useDeleteProduct, useSuppliers, useStockAdjustment } from '@/hooks/useDatabase';
+import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { useLocations } from '@/hooks/useLocations';
 import { useDocumentUpload } from '@/hooks/useProductDocuments';
 import { usePartExchangesByProduct } from '@/hooks/usePartExchanges';
@@ -64,7 +65,9 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
   const stockAdjustment = useStockAdjustment();
   const documentUpload = useDocumentUpload();
   const { toast } = useToast();
-  
+  const { canDelete } = usePermissions();
+  const canDeleteProducts = canDelete(CRM_MODULES.PRODUCTS);
+
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
   // Fetch related data for trade-in products
@@ -933,16 +936,19 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
           </Accordion>
 
           <div className="flex justify-between items-center gap-3 pt-6">
-            <Button 
-              type="button" 
-              variant="destructive" 
-              onClick={() => setShowDeleteConfirm(true)}
-              disabled={isLoading || deleteProduct.isPending}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              Delete Product
-            </Button>
-            
+            {canDeleteProducts && (
+              <Button
+                type="button"
+                variant="destructive"
+                onClick={() => setShowDeleteConfirm(true)}
+                disabled={isLoading || deleteProduct.isPending}
+              >
+                <Trash2 className="mr-2 h-4 w-4" />
+                Delete Product
+              </Button>
+            )}
+            {!canDeleteProducts && <div />}
+
             <div className="flex gap-3">
               <Button 
                 type="button" 

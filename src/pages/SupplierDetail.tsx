@@ -6,7 +6,7 @@ import { useSupplierProducts, useSupplierTransactions, useSupplierSpendTrend, Su
 import { useFilteredExpenses } from '@/hooks/useExpenseAnalytics';
 import { useSupplierDocuments, useUploadSupplierDocument, useDeleteSupplierDocument } from '@/hooks/useSupplierDocuments';
 import { useBusinessFinancialKPIs } from '@/hooks/useBusinessFinancials';
-import { useOwnerGuard } from '@/hooks/useOwnerGuard';
+import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -62,9 +62,10 @@ export default function SupplierDetail() {
   const { data: businessKPIs } = useBusinessFinancialKPIs(supplierId);
   const { data: consignments } = useSupplierConsignments(supplierId);
   const { data: supplierExpenses = [] } = useFilteredExpenses({ suppliers: [supplierId] });
-  
-  const isOwner = useOwnerGuard();
-  
+
+  const { canEdit } = usePermissions();
+  const canEditSuppliers = canEdit(CRM_MODULES.SUPPLIERS);
+
   const uploadMutation = useUploadSupplierDocument();
   const deleteMutation = useDeleteSupplierDocument();
 
@@ -161,7 +162,7 @@ export default function SupplierDetail() {
                 Part-Exchange History
               </Button>
             )}
-            {isOwner && (
+            {canEditSuppliers && (
               <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
@@ -655,7 +656,7 @@ export default function SupplierDetail() {
         </Tabs>
 
         {/* Edit Dialog */}
-        {isOwner && supplier && (
+        {canEditSuppliers && supplier && (
           <EditSupplierDialog
             supplier={supplier}
             open={editDialogOpen}

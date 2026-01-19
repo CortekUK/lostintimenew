@@ -47,7 +47,9 @@ export function ProductTable({
   partExchangeMap,
   highlightedProductId,
 }: ProductTableProps) {
-  const { canEdit } = usePermissions();
+  const { canEdit, canCreate } = usePermissions();
+  const canEditProducts = canEdit(CRM_MODULES.PRODUCTS);
+  const canCreateProducts = canCreate(CRM_MODULES.PRODUCTS);
   const [sortField, setSortField] = useState<SortField>('name');
   const [sortDirection, setSortDirection] = useState<SortDirection>('asc');
   const [denseMode, setDenseMode] = useState(false);
@@ -400,43 +402,47 @@ export function ProductTable({
                           </Tooltip>
                         </TooltipProvider>
 
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onEdit(product);
-                                }}
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Edit Product</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        {canEditProducts && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onEdit(product);
+                                  }}
+                                >
+                                  <Edit className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Edit Product</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
 
-                        <TooltipProvider>
-                          <Tooltip>
-                            <TooltipTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  onDuplicate(product);
-                                }}
-                              >
-                                <Copy className="h-4 w-4" />
-                              </Button>
-                            </TooltipTrigger>
-                            <TooltipContent>Duplicate Product</TooltipContent>
-                          </Tooltip>
-                        </TooltipProvider>
+                        {canCreateProducts && (
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  className="h-8 w-8"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    onDuplicate(product);
+                                  }}
+                                >
+                                  <Copy className="h-4 w-4" />
+                                </Button>
+                              </TooltipTrigger>
+                              <TooltipContent>Duplicate Product</TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        )}
                       </div>
                     </TableCell>
                   </TableRow>

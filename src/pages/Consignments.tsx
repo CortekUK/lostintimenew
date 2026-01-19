@@ -9,13 +9,13 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ProductDetailModal } from '@/components/modals/ProductDetailModal';
 import { SimpleTable, Column } from '@/components/ui/simple-table';
 import { RecordPayoutDialog } from '@/components/consignments/RecordPayoutDialog';
-import { 
-  useConsignmentProducts, 
+import {
+  useConsignmentProducts,
   useConsignmentSettlements,
   isConsignmentExpiringSoon,
   isPaymentOverdue
 } from '@/hooks/useConsignments';
-import { useOwnerGuard } from '@/hooks/useOwnerGuard';
+import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { formatCurrency, cn } from '@/lib/utils';
 import { format } from 'date-fns';
 import {
@@ -42,8 +42,10 @@ export default function Consignments() {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [payoutDialogOpen, setPayoutDialogOpen] = useState(false);
   const [selectedSettlement, setSelectedSettlement] = useState<any>(null);
-  const isOwner = useOwnerGuard();
-  
+
+  const { canEdit } = usePermissions();
+  const canEditConsignments = canEdit(CRM_MODULES.CONSIGNMENTS);
+
   const { data: consignmentData, isLoading: productsLoading } = useConsignmentProducts();
   const { data: settlements = [], isLoading: settlementsLoading } = useConsignmentSettlements();
 
@@ -389,9 +391,9 @@ export default function Consignments() {
             <Eye className="h-4 w-4" />
             View
           </Button>
-          {isOwner && (
-            <Button 
-              size="sm" 
+          {canEditConsignments && (
+            <Button
+              size="sm"
               variant="outline"
               onClick={(e) => {
                 e.stopPropagation();

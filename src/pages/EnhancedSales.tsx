@@ -14,6 +14,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { formatCurrency } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { useOwnerGuard } from '@/hooks/useOwnerGuard';
+import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { matchOrCreateCustomer } from '@/hooks/useCustomerMatchOrCreate';
 import { useRecordCashMovement } from '@/hooks/useCashDrawer';
 import type { CartItem, Product, Sale, PartExchangeItem } from '@/types';
@@ -24,6 +25,8 @@ export default function EnhancedSales() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const isOwner = useOwnerGuard();
+  const { canCreate } = usePermissions();
+  const canCreateSales = canCreate(CRM_MODULES.SALES);
   const recordCashMovement = useRecordCashMovement();
   const [searchParams, setSearchParams] = useSearchParams();
   
@@ -545,6 +548,7 @@ export default function EnhancedSales() {
               locationId={locationId}
               onLocationChange={setLocationId}
               locationLocked={cart.length > 0}
+              disabled={!canCreateSales}
             />
           </div>
         </div>

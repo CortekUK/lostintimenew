@@ -222,7 +222,7 @@ export const ROLE_LABELS: Record<UserRole, string> = {
 
 export const ROLE_DESCRIPTIONS: Record<UserRole, string> = {
   owner: 'Full access to all features including settings and user management',
-  manager: 'Full access to operations, reports, and analytics. Cannot manage users or settings.',
+  manager: 'Full access to operations. Cannot manage users or settings.',
   staff: 'Can view data and create sales. Limited editing capabilities.',
 };
 
