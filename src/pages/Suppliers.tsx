@@ -14,7 +14,7 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Switch } from '@/components/ui/switch';
-import { Plus, Mail, Phone, User, Edit, Trash2, Eye, MapPin, Truck, Package, TrendingUp, Tag, Loader2, Search, AlertCircle, Building2, LayoutGrid, LayoutList } from 'lucide-react';
+import { Plus, Mail, Phone, User, Edit, Trash2, Eye, MapPin, Truck, Package, TrendingUp, Tag, Loader2, Search, AlertCircle, Building2, LayoutGrid, LayoutList, X } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { z } from 'zod';
@@ -656,7 +656,7 @@ function AddSupplierDialog({ open, onOpenChange }: AddSupplierDialogProps) {
                     supplier_type: value as 'registered' | 'customer' 
                   })}
                 >
-                  <SelectTrigger id="supplier_type">
+                  <SelectTrigger id="supplier_type" className="h-auto py-3">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -777,17 +777,84 @@ function AddSupplierDialog({ open, onOpenChange }: AddSupplierDialogProps) {
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="tags">Tags (comma-separated)</Label>
-            <Input
-              id="tags"
-              value={formData.tags.join(', ')}
-              onChange={(e) => setFormData({ 
-                ...formData, 
-                tags: e.target.value.split(',').map(t => t.trim()).filter(Boolean) 
-              })}
-              placeholder="e.g. Luxury Watches, Diamonds, Gold"
-            />
+          <div className="space-y-3">
+            <div>
+              <Label>Tags</Label>
+              <p className="text-xs text-muted-foreground mt-1">Click to add or remove tags</p>
+            </div>
+            
+            {/* Preset tag suggestions */}
+            <div className="flex flex-wrap gap-2">
+              {['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'].map(tag => (
+                <Badge
+                  key={tag}
+                  variant={formData.tags.includes(tag) ? 'default' : 'outline'}
+                  className="cursor-pointer hover:bg-primary/10 transition-colors"
+                  onClick={() => {
+                    setFormData(prev => ({
+                      ...prev,
+                      tags: prev.tags.includes(tag) 
+                        ? prev.tags.filter(t => t !== tag)
+                        : [...prev.tags, tag]
+                    }));
+                  }}
+                >
+                  {tag}
+                  {formData.tags.includes(tag) && <X className="h-3 w-3 ml-1" />}
+                </Badge>
+              ))}
+            </div>
+            
+            {/* Custom tag input */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Add custom tag..."
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    const input = e.currentTarget;
+                    const tag = input.value.trim();
+                    if (tag && !formData.tags.includes(tag)) {
+                      setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+                      input.value = '';
+                    }
+                  }
+                }}
+                className="flex-1"
+              />
+              <Button 
+                type="button" 
+                variant="outline" 
+                size="sm"
+                onClick={(e) => {
+                  const input = (e.currentTarget.previousElementSibling as HTMLInputElement);
+                  const tag = input.value.trim();
+                  if (tag && !formData.tags.includes(tag)) {
+                    setFormData(prev => ({ ...prev, tags: [...prev.tags, tag] }));
+                    input.value = '';
+                  }
+                }}
+              >
+                Add
+              </Button>
+            </div>
+            
+            {/* Display custom tags (non-preset) */}
+            {formData.tags.filter(t => !['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'].includes(t)).length > 0 && (
+              <div className="flex flex-wrap gap-1">
+                <span className="text-xs text-muted-foreground mr-1">Custom:</span>
+                {formData.tags.filter(t => !['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'].includes(t)).map(tag => (
+                  <Badge 
+                    key={tag} 
+                    variant="secondary" 
+                    className="cursor-pointer hover:bg-destructive/10"
+                    onClick={() => setFormData(prev => ({ ...prev, tags: prev.tags.filter(t => t !== tag) }))}
+                  >
+                    {tag} <X className="h-3 w-3 ml-1" />
+                  </Badge>
+                ))}
+              </div>
+            )}
           </div>
           
           <div>
