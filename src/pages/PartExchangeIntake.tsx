@@ -630,7 +630,9 @@ export default function PartExchangeIntake() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="outline" className="bg-warning/10 text-warning border-warning/30">
-                          {px.hold_reason || 'No reason'}
+                          {px.hold_reason 
+                            ? px.hold_reason.replace(/\b\w/g, (char) => char.toUpperCase()) 
+                            : 'No Reason'}
                         </Badge>
                       </TableCell>
                       <TableCell>
