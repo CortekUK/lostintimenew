@@ -1058,10 +1058,21 @@ export default function Suppliers() {
   const [sortBy, setSortBy] = useState('name');
   const [filterStatus, setFilterStatus] = useState('all');
   const [filterType, setFilterType] = useState('all');
+  const [filterTag, setFilterTag] = useState('all');
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('table');
 
   const { data: suppliers, isLoading } = useSuppliers();
   const { data: summary } = useSupplierMetricsSummary();
+
+  // Collect all unique tags from suppliers for the filter dropdown
+  const allTags = useMemo(() => {
+    if (!suppliers) return presetTags;
+    const tagsSet = new Set<string>(presetTags);
+    suppliers.forEach(s => {
+      s.tags?.forEach(tag => tagsSet.add(tag));
+    });
+    return Array.from(tagsSet).sort();
+  }, [suppliers]);
 
   const filteredAndSortedSuppliers = useMemo(() => {
     if (!suppliers) return [];
@@ -1077,8 +1088,9 @@ export default function Suppliers() {
         
         const matchesStatus = filterStatus === 'all' || supplier.status === filterStatus;
         const matchesType = filterType === 'all' || supplier.supplier_type === filterType;
+        const matchesTag = filterTag === 'all' || supplier.tags?.includes(filterTag);
         
-        return matchesSearch && matchesStatus && matchesType;
+        return matchesSearch && matchesStatus && matchesType && matchesTag;
       });
 
     // Sort
@@ -1098,7 +1110,7 @@ export default function Suppliers() {
     });
 
     return filtered;
-  }, [suppliers, searchTerm, filterStatus, filterType, sortBy]);
+  }, [suppliers, searchTerm, filterStatus, filterType, filterTag, sortBy]);
 
   const handleViewSupplier = (id: number) => {
     navigate(`/suppliers/${id}`);
@@ -1150,6 +1162,18 @@ export default function Suppliers() {
               <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="inactive">Inactive</SelectItem>
+            </SelectContent>
+          </Select>
+          <Select value={filterTag} onValueChange={setFilterTag}>
+            <SelectTrigger className="w-[180px]">
+              <Tag className="h-4 w-4 mr-2" />
+              <SelectValue placeholder="Filter by Tag" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Tags</SelectItem>
+              {allTags.map(tag => (
+                <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+              ))}
             </SelectContent>
           </Select>
           <ToggleGroup 
