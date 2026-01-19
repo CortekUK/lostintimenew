@@ -101,7 +101,7 @@ export function EditSupplierDialog({ supplier, open, onOpenChange }: EditSupplie
                   setEditForm({ ...editForm, supplier_type: value })
                 }
               >
-                <SelectTrigger id="supplier_type" className="h-auto py-3">
+                <SelectTrigger id="supplier_type" className="h-auto py-3 focus:ring-offset-0">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
