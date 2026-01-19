@@ -6,12 +6,11 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { cn } from '@/lib/utils';
 import { PartExchangeFileUpload } from './PartExchangeFileUpload';
-import { Repeat, Search, X, Check } from 'lucide-react';
+import { Repeat, Search, Check } from 'lucide-react';
 import { PartExchangeItem } from '@/types';
 import { useFilterOptions } from '@/hooks/useFilterOptions';
 import { InlineSupplierAdd } from '@/components/forms/InlineSupplierAdd';
-import { useSuppliers } from '@/hooks/useSuppliers';
-// Removed ToggleGroup - PX source is always customer at POS
+import { useCustomers } from '@/hooks/useCustomers';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
@@ -25,7 +24,7 @@ interface PartExchangeModalProps {
 
 export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalProps) => {
   const { data: filterOptions } = useFilterOptions();
-  const { data: suppliers, refetch: refetchSuppliers } = useSuppliers();
+  const { data: customers, refetch: refetchCustomers } = useCustomers();
   
   const [formData, setFormData] = useState({
     product_name: '',
@@ -87,7 +86,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
       customer_name: selectedPerson?.name,
       customer_email: selectedPerson?.email,
       customer_phone: selectedPerson?.phone,
-      supplier_id: selectedPerson?.id,
+      customer_id: selectedPerson?.id, // ID from customers table
     };
 
     // Analytics tracking
@@ -284,30 +283,28 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
                         <CommandList>
                           <CommandEmpty>No results found.</CommandEmpty>
                           <CommandGroup>
-                            {suppliers
-                              ?.filter(s => s.supplier_type === 'customer')
-                              ?.map((person) => (
-                                <CommandItem
-                                  key={person.id}
-                                  onSelect={() => {
-                                    setSelectedPerson({
-                                      id: person.id,
-                                      name: person.name,
-                                      email: person.email || undefined,
-                                      phone: person.phone || undefined,
-                                    });
-                                    setSearchOpen(false);
-                                    setErrors(prev => ({ ...prev, source: '' }));
-                                  }}
-                                >
-                                  <div className="flex flex-col">
-                                    <span className="font-medium">{person.name}</span>
-                                    <span className="text-xs text-muted-foreground">
-                                      {person.email || person.phone || 'No contact'}
-                                    </span>
-                                  </div>
-                                </CommandItem>
-                              ))}
+                            {customers?.map((customer) => (
+                              <CommandItem
+                                key={customer.id}
+                                onSelect={() => {
+                                  setSelectedPerson({
+                                    id: customer.id,
+                                    name: customer.name,
+                                    email: customer.email || undefined,
+                                    phone: customer.phone || undefined,
+                                  });
+                                  setSearchOpen(false);
+                                  setErrors(prev => ({ ...prev, source: '' }));
+                                }}
+                              >
+                                <div className="flex flex-col">
+                                  <span className="font-medium">{customer.name}</span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {customer.email || customer.phone || 'No contact'}
+                                  </span>
+                                </div>
+                              </CommandItem>
+                            ))}
                           </CommandGroup>
                         </CommandList>
                       </Command>
@@ -367,21 +364,21 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
           </div>
         </form>
 
-        {/* New Person Modal */}
+        {/* New Customer Modal */}
         <InlineSupplierAdd
           open={showNewPersonModal}
           onOpenChange={setShowNewPersonModal}
           hideTrigger
-          onSupplierCreated={async (supplierId) => {
-            // Refetch suppliers to get the newly created one
-            const { data: refreshedSuppliers } = await refetchSuppliers();
-            const newPerson = refreshedSuppliers?.find(s => s.id === supplierId);
-            if (newPerson) {
+          onCustomerCreated={async (customerId) => {
+            // Refetch customers to get the newly created one
+            const { data: refreshedCustomers } = await refetchCustomers();
+            const newCustomer = refreshedCustomers?.find(c => c.id === customerId);
+            if (newCustomer) {
               setSelectedPerson({
-                id: newPerson.id,
-                name: newPerson.name,
-                email: newPerson.email || undefined,
-                phone: newPerson.phone || undefined,
+                id: newCustomer.id,
+                name: newCustomer.name,
+                email: newCustomer.email || undefined,
+                phone: newCustomer.phone || undefined,
               });
               setErrors(prev => ({ ...prev, source: '' }));
             }

@@ -8,6 +8,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useCreateSupplier } from '@/hooks/useSuppliers';
+import { useCreateCustomer } from '@/hooks/useCustomers';
 import { Plus, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { z } from 'zod';
@@ -26,6 +27,8 @@ const supplierSchema = z.object({
 
 interface InlineSupplierAddProps {
   onSupplierCreated?: (supplierId: number) => void;
+  /** Callback when a customer is created (inserts into customers table) */
+  onCustomerCreated?: (customerId: number) => void;
   triggerClassName?: string;
   defaultType?: 'registered' | 'customer';
   triggerLabel?: string;
@@ -40,7 +43,8 @@ interface InlineSupplierAddProps {
 }
 
 export function InlineSupplierAdd({ 
-  onSupplierCreated, 
+  onSupplierCreated,
+  onCustomerCreated,
   triggerClassName,
   defaultType = 'registered',
   triggerLabel,
@@ -80,6 +84,7 @@ export function InlineSupplierAdd({
   const [errors, setErrors] = useState<Record<string, string>>({});
   
   const createSupplier = useCreateSupplier();
+  const createCustomer = useCreateCustomer();
   
   const validateForm = () => {
     try {
@@ -106,35 +111,65 @@ export function InlineSupplierAdd({
     if (!validateForm()) return;
     
     try {
-      const result = await createSupplier.mutateAsync({
-        ...formData,
-        email: formData.email || null,
-        phone: formData.phone || null,
-        contact_name: formData.contact_name || null,
-        address: formData.address || null,
-        notes: formData.notes || null,
-        tags: formData.tags.length > 0 ? formData.tags : null
-      });
-      
-      setOpen(false);
-      setFormData({
-        name: '',
-        supplier_type: defaultType,
-        email: '',
-        phone: '',
-        contact_name: '',
-        address: '',
-        notes: '',
-        tags: [],
-        status: 'active'
-      });
-      setErrors({});
-      
-      if (onSupplierCreated && result.id) {
-        onSupplierCreated(result.id);
+      // When adding a customer from POS (lockType + customer), insert into customers table
+      if (lockType && defaultType === 'customer') {
+        const result = await createCustomer.mutateAsync({
+          name: formData.name,
+          email: formData.email || null,
+          phone: formData.phone || null,
+          notes: formData.notes || null,
+          status: 'active'
+        });
+        
+        setOpen(false);
+        setFormData({
+          name: '',
+          supplier_type: defaultType,
+          email: '',
+          phone: '',
+          contact_name: '',
+          address: '',
+          notes: '',
+          tags: [],
+          status: 'active'
+        });
+        setErrors({});
+        
+        if (onCustomerCreated && result.id) {
+          onCustomerCreated(result.id);
+        }
+      } else {
+        // Standard supplier creation
+        const result = await createSupplier.mutateAsync({
+          ...formData,
+          email: formData.email || null,
+          phone: formData.phone || null,
+          contact_name: formData.contact_name || null,
+          address: formData.address || null,
+          notes: formData.notes || null,
+          tags: formData.tags.length > 0 ? formData.tags : null
+        });
+        
+        setOpen(false);
+        setFormData({
+          name: '',
+          supplier_type: defaultType,
+          email: '',
+          phone: '',
+          contact_name: '',
+          address: '',
+          notes: '',
+          tags: [],
+          status: 'active'
+        });
+        setErrors({});
+        
+        if (onSupplierCreated && result.id) {
+          onSupplierCreated(result.id);
+        }
       }
     } catch (error) {
-      console.error('Failed to create supplier:', error);
+      console.error('Failed to create:', error);
     }
   };
   
@@ -336,8 +371,8 @@ export function InlineSupplierAdd({
             <Button type="button" variant="outline" onClick={() => setOpen(false)} size="sm">
               Cancel
             </Button>
-            <Button type="submit" disabled={createSupplier.isPending} size="sm">
-              {createSupplier.isPending ? 'Creating...' : 'Create'}
+            <Button type="submit" disabled={createSupplier.isPending || createCustomer.isPending} size="sm">
+              {(createSupplier.isPending || createCustomer.isPending) ? 'Creating...' : 'Create'}
             </Button>
           </div>
         </form>
