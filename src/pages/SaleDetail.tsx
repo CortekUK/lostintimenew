@@ -9,7 +9,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { useSales } from '@/hooks/useDatabase';
+import { useSales, useProducts } from '@/hooks/useDatabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useTheme } from 'next-themes';
@@ -19,6 +19,7 @@ import { buildReceiptHtml } from '@/utils/receiptHtmlBuilder';
 import { printHtml } from '@/utils/printUtils';
 import { EmailService } from '@/components/integrations/EmailService';
 import { AddPartExchangeToSaleModal } from '@/components/transactions/AddPartExchangeToSaleModal';
+import { ProductDetailModal } from '@/components/modals/ProductDetailModal';
 import { usePermissions } from '@/hooks/usePermissions';
 import { 
   ArrowLeft,
@@ -46,8 +47,11 @@ export default function SaleDetail() {
   const { theme } = useTheme();
   const { isAtLeast } = usePermissions();
   const { data: salesData = [], isLoading } = useSales();
+  const { data: products = [] } = useProducts();
   const [showReceiptModal, setShowReceiptModal] = useState(false);
   const [showAddPxModal, setShowAddPxModal] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [productDetailOpen, setProductDetailOpen] = useState(false);
   
   const sale = Array.isArray(salesData) ? salesData.find((s: any) => s.id.toString() === id) : undefined;
 
@@ -348,7 +352,16 @@ export default function SaleDetail() {
                 const lineProfit = lineTotal - lineCost;
                 
                 return (
-                  <div key={index} className="border rounded-lg p-4">
+                  <div 
+                    key={index} 
+                    className="border rounded-lg p-4 cursor-pointer hover:border-primary/50 hover:bg-accent/50 transition-colors"
+                    onClick={() => {
+                      if (item.product_id) {
+                        setSelectedProductId(item.product_id);
+                        setProductDetailOpen(true);
+                      }
+                    }}
+                  >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
                         <h4 className="font-semibold">{item.product?.name || 'Unknown Product'}</h4>
@@ -498,6 +511,33 @@ export default function SaleDetail() {
           saleId={parseInt(id)}
         />
       )}
+
+      {/* Product Detail Modal */}
+      <ProductDetailModal
+        product={selectedProductId ? products.find(p => p.id === selectedProductId) || null : null}
+        open={productDetailOpen}
+        onOpenChange={setProductDetailOpen}
+        soldInfo={
+          selectedProductId && sale?.items
+            ? (() => {
+                const item = sale.items.find(i => i.product_id === selectedProductId);
+                return item ? {
+                  soldAt: sale.sold_at,
+                  salePrice: item.unit_price,
+                  saleId: sale.id
+                } : undefined;
+              })()
+            : undefined
+        }
+        onEditClick={() => {
+          setProductDetailOpen(false);
+          navigate(`/products?id=${selectedProductId}`);
+        }}
+        onDuplicateClick={() => {
+          setProductDetailOpen(false);
+          navigate(`/products?duplicate=${selectedProductId}`);
+        }}
+      />
     </AppLayout>
   );
 }
