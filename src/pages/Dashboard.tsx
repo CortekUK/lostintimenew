@@ -57,18 +57,33 @@ const KPICard = ({
 // Quick Actions Bar Component
 const QuickActionsBar = () => {
   const navigate = useNavigate();
+  const { isAtLeast } = usePermissions();
   
-  const actions = [
-    { label: 'New Sale', icon: ShoppingCart, route: '/sales' },
-    { label: 'Add Product', icon: Plus, route: '/products?add=true' },
-    { label: 'Add Customer', icon: UserPlus, route: '/customers?add=true' },
-    { label: 'Log Expense', icon: ReceiptPoundSterling, route: '/expenses?add=true' },
-    { label: 'Add Supplier', icon: Users, route: '/suppliers?add=true' },
-    { label: 'View Reports', icon: FileText, route: '/reports' },
+  // Define all actions with their role requirements
+  const allActions = [
+    { label: 'New Sale', icon: ShoppingCart, route: '/sales', minRole: 'staff' as const },
+    { label: 'Add Product', icon: Plus, route: '/products?add=true', minRole: 'manager' as const },
+    { label: 'Add Customer', icon: UserPlus, route: '/customers?add=true', minRole: 'staff' as const },
+    { label: 'Log Expense', icon: ReceiptPoundSterling, route: '/expenses?add=true', minRole: 'staff' as const },
+    { label: 'Add Supplier', icon: Users, route: '/suppliers?add=true', minRole: 'manager' as const },
+    { label: 'View Reports', icon: FileText, route: '/reports', minRole: 'owner' as const },
   ];
   
+  // Filter actions based on user's role
+  const actions = allActions.filter(action => isAtLeast(action.minRole));
+  
+  // Determine grid columns based on number of visible actions
+  const getGridCols = () => {
+    const count = actions.length;
+    if (count <= 2) return 'grid-cols-2';
+    if (count <= 3) return 'grid-cols-2 sm:grid-cols-3';
+    if (count <= 4) return 'grid-cols-2 sm:grid-cols-4';
+    if (count <= 5) return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5';
+    return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-6';
+  };
+  
   return (
-    <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-6 md:mb-8">
+    <div className={`grid ${getGridCols()} gap-3 mb-6 md:mb-8`}>
       {actions.map((action) => (
         <Button
           key={action.label}
