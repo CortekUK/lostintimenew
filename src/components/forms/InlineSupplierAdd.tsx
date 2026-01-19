@@ -158,7 +158,7 @@ export function InlineSupplierAdd({
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="font-luxury text-lg">
-            Quick Add {defaultType === 'customer' ? 'Customer' : 'Supplier'}
+            {defaultType === 'customer' ? 'Add Customer' : 'Add Supplier'}
           </DialogTitle>
           <DialogDescription>
             Add a new {defaultType === 'customer' ? 'customer' : 'registered supplier'} with basic information
@@ -274,47 +274,52 @@ export function InlineSupplierAdd({
             </div>
           )}
           
-          <div className="space-y-2">
-            <Label>Status</Label>
-            <div className="flex items-center space-x-3">
-              <Switch
-                checked={formData.status === 'active'}
-                onCheckedChange={(checked) => setFormData({...formData, status: checked ? 'active' : 'inactive'})}
-              />
-              <span className={cn("text-sm", formData.status === 'active' ? "text-success" : "text-muted-foreground")}>
-                {formData.status === 'active' ? 'Active' : 'Inactive'}
-              </span>
-            </div>
-          </div>
-          
-          <div className="space-y-2">
-            <Label>Tags</Label>
-            <Input
-              placeholder="Enter tags separated by commas"
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' || e.key === ',') {
-                  e.preventDefault();
-                  const value = e.currentTarget.value.trim();
-                  if (value) {
-                    setFormData(prev => ({
-                      ...prev,
-                      tags: [...new Set([...prev.tags, value])]
-                    }));
-                    e.currentTarget.value = '';
-                  }
-                }
-              }}
-            />
-            {formData.tags.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {formData.tags.map((tag, index) => (
-                  <Badge key={index} variant="secondary" className="text-xs cursor-pointer" onClick={() => removeTag(tag)}>
-                    {tag} ×
-                  </Badge>
-                ))}
+          {/* Hide status and tags when adding customer from POS */}
+          {!(lockType && defaultType === 'customer') && (
+            <>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <div className="flex items-center space-x-3">
+                  <Switch
+                    checked={formData.status === 'active'}
+                    onCheckedChange={(checked) => setFormData({...formData, status: checked ? 'active' : 'inactive'})}
+                  />
+                  <span className={cn("text-sm", formData.status === 'active' ? "text-success" : "text-muted-foreground")}>
+                    {formData.status === 'active' ? 'Active' : 'Inactive'}
+                  </span>
+                </div>
               </div>
-            )}
-          </div>
+              
+              <div className="space-y-2">
+                <Label>Tags</Label>
+                <Input
+                  placeholder="Enter tags separated by commas"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ',') {
+                      e.preventDefault();
+                      const value = e.currentTarget.value.trim();
+                      if (value) {
+                        setFormData(prev => ({
+                          ...prev,
+                          tags: [...new Set([...prev.tags, value])]
+                        }));
+                        e.currentTarget.value = '';
+                      }
+                    }
+                  }}
+                />
+                {formData.tags.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {formData.tags.map((tag, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs cursor-pointer" onClick={() => removeTag(tag)}>
+                        {tag} ×
+                      </Badge>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
           
           <div className="space-y-2">
             <Label htmlFor="notes">Notes</Label>
