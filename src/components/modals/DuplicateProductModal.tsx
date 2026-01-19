@@ -154,7 +154,7 @@ export function DuplicateProductModal({ product, open, onOpenChange, onSuccess }
                 <Label htmlFor="supplier">Supplier</Label>
                 <Select value={supplierId} onValueChange={setSupplierId}>
                   <SelectTrigger>
-                    <SelectValue placeholder="Select supplier" />
+                    <SelectValue placeholder="Select Supplier" />
                   </SelectTrigger>
                   <SelectContent>
                     {suppliers?.map((supplier) => (

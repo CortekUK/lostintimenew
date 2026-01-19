@@ -632,7 +632,7 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
                     {formData.supplier_type === 'registered' ? (
                       <Select value={formData.supplier_id} onValueChange={(value) => setFormData({...formData, supplier_id: value})}>
                         <SelectTrigger>
-                          <SelectValue placeholder="Select supplier" />
+                          <SelectValue placeholder="Select Supplier" />
                         </SelectTrigger>
                         <SelectContent>
                           {suppliers?.map((supplier) => (
