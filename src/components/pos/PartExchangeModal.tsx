@@ -37,10 +37,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
   });
 
   // Trade-in source is always customer at POS (suppliers are added via Products/Suppliers section)
-  const [selectedPerson, setSelectedPerson] = useState<{ id: number; name: string; type: string } | null>(null);
-  const [quickAddMode, setQuickAddMode] = useState(false);
-  const [quickName, setQuickName] = useState('');
-  const [quickContact, setQuickContact] = useState('');
+  const [selectedPerson, setSelectedPerson] = useState<{ id: number; name: string; email?: string; phone?: string } | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [showNewPersonModal, setShowNewPersonModal] = useState(false);
 
@@ -64,8 +61,8 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
     }
 
     // Validate customer selection
-    if (!selectedPerson && !quickName.trim()) {
-      newErrors.source = "Please select a customer or enter a quick name";
+    if (!selectedPerson) {
+      newErrors.source = "Please select or create a customer";
     }
 
     setErrors(newErrors);
@@ -87,15 +84,16 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
       serial: formData.serial || undefined,
       allowance: parseInt(formData.allowance),
       notes: formData.notes || undefined,
-      customer_name: selectedPerson ? selectedPerson.name : (quickName || undefined),
-      customer_contact: quickContact || undefined,
+      customer_name: selectedPerson?.name,
+      customer_email: selectedPerson?.email,
+      customer_phone: selectedPerson?.phone,
       supplier_id: selectedPerson?.id,
     };
 
     // Analytics tracking
-    if (selectedPerson || quickName) {
+    if (selectedPerson) {
       console.log('px_person_attached', {
-        mode: selectedPerson ? 'record' : 'quick',
+        mode: 'record',
         person_type: 'customer',
       });
     }
@@ -111,11 +109,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
       allowance: '',
       notes: '',
     });
-    // tradeInSource removed - always customer
     setSelectedPerson(null);
-    setQuickAddMode(false);
-    setQuickName('');
-    setQuickContact('');
     setUploadedFiles([]);
     setErrors({});
     setShowCustomCategory(false);
@@ -299,7 +293,8 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
                                     setSelectedPerson({
                                       id: person.id,
                                       name: person.name,
-                                      type: 'customer',
+                                      email: person.email || undefined,
+                                      phone: person.phone || undefined,
                                     });
                                     setSearchOpen(false);
                                     setErrors(prev => ({ ...prev, source: '' }));
@@ -326,51 +321,6 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
                   >
                     + New Customer
                   </Button>
-                </div>
-              )}
-
-              {/* Quick Add Option */}
-              {!selectedPerson && (
-                <div className="space-y-2">
-                  <button
-                    type="button"
-                    className="text-sm text-muted-foreground hover:text-primary hover:underline"
-                    onClick={() => setQuickAddMode(!quickAddMode)}
-                  >
-                    {quickAddMode ? 'Hide quick add' : 'Or quick add (no record created)'}
-                  </button>
-
-                  {quickAddMode && (
-                    <div className="space-y-3 p-3 border rounded-md bg-muted/30">
-                      <div>
-                        <Label htmlFor="quick_name" className="text-sm">
-                          Quick Name *
-                        </Label>
-                        <Input
-                          id="quick_name"
-                          value={quickName}
-                          onChange={(e) => {
-                            setQuickName(e.target.value);
-                            setErrors(prev => ({ ...prev, source: '' }));
-                          }}
-                          placeholder="Customer name"
-                          className="mt-1"
-                        />
-                      </div>
-                      <div>
-                        <Label htmlFor="quick_contact" className="text-sm">
-                          Quick Contact
-                        </Label>
-                        <Input
-                          id="quick_contact"
-                          value={quickContact}
-                          onChange={(e) => setQuickContact(e.target.value)}
-                          placeholder="Phone or email (optional)"
-                          className="mt-1"
-                        />
-                      </div>
-                    </div>
-                  )}
                 </div>
               )}
 
@@ -430,7 +380,8 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
               setSelectedPerson({
                 id: newPerson.id,
                 name: newPerson.name,
-                type: 'customer',
+                email: newPerson.email || undefined,
+                phone: newPerson.phone || undefined,
               });
               setErrors(prev => ({ ...prev, source: '' }));
             }

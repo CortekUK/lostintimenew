@@ -94,6 +94,8 @@ export interface PartExchangeItem {
   notes?: string;
   customer_name?: string;
   customer_contact?: string;
+  customer_email?: string;
+  customer_phone?: string;
   supplier_id?: number; // Link to customer supplier
 }
 
