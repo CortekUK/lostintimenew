@@ -96,7 +96,8 @@ export interface PartExchangeItem {
   customer_contact?: string;
   customer_email?: string;
   customer_phone?: string;
-  supplier_id?: number; // Link to customer supplier
+  customer_id?: number; // ID from customers table (for sales FK)
+  supplier_id?: number; // Legacy - ID from suppliers table
 }
 
 // For creating sale items without sale_id (added in mutation)

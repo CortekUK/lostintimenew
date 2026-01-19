@@ -194,8 +194,8 @@ export default function EnhancedSales() {
       if (partExchange.customer_phone) {
         setCustomerPhone(partExchange.customer_phone);
       }
-      if (partExchange.supplier_id) {
-        setSelectedCustomerId(partExchange.supplier_id);
+      if (partExchange.customer_id) {
+        setSelectedCustomerId(partExchange.customer_id);
       }
     }
     
