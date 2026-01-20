@@ -25,6 +25,7 @@ import { EditSaleCommissionModal } from '@/components/reports/EditSaleCommission
 import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { useStaffCommissionOverride } from '@/hooks/useStaffCommissionOverrides';
 import { AddPartExchangeToSaleModal } from './AddPartExchangeToSaleModal';
+import { ProductDetailModal } from '@/components/modals/ProductDetailModal';
 
 interface SaleDetailModalProps {
   saleId: number | null;
@@ -51,6 +52,13 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [commissionModalOpen, setCommissionModalOpen] = useState(false);
   const [addPxModalOpen, setAddPxModalOpen] = useState(false);
+  const [productDetailOpen, setProductDetailOpen] = useState(false);
+  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+
+  const handleViewProduct = (productId: number) => {
+    setSelectedProductId(productId);
+    setProductDetailOpen(true);
+  };
 
   const items = data?.items || [];
   const partExchanges = data?.partExchanges || [];
@@ -419,7 +427,7 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                           variant="link"
                           size="sm"
                           className="h-auto p-0 text-xs"
-                          onClick={() => navigate(`/products?id=${product.id}`)}
+                          onClick={() => handleViewProduct(product.id)}
                           aria-label={`View ${product.name} product details`}
                         >
                           <Eye className="h-3 w-3 mr-1" />
@@ -497,7 +505,7 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                               variant="link"
                               size="sm"
                               className="h-auto p-0 text-xs"
-                              onClick={() => navigate(`/products?id=${px.product_id}`)}
+                              onClick={() => handleViewProduct(px.product_id)}
                             >
                               <Eye className="h-3 w-3 mr-1" />
                               View Product
@@ -767,6 +775,15 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
             await queryClient.invalidateQueries({ queryKey: ['transactions'] });
             await queryClient.invalidateQueries({ queryKey: ['part-exchanges'] });
           }}
+        />
+      )}
+      
+      {selectedProductId && (
+        <ProductDetailModal
+          product={{ id: selectedProductId } as any}
+          open={productDetailOpen}
+          onOpenChange={setProductDetailOpen}
+          onEditClick={() => {}}
         />
       )}
     </>
