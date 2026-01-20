@@ -438,7 +438,7 @@ export const useBusinessInsights = (period: '7d' | '30d' | '90d' = '30d') => {
         const categoryRevenue: Record<string, number> = {};
         categoryData.forEach(sale => {
           const product = products?.find(p => p.id === sale.product_id);
-          const category = product?.category || 'Uncategorized';
+          const category = product?.category || 'Uncategorised';
           categoryRevenue[category] = (categoryRevenue[category] || 0) + Number(sale.line_revenue);
         });
 

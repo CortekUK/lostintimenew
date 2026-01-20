@@ -76,8 +76,8 @@ export function RolePermissionsManager() {
     return defaultPerms[module]?.[action] ?? false;
   };
 
-  // Check if a permission has been customized (differs from default)
-  const isCustomized = (role: 'manager' | 'staff', module: CRMModule, action: Action): boolean => {
+  // Check if a permission has been customised (differs from default)
+  const isCustomised = (role: 'manager' | 'staff', module: CRMModule, action: Action): boolean => {
     const overrides = currentOverrides[role]?.[module];
     if (!overrides || !(action in overrides)) {
       return false;
@@ -150,8 +150,8 @@ export function RolePermissionsManager() {
     }
   };
 
-  // Check if role has any customizations
-  const hasCustomizations = (role: 'manager' | 'staff'): boolean => {
+  // Check if role has any customisations
+  const hasCustomisations = (role: 'manager' | 'staff'): boolean => {
     const roleOverrides = currentOverrides[role];
     if (!roleOverrides) return false;
     return Object.keys(roleOverrides).length > 0;
@@ -165,9 +165,9 @@ export function RolePermissionsManager() {
             <Badge variant={role === 'manager' ? 'secondary' : 'outline'}>
               {ROLE_LABELS[role]}
             </Badge>
-            {hasCustomizations(role) && (
+            {hasCustomisations(role) && (
               <Badge variant="outline" className="text-xs">
-                Customized
+                Customised
               </Badge>
             )}
           </div>
@@ -175,7 +175,7 @@ export function RolePermissionsManager() {
             variant="ghost"
             size="sm"
             onClick={() => resetToDefaults(role)}
-            disabled={saving || !hasCustomizations(role)}
+            disabled={saving || !hasCustomisations(role)}
           >
             <RotateCcw className="h-4 w-4 mr-2" />
             Reset to Defaults
@@ -208,7 +208,7 @@ export function RolePermissionsManager() {
                 {CONFIGURABLE_ACTIONS.map((action) => {
                   const isDisabled = isViewOnly && action !== ACTIONS.VIEW;
                   const isOn = getPermission(role, module, action);
-                  const customized = isCustomized(role, module, action);
+                  const customised = isCustomised(role, module, action);
 
                   return (
                     <div key={action} className="flex justify-center">
@@ -232,7 +232,7 @@ export function RolePermissionsManager() {
                             onCheckedChange={() => togglePermission(role, module, action)}
                             disabled={saving}
                           />
-                          {customized && (
+                          {customised && (
                             <span className="absolute -top-1 -right-1 w-2 h-2 bg-primary rounded-full" />
                           )}
                         </div>
@@ -263,7 +263,7 @@ export function RolePermissionsManager() {
               Role Permissions
             </CardTitle>
             <CardDescription>
-              Customize what managers and staff can access. Owner always has full access.
+              Customise what managers and staff can access. Owner always has full access.
             </CardDescription>
           </div>
           {saving && <Loader2 className="h-5 w-5 animate-spin text-muted-foreground" />}

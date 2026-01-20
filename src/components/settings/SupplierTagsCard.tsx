@@ -43,7 +43,7 @@ export function SupplierTagsCard({ userRole }: SupplierTagsCardProps) {
           Supplier Tags
         </CardTitle>
         <CardDescription>
-          Manage the preset tags that appear when adding or editing suppliers. These tags help categorize your suppliers.
+          Manage the preset tags that appear when adding or editing suppliers. These tags help categorise your suppliers.
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

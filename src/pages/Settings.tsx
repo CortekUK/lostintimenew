@@ -594,7 +594,7 @@ export default function Settings() {
               </TabsTrigger>
               <TabsTrigger value="customize" className="flex items-center gap-2 flex-1 min-w-[70px] px-3 py-2">
                 <Filter className="h-4 w-4" />
-                <span className="hidden sm:inline">Customize</span>
+                <span className="hidden sm:inline">Customise</span>
               </TabsTrigger>
               <TabsTrigger value="data" className="flex items-center gap-2 flex-1 min-w-[70px] px-3 py-2">
                 <Database className="h-4 w-4" />
@@ -1302,11 +1302,11 @@ export default function Settings() {
             </TabsContent>
 
             {/* ═══════════════════════════════════════════════════════════════════
-                TAB 6: CUSTOMIZATION
+                TAB 6: CUSTOMISATION
             ═══════════════════════════════════════════════════════════════════ */}
             <TabsContent value="customize" className="mt-0">
               <SettingsSection 
-                title="Customization" 
+                title="Customisation" 
                 description="Quick filters and interface preferences"
               >
             {/* Quick Filters Settings */}

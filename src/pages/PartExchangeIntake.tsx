@@ -135,7 +135,7 @@ export default function PartExchangeIntake() {
       const matchesCategory =
         categoryFilter === 'all' ||
         px.category === categoryFilter ||
-        (!px.category && categoryFilter === 'uncategorized');
+        (!px.category && categoryFilter === 'uncategorised');
 
       return matchesSearch && matchesDate && matchesCategory;
     });
@@ -309,7 +309,7 @@ export default function PartExchangeIntake() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All categories</SelectItem>
-                    <SelectItem value="uncategorized">Uncategorized</SelectItem>
+                    <SelectItem value="uncategorised">Uncategorised</SelectItem>
                     {categories.map((cat) => (
                       <SelectItem key={cat} value={cat!}>
                         {cat}

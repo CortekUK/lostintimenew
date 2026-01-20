@@ -78,7 +78,7 @@ export function ProductMixReport({ className }: ProductMixReportProps) {
             product_id: sale.product_id,
             name: sale.product_name,
             sku: sale.internal_sku,
-            category: productDetails?.category || 'Uncategorized',
+            category: productDetails?.category || 'Uncategorised',
             is_trade_in: sale.is_trade_in || false,
             is_consignment: sale.is_consignment || false,
             units_sold: 0,
@@ -128,7 +128,7 @@ export function ProductMixReport({ className }: ProductMixReportProps) {
     
     const categoryTotals = new Map();
     filteredData.forEach(item => {
-      const cat = item.category || 'Uncategorized';
+      const cat = item.category || 'Uncategorised';
       const current = categoryTotals.get(cat) || 0;
       categoryTotals.set(cat, current + item.revenue);
     });
