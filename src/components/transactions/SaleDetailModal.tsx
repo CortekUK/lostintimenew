@@ -53,10 +53,10 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
   const [commissionModalOpen, setCommissionModalOpen] = useState(false);
   const [addPxModalOpen, setAddPxModalOpen] = useState(false);
   const [productDetailOpen, setProductDetailOpen] = useState(false);
-  const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
-  const handleViewProduct = (productId: number) => {
-    setSelectedProductId(productId);
+  const handleViewProduct = (product: any) => {
+    setSelectedProduct(product);
     setProductDetailOpen(true);
   };
 
@@ -427,7 +427,7 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                           variant="link"
                           size="sm"
                           className="h-auto p-0 text-xs"
-                          onClick={() => handleViewProduct(product.id)}
+                          onClick={() => handleViewProduct(product)}
                           aria-label={`View ${product.name} product details`}
                         >
                           <Eye className="h-3 w-3 mr-1" />
@@ -778,9 +778,9 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
         />
       )}
       
-      {selectedProductId && (
+      {selectedProduct && (
         <ProductDetailModal
-          product={{ id: selectedProductId } as any}
+          product={selectedProduct}
           open={productDetailOpen}
           onOpenChange={setProductDetailOpen}
           onEditClick={() => {}}
