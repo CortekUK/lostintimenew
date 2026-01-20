@@ -557,7 +557,7 @@ export default function Consignments() {
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 auto-rows-fr">
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground min-h-[2.5rem] flex items-end">Active Consignment Stock</CardTitle>
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Active Consignment Stock</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
             </CardHeader>
             <CardContent>
@@ -570,7 +570,7 @@ export default function Consignments() {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground min-h-[2.5rem] flex items-end">Unsettled Sales</CardTitle>
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Unsettled Sales</CardTitle>
               <AlertCircle className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
             </CardHeader>
             <CardContent>
@@ -596,7 +596,7 @@ export default function Consignments() {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground min-h-[2.5rem] flex items-end">Total Consignment Value</CardTitle>
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total Consignment Value</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
             </CardHeader>
             <CardContent>
@@ -609,7 +609,7 @@ export default function Consignments() {
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground min-h-[2.5rem] flex items-end">Total Settled Value</CardTitle>
+              <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total Settled Value</CardTitle>
               <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
             </CardHeader>
             <CardContent>
