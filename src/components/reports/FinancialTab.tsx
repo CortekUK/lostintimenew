@@ -140,7 +140,7 @@ export function FinancialTab() {
       {/* KPI Row */}
       <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Revenue">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[3.5rem]">
             <CardTitle className="text-sm font-medium text-muted-foreground">Revenue</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
@@ -153,7 +153,7 @@ export function FinancialTab() {
         </Card>
         
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Cost of Goods Sold">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[3.5rem]">
             <CardTitle className="text-sm font-medium text-muted-foreground">COGS</CardTitle>
             <ShoppingCart className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
@@ -166,7 +166,7 @@ export function FinancialTab() {
         </Card>
         
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Gross Profit">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[3.5rem]">
             <CardTitle className="text-sm font-medium text-muted-foreground">Gross Profit</CardTitle>
             <PoundSterling className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
@@ -179,7 +179,7 @@ export function FinancialTab() {
         </Card>
         
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Operating Expenses">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[3.5rem]">
             <CardTitle className="text-sm font-medium text-muted-foreground">Operating Expenses</CardTitle>
             <FileText className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
@@ -192,7 +192,7 @@ export function FinancialTab() {
         </Card>
         
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300" role="article" aria-label="Net Profit">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[3.5rem]">
             <CardTitle className="text-sm font-medium text-muted-foreground">Net Profit</CardTitle>
             <Wallet className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
           </CardHeader>
