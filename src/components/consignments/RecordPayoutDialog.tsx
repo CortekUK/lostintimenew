@@ -1,16 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useRecordPayout } from '@/hooks/useConsignments';
 import { formatCurrency } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon } from 'lucide-react';
+import { CalendarIcon, TrendingUp } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { CurrencyInput } from '@/components/ui/currency-input';
 
 interface RecordPayoutDialogProps {
   open: boolean;
@@ -33,12 +33,24 @@ export function RecordPayoutDialog({ open, onOpenChange, settlement }: RecordPay
   const [notes, setNotes] = useState('');
   const recordPayout = useRecordPayout();
 
+  // Reset form when settlement changes
+  useEffect(() => {
+    setPayoutAmount(String(settlement.payout_amount || 0));
+    setPaymentDate(new Date());
+    setNotes('');
+  }, [settlement.id, settlement.payout_amount]);
+
+  const salePrice = Number(settlement.sale_price) || 0;
+  const payoutNum = Number(payoutAmount) || 0;
+  const margin = salePrice - payoutNum;
+  const marginPercent = salePrice > 0 ? (margin / salePrice) * 100 : 0;
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     await recordPayout.mutateAsync({
       id: settlement.id,
-      payout_amount: Number(payoutAmount),
+      payout_amount: payoutNum,
       notes: notes.trim() || undefined
     });
 
@@ -60,46 +72,58 @@ export function RecordPayoutDialog({ open, onOpenChange, settlement }: RecordPay
           </DialogHeader>
 
           <div className="space-y-4 py-4">
-            {/* Product Name */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-muted-foreground">Product</Label>
-              <div className="text-sm font-medium">{settlement.product?.name}</div>
+            {/* Product & Supplier Cards */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-muted/50 rounded-lg p-3">
+                <Label className="text-xs text-muted-foreground">Product</Label>
+                <p className="font-medium text-sm mt-0.5 truncate">{settlement.product?.name}</p>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-3">
+                <Label className="text-xs text-muted-foreground">Supplier</Label>
+                <p className="font-medium text-sm mt-0.5 truncate">{settlement.supplier?.name}</p>
+              </div>
             </div>
 
-            {/* Supplier Name */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-muted-foreground">Supplier</Label>
-              <div className="text-sm font-medium">{settlement.supplier?.name}</div>
-            </div>
-
-            {/* Consignment Terms */}
+            {/* Agreed Terms */}
             {settlement.product?.consignment_terms && (
-              <div className="space-y-2 p-3 bg-muted/30 rounded-lg border border-border/50">
-                <Label className="text-sm font-medium text-muted-foreground">Agreed Terms</Label>
-                <div className="text-sm font-medium">{settlement.product.consignment_terms}</div>
+              <div className="bg-muted/50 rounded-lg p-3 border border-border/50">
+                <Label className="text-xs text-muted-foreground">Agreed Terms</Label>
+                <p className="font-medium text-sm mt-0.5">{settlement.product.consignment_terms}</p>
               </div>
             )}
 
-            {/* Sale Price */}
-            <div className="space-y-2">
-              <Label className="text-sm font-medium text-muted-foreground">Sale Price</Label>
-              <div className="text-sm font-medium text-[#D4AF37]">
-                {formatCurrency(Number(settlement.sale_price) || 0)}
+            {/* Pricing Summary */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="bg-muted/50 rounded-lg p-3">
+                <Label className="text-xs text-muted-foreground">Sale Price</Label>
+                <p className="font-semibold text-lg text-[hsl(var(--gold))]">
+                  {formatCurrency(salePrice)}
+                </p>
+              </div>
+              <div className="bg-muted/50 rounded-lg p-3">
+                <div className="flex items-center gap-1.5">
+                  <Label className="text-xs text-muted-foreground">Your Margin</Label>
+                  <TrendingUp className="h-3 w-3 text-muted-foreground" />
+                </div>
+                <p className={cn(
+                  "font-semibold text-lg",
+                  margin >= 0 ? "text-[hsl(var(--success))]" : "text-destructive"
+                )}>
+                  {formatCurrency(margin)}
+                  <span className="text-xs font-normal text-muted-foreground ml-1">
+                    ({marginPercent.toFixed(1)}%)
+                  </span>
+                </p>
               </div>
             </div>
 
             {/* Payout Amount */}
             <div className="space-y-2">
               <Label htmlFor="payout-amount">Payout Amount *</Label>
-              <Input
+              <CurrencyInput
                 id="payout-amount"
-                type="number"
-                step="0.01"
-                min="0"
                 value={payoutAmount}
-                onChange={(e) => setPayoutAmount(e.target.value)}
-                required
-                className="font-medium"
+                onValueChange={setPayoutAmount}
               />
             </div>
 
@@ -148,7 +172,11 @@ export function RecordPayoutDialog({ open, onOpenChange, settlement }: RecordPay
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
               Cancel
             </Button>
-            <Button type="submit" disabled={recordPayout.isPending}>
+            <Button 
+              type="submit" 
+              disabled={recordPayout.isPending || payoutNum <= 0}
+              className="bg-gradient-primary"
+            >
               {recordPayout.isPending ? 'Recording...' : 'Record Payment'}
             </Button>
           </DialogFooter>
