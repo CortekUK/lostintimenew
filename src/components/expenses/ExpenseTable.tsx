@@ -136,6 +136,9 @@ const ExpenseRow = memo(({
       <TableCell className="text-sm text-muted-foreground">
         {expense.supplier?.name || '-'}
       </TableCell>
+      <TableCell className="text-sm text-muted-foreground">
+        {expense.staff?.full_name || '-'}
+      </TableCell>
       <TableCell>
         <div className="flex flex-col items-start gap-1">
           {expense.is_cogs && (
@@ -506,6 +509,7 @@ export function ExpenseTable({ expenses, onEdit, searchQuery = '', onSearchChang
                 </TableHead>
                 <TableHead>Payment</TableHead>
                 <TableHead>Supplier</TableHead>
+                <TableHead>Created By</TableHead>
                 <TableHead>Schedule</TableHead>
                 {canManageExpenses && <TableHead className="text-right">Actions</TableHead>}
               </TableRow>
