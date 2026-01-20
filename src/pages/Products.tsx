@@ -4,7 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Package, TrendingDown, Eye, Edit, Image as ImageIcon, AlertTriangle, PoundSterling, Award, Repeat, Copy, MapPin, Search, LayoutList, LayoutGrid } from 'lucide-react';
+import { Plus, Package, TrendingDown, Eye, Edit, Image as ImageIcon, Clock, PoundSterling, Award, Repeat, Copy, MapPin, Search, LayoutList, LayoutGrid, Tag } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useSuppliers, useCreateProduct, useStockAdjustment } from '@/hooks/useDatabase';
 import { useLocations } from '@/hooks/useLocations';
@@ -459,6 +459,17 @@ export default function Products() {
     return count;
   }, [searchQuery, filters, filterOptions]);
 
+  // Calculate average days in stock
+  const avgDaysInStock = useMemo(() => {
+    if (!products || products.length === 0) return 0;
+    const totalDays = products.reduce((sum, p) => {
+      const purchaseDate = p.purchase_date || p.created_at;
+      const days = Math.floor((new Date().getTime() - new Date(purchaseDate).getTime()) / (1000 * 60 * 60 * 24));
+      return sum + Math.max(0, days);
+    }, 0);
+    return Math.round(totalDays / products.length);
+  }, [products]);
+
   const handleViewProduct = (product: any) => {
     setSelectedProduct(product);
     setViewModalOpen(true);
@@ -549,19 +560,14 @@ export default function Products() {
   }
 
   const totalProducts = products?.length || 0;
-  // Only count items that are "at risk" (low but not zero) from the active products list
-  // Out-of-stock items are moved to Sold Items archive and shouldn't count as "low stock alerts"
-  const restockAlerts = products?.filter(p => {
-    const status = stockStatusMap?.get(p.id);
-    return status?.is_at_risk && !status?.is_out_of_stock;
-  }).length || 0;
   const totalInventoryValue = products?.reduce((sum, p) => sum + Number(p.inventory_value || 0), 0) || 0;
+  const avgItemValue = totalProducts > 0 ? totalInventoryValue / totalProducts : 0;
   
   return (
     <AppLayout title="Products" subtitle="Manage inventory and product catalogue" showSearch>
       <div className="space-y-6">
         {/* KPI Summary Stats */}
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
               <CardTitle className="font-luxury text-sm font-medium text-muted-foreground">Active Products</CardTitle>
@@ -586,12 +592,23 @@ export default function Products() {
           
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <CardTitle className="font-luxury text-sm font-medium text-muted-foreground">Low Stock Items</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+              <CardTitle className="font-luxury text-sm font-medium text-muted-foreground">Avg. Days in Stock</CardTitle>
+              <Clock className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
-              <div className="font-luxury text-2xl font-bold text-foreground">{restockAlerts}</div>
-              <p className="text-xs text-muted-foreground">At reorder threshold</p>
+              <div className="font-luxury text-2xl font-bold text-foreground">{avgDaysInStock}</div>
+              <p className="text-xs text-muted-foreground">Stock turnover health</p>
+            </CardContent>
+          </Card>
+          
+          <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
+              <CardTitle className="font-luxury text-sm font-medium text-muted-foreground">Avg. Item Value</CardTitle>
+              <Tag className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+            </CardHeader>
+            <CardContent>
+              <div className="font-luxury text-2xl font-bold text-foreground">£{avgItemValue.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+              <p className="text-xs text-muted-foreground">Typical item worth</p>
             </CardContent>
           </Card>
         </div>
