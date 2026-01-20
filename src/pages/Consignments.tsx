@@ -549,9 +549,9 @@ export default function Consignments() {
         {/* Summary Cards */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 auto-rows-fr">
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
               <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Active Consignment Stock</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+              <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
               <div className="text-xl sm:text-2xl font-bold tracking-tight">{activeProducts.length}</div>
@@ -562,9 +562,9 @@ export default function Consignments() {
           </Card>
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
               <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Unsettled Sales</CardTitle>
-              <AlertCircle className="h-4 w-4 text-muted-foreground" />
+              <AlertCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
               <div className="text-xl sm:text-2xl font-bold tracking-tight">{soldUnsettledSettlements.length}</div>
@@ -575,9 +575,9 @@ export default function Consignments() {
           </Card>
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
               <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Pending Payouts</CardTitle>
-              <PoundSterling className="h-4 w-4 text-muted-foreground" />
+              <PoundSterling className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
               <div className="text-xl sm:text-2xl font-bold tracking-tight">{formatCurrency(totalUnsettled)}</div>
@@ -588,9 +588,9 @@ export default function Consignments() {
           </Card>
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
               <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total Consignment Value</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
+              <TrendingUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
               <div className="text-xl sm:text-2xl font-bold tracking-tight">{formatCurrency(totalConsignmentValue)}</div>
@@ -601,9 +601,9 @@ export default function Consignments() {
           </Card>
 
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
               <CardTitle className="text-xs md:text-sm font-medium text-muted-foreground">Total Settled Value</CardTitle>
-              <CheckCircle className="h-4 w-4 text-muted-foreground" />
+              <CheckCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
               <div className="text-xl sm:text-2xl font-bold tracking-tight">{formatCurrency(totalSettledValue)}</div>
