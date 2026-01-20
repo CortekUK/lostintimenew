@@ -489,7 +489,7 @@ export function UserManagement() {
             <h4 className="font-medium mb-3 flex items-center gap-2">
               <Shield className="h-4 w-4" />
               Role Permissions
-              <span className="text-xs font-normal text-muted-foreground ml-1">(Customizable below)</span>
+              <span className="text-xs font-normal text-muted-foreground ml-1">(Customisable below)</span>
             </h4>
             <div className="grid gap-3 md:grid-cols-3">
               {(['owner', 'manager', 'staff'] as UserRole[]).map((role) => (
