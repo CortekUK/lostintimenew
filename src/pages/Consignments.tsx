@@ -191,7 +191,7 @@ export default function Consignments() {
       sortable: true,
       align: 'right',
       render: (_, product) => (
-        <div className="font-medium text-[#D4AF37]">
+        <div className="font-medium text-muted-foreground">
           {formatCurrency(Number(product.unit_cost) || 0)}
         </div>
       )
