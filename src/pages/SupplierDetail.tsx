@@ -134,41 +134,25 @@ export default function SupplierDetail() {
 
   return (
     <AppLayout 
-      title={supplier.name}
+      title=""
       subtitle=""
     >
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <Button variant="outline" size="sm" onClick={() => navigate('/suppliers')}>
-                <ArrowLeft className="h-4 w-4" />
-              </Button>
-              <h1 className="text-2xl font-luxury font-bold">{supplier.name}</h1>
-              {supplier.supplier_type === 'customer' ? (
-                <Badge variant="customer">Customer</Badge>
-              ) : (
-                <Badge variant="outline">Registered</Badge>
-              )}
-              <Badge variant={supplier.status === 'active' ? 'default' : 'secondary'}>
-                {supplier.status === 'active' ? 'Active' : 'Inactive'}
-              </Badge>
-            </div>
-            <div className="flex items-center gap-4 text-sm text-muted-foreground ml-11">
-              {supplier.email && (
-                <a href={`mailto:${supplier.email}`} className="hover:text-primary flex items-center gap-1.5">
-                  <Mail className="h-3.5 w-3.5" />
-                  {supplier.email}
-                </a>
-              )}
-              {supplier.phone && (
-                <a href={`tel:${supplier.phone}`} className="hover:text-primary flex items-center gap-1.5">
-                  <Phone className="h-3.5 w-3.5" />
-                  {supplier.phone}
-                </a>
-              )}
-            </div>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => navigate('/suppliers')}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-2xl font-luxury font-bold">{supplier.name}</h1>
+            {supplier.supplier_type === 'customer' ? (
+              <Badge variant="customer">Customer</Badge>
+            ) : (
+              <Badge variant="outline">Registered</Badge>
+            )}
+            <Badge variant={supplier.status === 'active' ? 'default' : 'secondary'}>
+              {supplier.status === 'active' ? 'Active' : 'Inactive'}
+            </Badge>
           </div>
           <div className="flex items-center gap-2 ml-11 sm:ml-0">
             {supplier.supplier_type === 'customer' && (
