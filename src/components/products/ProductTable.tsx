@@ -31,6 +31,8 @@ interface ProductTableProps {
   stockStatusMap?: Map<number, any>;
   partExchangeMap?: Record<number, any>;
   highlightedProductId?: number | null;
+  /** When true, disables internal sorting and uses products array as-is (sorted by parent) */
+  externalSort?: boolean;
 }
 
 type SortField = 'name' | 'category' | 'supplier' | 'location' | 'unit_price' | 'unit_cost' | 'profit' | 'margin';
@@ -46,6 +48,7 @@ export function ProductTable({
   stockStatusMap,
   partExchangeMap,
   highlightedProductId,
+  externalSort = false,
 }: ProductTableProps) {
   const { canEdit, canCreate } = usePermissions();
   const canEditProducts = canEdit(CRM_MODULES.PRODUCTS);
@@ -55,6 +58,7 @@ export function ProductTable({
   const [denseMode, setDenseMode] = useState(false);
 
   const handleSort = (field: SortField) => {
+    if (externalSort) return; // Disable internal sorting when parent controls it
     if (sortField === field) {
       setSortDirection(sortDirection === 'asc' ? 'desc' : 'asc');
     } else {
@@ -64,6 +68,11 @@ export function ProductTable({
   };
 
   const sortedProducts = useMemo(() => {
+    // When externalSort is true, use products as-is (already sorted by parent)
+    if (externalSort) {
+      return products;
+    }
+    
     return [...products].sort((a, b) => {
       let aValue: any;
       let bValue: any;
@@ -111,7 +120,7 @@ export function ProductTable({
       }
       return sortDirection === 'asc' ? aValue - bValue : bValue - aValue;
     });
-  }, [products, sortField, sortDirection]);
+  }, [products, sortField, sortDirection, externalSort]);
 
   const getSortIcon = (field: SortField) => {
     if (sortField !== field) return <ChevronsUpDown className="h-4 w-4 text-muted-foreground/50" />;
