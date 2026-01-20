@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { type LucideIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
@@ -18,9 +18,50 @@ interface FlyoutSubmenuProps {
 
 export function FlyoutSubmenu({ title, icon: Icon, subItems, isActive }: FlyoutSubmenuProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [openedViaClick, setOpenedViaClick] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
 
   // Check if any child route is active
   const hasActiveChild = subItems.some(item => isActive(item.url));
+
+  // Click outside detection
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (ref.current && !ref.current.contains(event.target as Node)) {
+        setIsOpen(false);
+        setOpenedViaClick(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  const handleClick = () => {
+    setIsOpen(!isOpen);
+    setOpenedViaClick(!isOpen);
+  };
+
+  const handleMouseEnter = () => {
+    setIsOpen(true);
+  };
+
+  const handleMouseLeave = () => {
+    // Only close on mouse leave if not opened via click
+    if (!openedViaClick) {
+      setIsOpen(false);
+    }
+  };
+
+  const handleNavClick = () => {
+    setIsOpen(false);
+    setOpenedViaClick(false);
+  };
 
   const getSubNavClass = ({ isActive }: { isActive: boolean }) =>
     cn(
@@ -32,12 +73,14 @@ export function FlyoutSubmenu({ title, icon: Icon, subItems, isActive }: FlyoutS
 
   return (
     <div 
+      ref={ref}
       className="relative"
-      onMouseEnter={() => setIsOpen(true)}
-      onMouseLeave={() => setIsOpen(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {/* Trigger icon */}
       <button
+        onClick={handleClick}
         className={cn(
           "relative flex items-center justify-center w-11 h-11 rounded-lg transition-all duration-[160ms] outline-none border-0",
           hasActiveChild
@@ -46,6 +89,8 @@ export function FlyoutSubmenu({ title, icon: Icon, subItems, isActive }: FlyoutS
           "focus-visible:shadow-[0_0_0_2px_hsl(var(--sidebar-ring))]"
         )}
         aria-label={title}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
       >
         {hasActiveChild && (
           <span className="absolute left-0 top-[8px] bottom-[8px] w-[3px] bg-[hsl(var(--sidebar-primary))] rounded-r-[3px]" />
@@ -65,6 +110,7 @@ export function FlyoutSubmenu({ title, icon: Icon, subItems, isActive }: FlyoutS
                 <NavLink
                   key={subItem.url}
                   to={subItem.url}
+                  onClick={handleNavClick}
                   className={getSubNavClass}
                 >
                   <subItem.icon className="h-4 w-4" />
