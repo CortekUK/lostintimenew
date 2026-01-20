@@ -38,7 +38,7 @@ interface CustomerFiltersProps {
 }
 
 const SPEND_RANGES = [
-  { value: 'all', label: 'Any spend' },
+  { value: 'all', label: 'Any Spend' },
   { value: 'under-500', label: 'Under £500' },
   { value: '500-2000', label: '£500 - £2,000' },
   { value: '2000-5000', label: '£2,000 - £5,000' },
@@ -46,10 +46,10 @@ const SPEND_RANGES = [
 ];
 
 const PURCHASE_COUNTS = [
-  { value: 'all', label: 'Any' },
-  { value: '1', label: '1 purchase' },
-  { value: '2-5', label: '2-5 purchases' },
-  { value: '6+', label: '6+ purchases' },
+  { value: 'all', label: 'Any Count' },
+  { value: '1', label: '1 Purchase' },
+  { value: '2-5', label: '2-5 Purchases' },
+  { value: '6+', label: '6+ Purchases' },
 ];
 
 const METAL_OPTIONS = ['Gold', 'Silver', 'Platinum', 'Rose Gold', 'White Gold'];
@@ -351,7 +351,7 @@ export function CustomerFiltersComponent({
                 onClick={() => setOpen(false)}
                 className="flex-1"
               >
-                Done
+                Apply
                 {activeFiltersCount > 0 && (
                   <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground">
                     {activeFiltersCount}
