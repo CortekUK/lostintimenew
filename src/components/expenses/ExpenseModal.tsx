@@ -270,13 +270,14 @@ export function ExpenseModal({
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="w-full max-w-2xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
           <DialogHeader>
-            <DialogTitle className="font-playfair text-2xl">
+            <DialogTitle className="font-luxury text-2xl">
               {mode === 'create' ? 'Record New Expense' : 'Edit Expense'}
             </DialogTitle>
-            {mode === 'edit' && expense && <DialogDescription>
-                Created by {expense.staff?.full_name || 'Unknown'} on{' '}
-                {format(new Date(expense.created_at), 'MMM d, yyyy')}
-              </DialogDescription>}
+            <DialogDescription>
+              {mode === 'edit' && expense 
+                ? `Created by ${expense.staff?.full_name || 'Unknown'} on ${format(new Date(expense.created_at), 'MMM d, yyyy')}`
+                : 'Add a new expense to track your business costs'}
+            </DialogDescription>
           </DialogHeader>
 
           <div className="space-y-6 py-4">
