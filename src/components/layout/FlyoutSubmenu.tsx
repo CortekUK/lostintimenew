@@ -51,7 +51,8 @@ export function FlyoutSubmenu({ title, icon: Icon, subItems, isActive }: FlyoutS
     };
   }, [isOpen]);
 
-  const handleClick = () => {
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     clearCloseTimeout();
     setIsOpen(!isOpen);
     setOpenedViaClick(!isOpen);
@@ -73,7 +74,8 @@ export function FlyoutSubmenu({ title, icon: Icon, subItems, isActive }: FlyoutS
     }
   };
 
-  const handleNavClick = () => {
+  const handleNavClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
     clearCloseTimeout();
     setIsOpen(false);
     setOpenedViaClick(false);
