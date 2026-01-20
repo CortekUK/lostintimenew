@@ -1,7 +1,8 @@
 import { Card, CardContent } from '@/components/ui/card';
-import { Package, TrendingUp, AlertCircle } from 'lucide-react';
+import { Package, TrendingUp, AlertCircle, Calendar } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
+import { format } from 'date-fns';
 
 interface SupplierKPICardsProps {
   supplierId: number;
@@ -10,6 +11,7 @@ interface SupplierKPICardsProps {
   inventorySpend?: number;
   expenseSpend?: number;
   totalSpend?: number;
+  createdAt?: string;
   onProductsClick?: () => void;
 }
 
@@ -20,6 +22,7 @@ export function SupplierKPICards({
   inventorySpend = 0,
   expenseSpend = 0,
   totalSpend = 0,
+  createdAt,
   onProductsClick,
 }: SupplierKPICardsProps) {
   // Fetch active consignments for customer suppliers
@@ -88,11 +91,13 @@ export function SupplierKPICards({
 
   const totalPayouts = inventorySpend + expenseSpend;
 
+  const cardClasses = "shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elegant)] transition-all duration-300";
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {/* Card 1: Linked Products */}
       <Card 
-        className="cursor-pointer hover:shadow-md transition-shadow" 
+        className={`cursor-pointer ${cardClasses}`}
         onClick={onProductsClick}
       >
         <CardContent className="pt-6">
@@ -110,14 +115,14 @@ export function SupplierKPICards({
       </Card>
 
       {/* Card 2: Financial */}
-      <Card>
+      <Card className={cardClasses}>
         <CardContent className="pt-6">
           <div className="flex items-start justify-between">
             <div>
               <p className="text-sm font-medium text-muted-foreground">
                 {supplierType === 'customer' ? 'Total Payouts (YTD)' : 'Total Spend (YTD)'}
               </p>
-              <p className="text-3xl font-luxury font-bold mt-1 text-[#D4AF37]">
+              <p className="text-3xl font-luxury font-bold mt-1 text-[hsl(var(--gold))]">
                 £{(supplierType === 'customer' ? totalPayouts : totalSpend).toLocaleString(undefined, { 
                   minimumFractionDigits: 2, 
                   maximumFractionDigits: 2 
@@ -141,7 +146,7 @@ export function SupplierKPICards({
       </Card>
 
       {/* Card 3: Open Items / Unsold Products */}
-      <Card>
+      <Card className={cardClasses}>
         <CardContent className="pt-6">
           <div className="flex items-start justify-between">
             <div>
@@ -178,6 +183,30 @@ export function SupplierKPICards({
               <AlertCircle className="h-6 w-6 text-muted-foreground" />
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Card 4: Supplier Since */}
+      <Card className={cardClasses}>
+        <CardContent className="pt-6">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-sm font-medium text-muted-foreground">
+                {supplierType === 'customer' ? 'Customer Since' : 'Supplier Since'}
+              </p>
+              <p className="text-3xl font-luxury font-bold mt-1">
+                {createdAt ? format(new Date(createdAt), 'MMM yyyy') : '—'}
+              </p>
+            </div>
+            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0">
+              <Calendar className="h-6 w-6 text-muted-foreground" />
+            </div>
+          </div>
+          {createdAt && (
+            <p className="text-xs text-muted-foreground mt-2">
+              {format(new Date(createdAt), 'dd MMMM yyyy')}
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>

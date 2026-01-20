@@ -20,7 +20,7 @@ export function MiniSpendChart({ spendTrend, months = 6 }: MiniSpendChartProps) 
 
   if (!chartData.length) {
     return (
-      <Card>
+      <Card className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elegant)] transition-all duration-300">
         <CardHeader className="pb-2">
           <CardTitle className="font-luxury text-base flex items-center gap-2">
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
@@ -41,7 +41,7 @@ export function MiniSpendChart({ spendTrend, months = 6 }: MiniSpendChartProps) 
   }
 
   return (
-    <Card>
+    <Card className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elegant)] transition-all duration-300">
       <CardHeader className="pb-2">
         <CardTitle className="font-luxury text-base flex items-center gap-2">
           <TrendingUp className="h-4 w-4 text-muted-foreground" />

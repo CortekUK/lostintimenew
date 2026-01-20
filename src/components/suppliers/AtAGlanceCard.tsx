@@ -87,7 +87,7 @@ export function AtAGlanceCard({ supplierId, tags }: AtAGlanceCardProps) {
   });
 
   return (
-    <Card>
+    <Card className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elegant)] transition-all duration-300">
       <CardHeader>
         <CardTitle className="font-luxury">At-a-glance</CardTitle>
       </CardHeader>

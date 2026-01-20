@@ -82,20 +82,13 @@ export function SupplierDocumentsTab({ supplierId }: SupplierDocumentsTabProps) 
           </CardContent>
         </Card>
       ) : !documents || documents.length === 0 ? (
-        <Card>
+        <Card className="shadow-[var(--shadow-card)]">
           <CardContent className="p-12 text-center">
             <FileText className="h-12 w-12 mx-auto text-muted-foreground/50 mb-4" />
             <p className="text-muted-foreground">No documents uploaded yet</p>
-            {isOwner && (
-              <Button
-                variant="outline"
-                className="mt-4"
-                onClick={() => setUploadDialogOpen(true)}
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                Upload First Document
-              </Button>
-            )}
+            <p className="text-sm text-muted-foreground mt-1">
+              Upload documents using the button above
+            </p>
           </CardContent>
         </Card>
       ) : (

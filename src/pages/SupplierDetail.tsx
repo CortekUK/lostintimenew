@@ -135,23 +135,42 @@ export default function SupplierDetail() {
   return (
     <AppLayout 
       title={supplier.name}
-      subtitle="Supplier Details"
+      subtitle=""
     >
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-3">
-            <Button variant="outline" size="sm" onClick={() => navigate('/suppliers')}>
-              <ArrowLeft className="h-4 w-4" />
-            </Button>
-            {supplier.supplier_type === 'customer' && (
-              <Badge variant="customer">Customer</Badge>
-            )}
-            <Badge variant={supplier.status === 'active' ? 'default' : 'secondary'}>
-              {supplier.status === 'active' ? 'Active' : 'Inactive'}
-            </Badge>
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <Button variant="outline" size="sm" onClick={() => navigate('/suppliers')}>
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+              <h1 className="text-2xl font-luxury font-bold">{supplier.name}</h1>
+              {supplier.supplier_type === 'customer' ? (
+                <Badge variant="customer">Customer</Badge>
+              ) : (
+                <Badge variant="outline">Registered</Badge>
+              )}
+              <Badge variant={supplier.status === 'active' ? 'default' : 'secondary'}>
+                {supplier.status === 'active' ? 'Active' : 'Inactive'}
+              </Badge>
+            </div>
+            <div className="flex items-center gap-4 text-sm text-muted-foreground ml-11">
+              {supplier.email && (
+                <a href={`mailto:${supplier.email}`} className="hover:text-primary flex items-center gap-1.5">
+                  <Mail className="h-3.5 w-3.5" />
+                  {supplier.email}
+                </a>
+              )}
+              {supplier.phone && (
+                <a href={`tel:${supplier.phone}`} className="hover:text-primary flex items-center gap-1.5">
+                  <Phone className="h-3.5 w-3.5" />
+                  {supplier.phone}
+                </a>
+              )}
+            </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 ml-11 sm:ml-0">
             {supplier.supplier_type === 'customer' && (
               <Button 
                 onClick={() => setActiveTab('px-history')} 
@@ -159,7 +178,7 @@ export default function SupplierDetail() {
                 size="sm"
               >
                 <Repeat className="h-4 w-4 mr-2" />
-                Part-Exchange History
+                PX History
               </Button>
             )}
             {canEditSuppliers && (
@@ -179,6 +198,7 @@ export default function SupplierDetail() {
           inventorySpend={supplierMetrics?.inventory_spend_this_year || 0}
           expenseSpend={supplierMetrics?.expense_spend_this_year || 0}
           totalSpend={supplierMetrics?.total_spend_this_year || 0}
+          createdAt={supplier.created_at}
           onProductsClick={handleProductsClick}
         />
 
@@ -197,61 +217,57 @@ export default function SupplierDetail() {
           <TabsContent value="overview" className="space-y-4">
             {/* Row 1: Contact & At-a-glance */}
             <div className="grid md:grid-cols-2 gap-4">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="font-luxury">
-                    {supplier.supplier_type === 'customer' ? 'Customer Details' : 'Contact & Company'}
+              <Card className="shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elegant)] transition-all duration-300">
+                <CardHeader className="pb-3">
+                  <CardTitle className="font-luxury text-base">
+                    Contact Details
                   </CardTitle>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-4">
-                    {supplier.contact_name ? (
+                <CardContent className="space-y-3">
+                  {supplier.contact_name && (
+                    <div className="flex items-center gap-3 pb-3 border-b border-border/50">
+                      <User className="h-4 w-4 text-muted-foreground shrink-0" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Contact Person</p>
-                        <p className="font-medium">{supplier.contact_name}</p>
+                        <p className="text-xs text-muted-foreground">Contact Person</p>
+                        <p className="font-medium text-sm">{supplier.contact_name}</p>
                       </div>
-                    ) : (
-                      <div>
-                        <p className="text-sm text-muted-foreground">Contact Person</p>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-3 pb-3 border-b border-border/50">
+                    <Mail className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Email</p>
+                      {supplier.email ? (
+                        <a href={`mailto:${supplier.email}`} className="font-medium text-sm hover:text-primary">
+                          {supplier.email}
+                        </a>
+                      ) : (
                         <p className="text-sm text-muted-foreground italic">Not specified</p>
-                      </div>
-                    )}
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Email</p>
-                        {supplier.email ? (
-                          <a href={`mailto:${supplier.email}`} className="font-medium hover:text-primary">
-                            {supplier.email}
-                          </a>
-                        ) : (
-                          <p className="text-sm text-muted-foreground italic">Not specified</p>
-                        )}
-                      </div>
+                      )}
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-4 w-4 text-muted-foreground" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Phone</p>
-                        {supplier.phone ? (
-                          <a href={`tel:${supplier.phone}`} className="font-medium hover:text-primary">
-                            {supplier.phone}
-                          </a>
-                        ) : (
-                          <p className="text-sm text-muted-foreground italic">Not specified</p>
-                        )}
-                      </div>
+                  </div>
+                  <div className="flex items-center gap-3 pb-3 border-b border-border/50">
+                    <Phone className="h-4 w-4 text-muted-foreground shrink-0" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Phone</p>
+                      {supplier.phone ? (
+                        <a href={`tel:${supplier.phone}`} className="font-medium text-sm hover:text-primary">
+                          {supplier.phone}
+                        </a>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic">Not specified</p>
+                      )}
                     </div>
-                    <div className="flex items-start gap-2">
-                      <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Address</p>
-                        {supplier.address ? (
-                          <p className="font-medium whitespace-pre-line">{supplier.address}</p>
-                        ) : (
-                          <p className="text-sm text-muted-foreground italic">Not specified</p>
-                        )}
-                      </div>
+                  </div>
+                  <div className="flex items-start gap-3">
+                    <MapPin className="h-4 w-4 text-muted-foreground shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs text-muted-foreground">Address</p>
+                      {supplier.address ? (
+                        <p className="font-medium text-sm whitespace-pre-line">{supplier.address}</p>
+                      ) : (
+                        <p className="text-sm text-muted-foreground italic">Not specified</p>
+                      )}
                     </div>
                   </div>
                 </CardContent>
