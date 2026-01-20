@@ -57,7 +57,7 @@ export function EditCustomerDialog({ customer, open, onOpenChange }: EditCustome
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg">
         <DialogHeader>
-          <DialogTitle className="font-serif">Edit Customer</DialogTitle>
+          <DialogTitle className="font-luxury">Edit Customer</DialogTitle>
           <DialogDescription>
             Update customer details, preferences, and special dates.
           </DialogDescription>
