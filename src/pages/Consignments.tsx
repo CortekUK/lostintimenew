@@ -616,17 +616,17 @@ export default function Consignments() {
 
         {/* Main Content */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full sm:w-auto">
-            <TabsList className="w-full sm:w-auto h-10 bg-muted/50 p-1 rounded-lg">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full h-auto flex flex-wrap gap-1 p-1">
               <TabsTrigger 
                 value="active" 
-                className="px-4 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md"
+                className="flex-1 min-w-[80px] text-xs sm:text-sm"
               >
                 Active Stock
               </TabsTrigger>
               <TabsTrigger 
                 value="sold_unsettled" 
-                className="px-4 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md gap-2"
+                className="flex-1 min-w-[80px] text-xs sm:text-sm gap-2"
               >
                 <span className="hidden sm:inline">Sold & Unsettled</span>
                 <span className="sm:hidden">Unsettled</span>
@@ -638,7 +638,7 @@ export default function Consignments() {
               </TabsTrigger>
               <TabsTrigger 
                 value="settled" 
-                className="px-4 text-sm font-medium data-[state=active]:bg-background data-[state=active]:shadow-sm rounded-md"
+                className="flex-1 min-w-[80px] text-xs sm:text-sm"
               >
                 Settled
               </TabsTrigger>
