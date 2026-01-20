@@ -101,58 +101,33 @@ export default function CustomerDetail() {
   return (
     <AppLayout>
       {/* Header */}
-      <div className="mb-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => navigate('/customers')}
-          className="mb-4"
-        >
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Back to Customers
-        </Button>
-
-        <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-3 mb-2">
-              <h1 className="text-3xl font-semibold">{customer.name}</h1>
-              <VIPTierBadge tier={customer.vip_tier} size="lg" />
-            </div>
-            <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted-foreground">
-              {customer.email && (
-                <span className="flex items-center gap-1.5">
-                  <Mail className="h-3.5 w-3.5" />
-                  {customer.email}
-                </span>
-              )}
-              {customer.phone && (
-                <span className="flex items-center gap-1.5">
-                  <Phone className="h-3.5 w-3.5" />
-                  {customer.phone}
-                </span>
-              )}
-            </div>
+      <div className="space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <Button variant="outline" size="sm" onClick={() => navigate('/customers')}>
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+            <h1 className="text-2xl font-luxury font-bold">{customer.name}</h1>
+            <VIPTierBadge tier={customer.vip_tier} size="lg" />
           </div>
-
-          <div className="flex gap-2">
+          <div className="flex items-center gap-2 ml-11 sm:ml-0">
             {canEdit('customers') && (
-              <Button variant="outline" onClick={() => setEditDialogOpen(true)}>
+              <Button variant="outline" size="sm" onClick={() => setEditDialogOpen(true)}>
                 <Edit className="h-4 w-4 mr-2" />
                 Edit
               </Button>
             )}
             {canDelete('customers') && (
-              <Button variant="outline" onClick={() => setDeleteDialogOpen(true)}>
+              <Button variant="outline" size="sm" onClick={() => setDeleteDialogOpen(true)}>
                 <Trash2 className="h-4 w-4 mr-2" />
                 Archive
               </Button>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        {/* Stats Cards */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">Lifetime Spend</CardTitle>
@@ -196,11 +171,11 @@ export default function CustomerDetail() {
             </p>
           </CardContent>
         </Card>
-      </div>
+        </div>
 
-      {/* VIP Progress */}
-      {nextTier && (
-        <Card className="mb-6 shadow-card">
+        {/* VIP Progress */}
+        {nextTier && (
+          <Card className="shadow-card">
           <CardContent className="p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -370,7 +345,8 @@ export default function CustomerDetail() {
             </CardContent>
           </Card>
         </TabsContent>
-      </Tabs>
+        </Tabs>
+      </div>
 
       {/* Edit Dialog */}
       <EditCustomerDialog
