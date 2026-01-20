@@ -197,21 +197,12 @@ export default function CustomerDetail() {
       )}
 
       {/* Tabs */}
-      <Tabs defaultValue="overview" className="space-y-4">
-        <TabsList>
-          <TabsTrigger value="overview" className="gap-2">
-            <Calendar className="h-4 w-4" />
-            Overview
-          </TabsTrigger>
-          <TabsTrigger value="purchases" className="gap-2">
-            <ShoppingBag className="h-4 w-4" />
-            Purchases
-          </TabsTrigger>
-          <TabsTrigger value="preferences" className="gap-2">
-            <Gem className="h-4 w-4" />
-            Preferences
-          </TabsTrigger>
-        </TabsList>
+        <Tabs defaultValue="overview" className="w-full">
+          <TabsList className="w-full h-auto flex flex-wrap gap-1 p-1">
+            <TabsTrigger value="overview" className="flex-1 min-w-[80px] text-xs sm:text-sm">Overview</TabsTrigger>
+            <TabsTrigger value="purchases" className="flex-1 min-w-[80px] text-xs sm:text-sm">Purchases</TabsTrigger>
+            <TabsTrigger value="preferences" className="flex-1 min-w-[80px] text-xs sm:text-sm">Preferences</TabsTrigger>
+          </TabsList>
 
         <TabsContent value="overview">
           <div className="grid gap-6 md:grid-cols-2">
