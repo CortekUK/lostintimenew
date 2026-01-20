@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -13,21 +13,23 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Filter, Check, ChevronsUpDown } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
+interface FilterState {
+  categories: string[];
+  metals: string[];
+  karats: string[];
+  gemstones: string[];
+  suppliers: string[];
+  locations: string[];
+  priceRange: { min: number; max: number };
+  marginRange: { min: number; max: number };
+  isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
+  inventoryAge?: 'all' | '30' | '60' | '90';
+}
+
 interface EnhancedProductFiltersProps {
   searchQuery: string;
   onSearchChange: (value: string) => void;
-  filters: {
-    categories: string[];
-    metals: string[];
-    karats: string[];
-    gemstones: string[];
-    suppliers: string[];
-    locations: string[];
-    priceRange: { min: number; max: number };
-    marginRange: { min: number; max: number };
-    isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
-    inventoryAge?: 'all' | '30' | '60' | '90';
-  };
+  filters: FilterState;
   onFiltersChange: (filters: any) => void;
   suppliers: Array<{ id: number; name: string }>;
   locations: Array<{ id: number; name: string }>;
@@ -55,9 +57,19 @@ export function EnhancedProductFilters({
 }: EnhancedProductFiltersProps) {
   const [open, setOpen] = useState(false);
   const [supplierPopoverOpen, setSupplierPopoverOpen] = useState(false);
+  
+  // Local state for draft filters - only applied when user clicks "Apply"
+  const [draftFilters, setDraftFilters] = useState<FilterState>(filters);
+
+  // Sync draft filters when modal opens or external filters change
+  useEffect(() => {
+    if (open) {
+      setDraftFilters(filters);
+    }
+  }, [open, filters]);
 
   const clearAllFilters = () => {
-    onFiltersChange({
+    const clearedFilters = {
       categories: [],
       metals: [],
       karats: [],
@@ -66,38 +78,79 @@ export function EnhancedProductFilters({
       locations: [],
       priceRange: { min: filterOptions.priceRange.min, max: filterOptions.priceRange.max },
       marginRange: { min: 0, max: 100 },
-      isTradeIn: 'all',
-      inventoryAge: 'all'
-    });
-    onSearchChange('');
+      isTradeIn: 'all' as const,
+      inventoryAge: 'all' as const
+    };
+    setDraftFilters(clearedFilters);
   };
 
-  const toggleArrayFilter = (filterKey: string, value: string) => {
-    const currentArray = filters[filterKey] || [];
+  const toggleArrayFilter = (filterKey: keyof FilterState, value: string) => {
+    const currentArray = (draftFilters[filterKey] as string[]) || [];
     const newArray = currentArray.includes(value)
       ? currentArray.filter((item: string) => item !== value)
       : [...currentArray, value];
-    onFiltersChange({ ...filters, [filterKey]: newArray });
+    setDraftFilters({ ...draftFilters, [filterKey]: newArray });
   };
 
   const handlePriceChange = (field: 'min' | 'max', value: string) => {
     const numValue = value === '' ? (field === 'min' ? 0 : filterOptions.priceRange.max) : parseInt(value.replace(/[^0-9]/g, ''), 10);
-    onFiltersChange({
-      ...filters,
-      priceRange: { ...filters.priceRange, [field]: isNaN(numValue) ? 0 : numValue }
+    setDraftFilters({
+      ...draftFilters,
+      priceRange: { ...draftFilters.priceRange, [field]: isNaN(numValue) ? 0 : numValue }
     });
   };
 
   const handleMarginChange = (field: 'min' | 'max', value: string) => {
     const numValue = value === '' ? (field === 'min' ? 0 : 100) : parseInt(value.replace(/[^0-9]/g, ''), 10);
     const clampedValue = Math.min(100, Math.max(0, isNaN(numValue) ? 0 : numValue));
-    onFiltersChange({
-      ...filters,
-      marginRange: { ...filters.marginRange, [field]: clampedValue }
+    setDraftFilters({
+      ...draftFilters,
+      marginRange: { ...draftFilters.marginRange, [field]: clampedValue }
     });
   };
 
-  const hasActiveFilters = activeFilters > 0;
+  const handleApply = () => {
+    onFiltersChange(draftFilters);
+    onSearchChange(searchQuery); // Keep search as-is
+    setOpen(false);
+  };
+
+  const handleClearAndApply = () => {
+    const clearedFilters = {
+      categories: [],
+      metals: [],
+      karats: [],
+      gemstones: [],
+      suppliers: [],
+      locations: [],
+      priceRange: { min: filterOptions.priceRange.min, max: filterOptions.priceRange.max },
+      marginRange: { min: 0, max: 100 },
+      isTradeIn: 'all' as const,
+      inventoryAge: 'all' as const
+    };
+    onFiltersChange(clearedFilters);
+    onSearchChange('');
+    setOpen(false);
+  };
+
+  // Count draft filters for display in modal
+  const countDraftFilters = () => {
+    let count = 0;
+    if (draftFilters.categories.length > 0) count++;
+    if (draftFilters.metals.length > 0) count++;
+    if (draftFilters.karats.length > 0) count++;
+    if (draftFilters.gemstones.length > 0) count++;
+    if (draftFilters.suppliers.length > 0) count++;
+    if (draftFilters.locations.length > 0) count++;
+    if (draftFilters.priceRange.min !== filterOptions.priceRange.min || draftFilters.priceRange.max !== filterOptions.priceRange.max) count++;
+    if (draftFilters.marginRange.min !== 0 || draftFilters.marginRange.max !== 100) count++;
+    if (draftFilters.isTradeIn && draftFilters.isTradeIn !== 'all') count++;
+    if (draftFilters.inventoryAge && draftFilters.inventoryAge !== 'all') count++;
+    return count;
+  };
+
+  const draftFilterCount = countDraftFilters();
+  const hasDraftFilters = draftFilterCount > 0;
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -116,7 +169,7 @@ export function EnhancedProductFilters({
         <SheetHeader className="px-6 pt-6 pb-4 border-b">
           <div className="flex items-center justify-between">
             <SheetTitle className="font-luxury">Filter Products</SheetTitle>
-            {hasActiveFilters && (
+            {hasDraftFilters && (
               <Button variant="ghost" size="sm" onClick={clearAllFilters} className="text-muted-foreground h-8">
                 Clear all
               </Button>
@@ -143,7 +196,7 @@ export function EnhancedProductFilters({
                     {filterOptions.categories.map((category) => (
                       <ToggleChip
                         key={category}
-                        selected={filters.categories.includes(category)}
+                        selected={draftFilters.categories.includes(category)}
                         onToggle={() => toggleArrayFilter('categories', category)}
                       >
                         {category}
@@ -159,7 +212,7 @@ export function EnhancedProductFilters({
                     {filterOptions.metals.map((metal) => (
                       <ToggleChip
                         key={metal}
-                        selected={filters.metals.includes(metal)}
+                        selected={draftFilters.metals.includes(metal)}
                         onToggle={() => toggleArrayFilter('metals', metal)}
                       >
                         {metal}
@@ -175,7 +228,7 @@ export function EnhancedProductFilters({
                     {filterOptions.karats.map((karat) => (
                       <ToggleChip
                         key={karat}
-                        selected={filters.karats.includes(karat)}
+                        selected={draftFilters.karats.includes(karat)}
                         onToggle={() => toggleArrayFilter('karats', karat)}
                       >
                         {karat}
@@ -191,7 +244,7 @@ export function EnhancedProductFilters({
                     {filterOptions.gemstones.map((gemstone) => (
                       <ToggleChip
                         key={gemstone}
-                        selected={filters.gemstones.includes(gemstone)}
+                        selected={draftFilters.gemstones.includes(gemstone)}
                         onToggle={() => toggleArrayFilter('gemstones', gemstone)}
                       >
                         {gemstone}
@@ -220,11 +273,11 @@ export function EnhancedProductFilters({
                         aria-expanded={supplierPopoverOpen}
                         className="w-full justify-between h-auto min-h-10 font-normal"
                       >
-                        {filters.suppliers.length === 0 ? (
+                        {draftFilters.suppliers.length === 0 ? (
                           <span className="text-muted-foreground">All Suppliers</span>
                         ) : (
                           <div className="flex flex-wrap gap-1 py-0.5">
-                            {filters.suppliers.slice(0, 2).map(id => {
+                            {draftFilters.suppliers.slice(0, 2).map(id => {
                               const supplier = suppliers.find(s => s.id.toString() === id);
                               return (
                                 <Badge key={id} variant="secondary" className="text-xs">
@@ -232,9 +285,9 @@ export function EnhancedProductFilters({
                                 </Badge>
                               );
                             })}
-                            {filters.suppliers.length > 2 && (
+                            {draftFilters.suppliers.length > 2 && (
                               <Badge variant="secondary" className="text-xs">
-                                +{filters.suppliers.length - 2} more
+                                +{draftFilters.suppliers.length - 2} more
                               </Badge>
                             )}
                           </div>
@@ -257,7 +310,7 @@ export function EnhancedProductFilters({
                                 <Check
                                   className={cn(
                                     "mr-2 h-4 w-4",
-                                    filters.suppliers.includes(supplier.id.toString()) ? "opacity-100" : "opacity-0"
+                                    draftFilters.suppliers.includes(supplier.id.toString()) ? "opacity-100" : "opacity-0"
                                   )}
                                 />
                                 {supplier.name}
@@ -275,12 +328,12 @@ export function EnhancedProductFilters({
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Location</Label>
                     <Select
-                      value={filters.locations?.length === 1 ? filters.locations[0] : 'all'}
+                      value={draftFilters.locations?.length === 1 ? draftFilters.locations[0] : 'all'}
                       onValueChange={(value) => {
                         if (value === 'all') {
-                          onFiltersChange({...filters, locations: []});
+                          setDraftFilters({...draftFilters, locations: []});
                         } else {
-                          onFiltersChange({...filters, locations: [value]});
+                          setDraftFilters({...draftFilters, locations: [value]});
                         }
                       }}
                     >
@@ -303,9 +356,9 @@ export function EnhancedProductFilters({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Source Type</Label>
                   <Select 
-                    value={filters.isTradeIn || 'all'} 
+                    value={draftFilters.isTradeIn || 'all'} 
                     onValueChange={(value: 'all' | 'trade_in_only' | 'non_trade_in') => 
-                      onFiltersChange({...filters, isTradeIn: value})
+                      setDraftFilters({...draftFilters, isTradeIn: value})
                     }
                   >
                     <SelectTrigger>
@@ -337,7 +390,7 @@ export function EnhancedProductFilters({
                       <Input
                         type="text"
                         inputMode="numeric"
-                        value={filters.priceRange.min === 0 ? '' : filters.priceRange.min.toLocaleString()}
+                        value={draftFilters.priceRange.min === 0 ? '' : draftFilters.priceRange.min.toLocaleString()}
                         onChange={(e) => handlePriceChange('min', e.target.value)}
                         placeholder="Min"
                         className="pl-7"
@@ -349,7 +402,7 @@ export function EnhancedProductFilters({
                       <Input
                         type="text"
                         inputMode="numeric"
-                        value={filters.priceRange.max === filterOptions.priceRange.max ? '' : filters.priceRange.max.toLocaleString()}
+                        value={draftFilters.priceRange.max === filterOptions.priceRange.max ? '' : draftFilters.priceRange.max.toLocaleString()}
                         onChange={(e) => handlePriceChange('max', e.target.value)}
                         placeholder="Max"
                         className="pl-7"
@@ -362,9 +415,9 @@ export function EnhancedProductFilters({
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Inventory Age</Label>
                   <Select 
-                    value={filters.inventoryAge || 'all'} 
+                    value={draftFilters.inventoryAge || 'all'} 
                     onValueChange={(value: 'all' | '30' | '60' | '90') => 
-                      onFiltersChange({...filters, inventoryAge: value})
+                      setDraftFilters({...draftFilters, inventoryAge: value})
                     }
                   >
                     <SelectTrigger>
@@ -387,7 +440,7 @@ export function EnhancedProductFilters({
                       <Input
                         type="text"
                         inputMode="numeric"
-                        value={filters.marginRange.min === 0 ? '' : filters.marginRange.min}
+                        value={draftFilters.marginRange.min === 0 ? '' : draftFilters.marginRange.min}
                         onChange={(e) => handleMarginChange('min', e.target.value)}
                         placeholder="Min"
                         className="pr-7"
@@ -399,7 +452,7 @@ export function EnhancedProductFilters({
                       <Input
                         type="text"
                         inputMode="numeric"
-                        value={filters.marginRange.max === 100 ? '' : filters.marginRange.max}
+                        value={draftFilters.marginRange.max === 100 ? '' : draftFilters.marginRange.max}
                         onChange={(e) => handleMarginChange('max', e.target.value)}
                         placeholder="Max"
                         className="pr-7"
@@ -417,20 +470,20 @@ export function EnhancedProductFilters({
           <div className="flex w-full gap-3">
             <Button 
               variant="outline" 
-              onClick={clearAllFilters}
-              disabled={!hasActiveFilters}
+              onClick={handleClearAndApply}
+              disabled={activeFilters === 0 && !hasDraftFilters}
               className="flex-1"
             >
               Clear All
             </Button>
             <Button 
-              onClick={() => setOpen(false)}
+              onClick={handleApply}
               className="flex-1"
             >
-              Done
-              {activeFilters > 0 && (
+              Apply
+              {draftFilterCount > 0 && (
                 <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground">
-                  {activeFilters}
+                  {draftFilterCount}
                 </Badge>
               )}
             </Button>
