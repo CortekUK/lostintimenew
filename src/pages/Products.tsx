@@ -709,27 +709,18 @@ export default function Products() {
           )}
         </div>
         
-        {/* Info banner for sold items */}
-        <Card className="bg-muted/50 border-primary/20">
-          <CardContent className="p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <Package className="h-5 w-5 text-primary shrink-0" />
-              <div>
-                <p className="text-sm font-medium">Viewing active inventory only</p>
-                <p className="text-xs text-muted-foreground">Products with stock level of 0 are archived in Sold Items</p>
-              </div>
+{/* Quick link to sold items archive */}
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate('/sales/items')}
+                className="gap-2"
+              >
+                <Archive className="h-4 w-4" />
+                View Sold Items Archive
+              </Button>
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate('/sales/items')}
-              className="gap-2 w-full sm:w-auto shrink-0"
-            >
-              View Sold Items Archive
-              <Archive className="h-4 w-4" />
-            </Button>
-          </CardContent>
-        </Card>
 
         {/* Products List/Grid View */}
         {viewMode === 'list' ? (
