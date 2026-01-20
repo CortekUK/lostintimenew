@@ -106,7 +106,7 @@ export function SupplierKPICards({
               <p className="text-sm font-medium text-muted-foreground">Linked Products</p>
               <p className="text-3xl font-luxury font-bold mt-1">{productCount}</p>
             </div>
-            <Package className="h-5 w-5 text-muted-foreground" />
+            <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           </div>
           <p className="text-xs text-muted-foreground mt-2">Click to view inventory</p>
         </CardContent>
@@ -127,7 +127,7 @@ export function SupplierKPICards({
                 })}
               </p>
             </div>
-            <TrendingUp className="h-5 w-5 text-muted-foreground" />
+            <TrendingUp className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           </div>
           {supplierType === 'customer' ? (
             <p className="text-xs text-muted-foreground mt-2">
@@ -175,7 +175,7 @@ export function SupplierKPICards({
                 </>
               )}
             </div>
-            <AlertCircle className="h-5 w-5 text-muted-foreground" />
+            <AlertCircle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           </div>
         </CardContent>
       </Card>
@@ -192,7 +192,7 @@ export function SupplierKPICards({
                 {createdAt ? format(new Date(createdAt), 'MMM yyyy') : '—'}
               </p>
             </div>
-            <Calendar className="h-5 w-5 text-muted-foreground" />
+            <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0" />
           </div>
           {createdAt && (
             <p className="text-xs text-muted-foreground mt-2">

@@ -563,9 +563,9 @@ export default function Products() {
         {/* KPI Summary Stats */}
         <div className="grid gap-6 md:grid-cols-3">
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
               <CardTitle className="font-luxury text-sm">Active Products</CardTitle>
-              <Package className="h-5 w-5 text-muted-foreground" />
+              <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
               <div className="font-luxury text-2xl font-bold text-foreground">{totalProducts}</div>
@@ -574,9 +574,9 @@ export default function Products() {
           </Card>
           
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300 relative">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
               <CardTitle className="font-luxury text-sm">Inventory Value</CardTitle>
-              <PoundSterling className="h-5 w-5 text-muted-foreground" />
+              <PoundSterling className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
               <div className="font-luxury text-2xl font-bold text-foreground">£{totalInventoryValue.toLocaleString()}</div>
@@ -585,9 +585,9 @@ export default function Products() {
           </Card>
           
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
               <CardTitle className="font-luxury text-sm">Low Stock Items</CardTitle>
-              <AlertTriangle className="h-5 w-5 text-muted-foreground" />
+              <AlertTriangle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
               <div className="font-luxury text-2xl font-bold text-foreground">{restockAlerts}</div>
