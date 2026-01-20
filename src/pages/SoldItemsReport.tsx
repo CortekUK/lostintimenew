@@ -576,10 +576,6 @@ export default function SoldItemsReport() {
                     Filtered by Sale #{filters.saleId}
                   </Badge>
                 )}
-                <Button variant="outline" size="sm" onClick={handleViewTransactions}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  View Transactions
-                </Button>
                 <Button
                   variant="outline" 
                   size="sm"
