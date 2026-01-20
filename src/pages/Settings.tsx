@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Settings as SettingsIcon, User, Building, ShoppingCart, Download, Upload, Smartphone, Sparkles, Filter, Clock, Package, Store, Plus, Pencil, Trash2, Watch, CircleDot, Gem, Star, Heart, Crown, Diamond, Zap, Tag, Percent, Users, ExternalLink, KeyRound, Shield, MapPin, Database, Play } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings, CustomFilter } from '@/contexts/SettingsContext';
@@ -175,24 +176,21 @@ export default function Settings() {
     }
   }, [settings]);
 
-  // Auto-scroll to section based on URL parameter
-  useEffect(() => {
+  // Get active tab from URL parameter
+  const getActiveTab = () => {
     const section = searchParams.get('section');
-    if (section) {
-      setTimeout(() => {
-        const element = document.getElementById(section);
-        if (element) {
-          const headerOffset = 80;
-          const elementPosition = element.getBoundingClientRect().top;
-          const offsetPosition = elementPosition + window.pageYOffset - headerOffset;
-          
-          window.scrollTo({
-            top: offsetPosition,
-            behavior: 'smooth'
-          });
-        }
-      }, 100);
+    const validTabs = ['account', 'team', 'business', 'application', 'sales', 'customize', 'data'];
+    if (section && validTabs.includes(section)) {
+      return section;
     }
+    return 'account';
+  };
+
+  const [activeTab, setActiveTab] = useState(getActiveTab());
+
+  // Update active tab when URL changes
+  useEffect(() => {
+    setActiveTab(getActiveTab());
   }, [searchParams]);
 
   // Handle PWA install prompt
@@ -580,17 +578,48 @@ export default function Settings() {
   return (
     <AppLayout title="Settings" subtitle="Manage your account, team, and application preferences">
       <div className="p-4 md:p-6 lg:p-8">
-        <div className="max-w-5xl mx-auto space-y-12">
+        <div className="max-w-5xl mx-auto">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="w-full h-auto flex flex-wrap gap-1 p-1.5 mb-6 bg-muted/50">
+              <TabsTrigger value="account" className="flex items-center gap-2 flex-1 min-w-[70px] px-3 py-2">
+                <User className="h-4 w-4" />
+                <span className="hidden sm:inline">Account</span>
+              </TabsTrigger>
+              <TabsTrigger value="team" className="flex items-center gap-2 flex-1 min-w-[70px] px-3 py-2">
+                <Shield className="h-4 w-4" />
+                <span className="hidden sm:inline">Team</span>
+              </TabsTrigger>
+              <TabsTrigger value="business" className="flex items-center gap-2 flex-1 min-w-[70px] px-3 py-2">
+                <Building className="h-4 w-4" />
+                <span className="hidden sm:inline">Business</span>
+              </TabsTrigger>
+              <TabsTrigger value="application" className="flex items-center gap-2 flex-1 min-w-[70px] px-3 py-2">
+                <SettingsIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">App</span>
+              </TabsTrigger>
+              <TabsTrigger value="sales" className="flex items-center gap-2 flex-1 min-w-[70px] px-3 py-2">
+                <Crown className="h-4 w-4" />
+                <span className="hidden sm:inline">Sales</span>
+              </TabsTrigger>
+              <TabsTrigger value="customize" className="flex items-center gap-2 flex-1 min-w-[70px] px-3 py-2">
+                <Filter className="h-4 w-4" />
+                <span className="hidden sm:inline">Customize</span>
+              </TabsTrigger>
+              <TabsTrigger value="data" className="flex items-center gap-2 flex-1 min-w-[70px] px-3 py-2">
+                <Database className="h-4 w-4" />
+                <span className="hidden sm:inline">Data</span>
+              </TabsTrigger>
+            </TabsList>
 
-          {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 1: ACCOUNT & SECURITY
-          ═══════════════════════════════════════════════════════════════════ */}
-          <SettingsSection 
-            title="Account & Security" 
-            description="Your personal account details and security settings"
-            icon={User}
-            id="account"
-          >
+            {/* ═══════════════════════════════════════════════════════════════════
+                TAB 1: ACCOUNT & SECURITY
+            ═══════════════════════════════════════════════════════════════════ */}
+            <TabsContent value="account" className="mt-0">
+              <SettingsSection 
+                title="Account & Security" 
+                description="Your personal account details and security settings"
+                icon={User}
+              >
             <Card>
               <CardContent className="p-6 space-y-6">
                 {/* Profile Image & Basic Info */}
@@ -705,31 +734,31 @@ export default function Settings() {
               </CardContent>
             </Card>
           </SettingsSection>
+            </TabsContent>
 
-          <ChangePasswordModal open={showPasswordModal} onOpenChange={setShowPasswordModal} />
+            {/* ═══════════════════════════════════════════════════════════════════
+                TAB 2: TEAM & PERMISSIONS
+            ═══════════════════════════════════════════════════════════════════ */}
+            <TabsContent value="team" className="mt-0">
+              <SettingsSection 
+                title="Team & Permissions" 
+                description="Manage users and control what each role can access"
+                icon={Shield}
+              >
+                <UserManagement />
+                <RolePermissionsManager />
+              </SettingsSection>
+            </TabsContent>
 
-          {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 2: TEAM & PERMISSIONS
-          ═══════════════════════════════════════════════════════════════════ */}
-          <SettingsSection 
-            title="Team & Permissions" 
-            description="Manage users and control what each role can access"
-            icon={Shield}
-            id="team"
-          >
-            <UserManagement />
-            <RolePermissionsManager />
-          </SettingsSection>
-
-          {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 3: BUSINESS INFORMATION
-          ═══════════════════════════════════════════════════════════════════ */}
-          <SettingsSection 
-            title="Business Information" 
-            description="Your store details, locations, and contact information"
-            icon={Building}
-            id="business"
-          >
+            {/* ═══════════════════════════════════════════════════════════════════
+                TAB 3: BUSINESS INFORMATION
+            ═══════════════════════════════════════════════════════════════════ */}
+            <TabsContent value="business" className="mt-0">
+              <SettingsSection 
+                title="Business Information" 
+                description="Your store details, locations, and contact information"
+                icon={Building}
+              >
             {/* Store Information */}
             <Card>
               <CardHeader className="pb-4">
@@ -817,16 +846,17 @@ export default function Settings() {
             {/* Store Locations */}
             <LocationsSettings />
           </SettingsSection>
+            </TabsContent>
 
-          {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 4: APPLICATION SETTINGS
-          ═══════════════════════════════════════════════════════════════════ */}
-          <SettingsSection 
-            title="Application Settings" 
-            description="General preferences, inventory, and POS configuration"
-            icon={SettingsIcon}
-            id="application"
-          >
+            {/* ═══════════════════════════════════════════════════════════════════
+                TAB 4: APPLICATION SETTINGS
+            ═══════════════════════════════════════════════════════════════════ */}
+            <TabsContent value="application" className="mt-0">
+              <SettingsSection 
+                title="Application Settings" 
+                description="General preferences, inventory, and POS configuration"
+                icon={SettingsIcon}
+              >
             {/* General Settings */}
             <Card>
               <CardHeader className="pb-4">
@@ -1024,16 +1054,17 @@ export default function Settings() {
               </CardContent>
             </Card>
           </SettingsSection>
+            </TabsContent>
 
-          {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 5: CUSTOMER & SALES
-          ═══════════════════════════════════════════════════════════════════ */}
-          <SettingsSection 
-            title="Customer & Sales" 
-            description="VIP tiers, commission rates, and sales tracking"
-            icon={Crown}
-            id="customer-sales"
-          >
+            {/* ═══════════════════════════════════════════════════════════════════
+                TAB 5: CUSTOMER & SALES
+            ═══════════════════════════════════════════════════════════════════ */}
+            <TabsContent value="sales" className="mt-0">
+              <SettingsSection 
+                title="Customer & Sales" 
+                description="VIP tiers, commission rates, and sales tracking"
+                icon={Crown}
+              >
             {/* Customer VIP Tiers */}
             <Card>
               <CardHeader className="pb-4">
@@ -1282,21 +1313,17 @@ export default function Settings() {
               </CardContent>
             </Card>
           </SettingsSection>
+            </TabsContent>
 
-          <CommissionSettingsModal 
-            open={showCommissionModal} 
-            onClose={() => setShowCommissionModal(false)} 
-          />
-
-          {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 6: CUSTOMIZATION
-          ═══════════════════════════════════════════════════════════════════ */}
-          <SettingsSection 
-            title="Customization" 
-            description="Quick filters and interface preferences"
-            icon={Filter}
-            id="customization"
-          >
+            {/* ═══════════════════════════════════════════════════════════════════
+                TAB 6: CUSTOMIZATION
+            ═══════════════════════════════════════════════════════════════════ */}
+            <TabsContent value="customize" className="mt-0">
+              <SettingsSection 
+                title="Customization" 
+                description="Quick filters and interface preferences"
+                icon={Filter}
+              >
             {/* Quick Filters Settings */}
             <Card id="quick-filters">
               <CardHeader className="pb-4">
@@ -1485,16 +1512,17 @@ export default function Settings() {
               </CardContent>
             </Card>
           </SettingsSection>
+            </TabsContent>
 
-          {/* ═══════════════════════════════════════════════════════════════════
-              SECTION 7: DATA & SYSTEM
-          ═══════════════════════════════════════════════════════════════════ */}
-          <SettingsSection 
-            title="Data & System" 
-            description="Import, export, and system utilities"
-            icon={Database}
-            id="data-system"
-          >
+            {/* ═══════════════════════════════════════════════════════════════════
+                TAB 7: DATA & SYSTEM
+            ═══════════════════════════════════════════════════════════════════ */}
+            <TabsContent value="data" className="mt-0">
+              <SettingsSection 
+                title="Data & System" 
+                description="Import, export, and system utilities"
+                icon={Database}
+              >
             {/* Data Management */}
             <Card>
               <CardHeader className="pb-4">
@@ -1648,10 +1676,17 @@ export default function Settings() {
               </CardContent>
             </Card>
           </SettingsSection>
-
+            </TabsContent>
+          </Tabs>
         </div>
 
-        {/* CSV Import Modals */}
+        {/* Modals (outside Tabs) */}
+        <ChangePasswordModal open={showPasswordModal} onOpenChange={setShowPasswordModal} />
+        
+        <CommissionSettingsModal 
+          open={showCommissionModal} 
+          onClose={() => setShowCommissionModal(false)} 
+        />
         <CSVImportModal
           open={showProductImport}
           onOpenChange={setShowProductImport}
