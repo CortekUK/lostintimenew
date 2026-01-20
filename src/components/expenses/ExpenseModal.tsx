@@ -266,10 +266,13 @@ export function ExpenseModal({
     }
   };
   const isValid = formData.description.trim() && formData.amount && parseFloat(formData.amount) > 0 && formData.category && formData.payment_method;
-  return <>
+  
+  return (
+    <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="w-full max-w-2xl max-h-[90vh] overflow-y-auto p-4 md:p-6">
-          <DialogHeader>
+        <DialogContent className="w-full max-w-2xl max-h-[90vh] overflow-hidden flex flex-col p-0">
+          {/* Header */}
+          <DialogHeader className="px-6 pt-6 pb-4 shrink-0">
             <DialogTitle className="font-luxury text-2xl">
               {mode === 'create' ? 'Record New Expense' : 'Edit Expense'}
             </DialogTitle>
@@ -280,47 +283,60 @@ export function ExpenseModal({
             </DialogDescription>
           </DialogHeader>
 
-          <div className="space-y-6 py-4">
-            {/* Description */}
-            <div className="space-y-2">
-              <Label htmlFor="description">
-                Description <span className="text-destructive">*</span>
-              </Label>
-              <Input id="description" placeholder="e.g., Office rent" value={formData.description} onChange={e => setFormData({
-              ...formData,
-              description: e.target.value
-            })} className={errors.description ? 'border-destructive' : ''} />
-              {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
-            </div>
+          <Separator />
 
-            {/* Amount & VAT */}
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto px-6 py-5 space-y-6">
+            {/* Basic Details Section */}
             <div className="space-y-4">
+              <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Basic Details</h4>
+              
+              {/* Description */}
               <div className="space-y-2">
-                <Label htmlFor="amount">
-                  Amount <span className="text-destructive">*</span>
+                <Label htmlFor="description" className="font-medium">
+                  Description <span className="text-destructive">*</span>
                 </Label>
-                <CurrencyInput id="amount" value={formData.amount} onValueChange={value => setFormData({
-                ...formData,
-                amount: value
-              })} error={errors.amount} />
+                <Input 
+                  id="description" 
+                  placeholder="e.g., Office rent, Equipment purchase..." 
+                  value={formData.description} 
+                  onChange={e => setFormData({ ...formData, description: e.target.value })} 
+                  className={cn("h-11", errors.description && 'border-destructive')} 
+                />
+                {errors.description && <p className="text-sm text-destructive">{errors.description}</p>}
               </div>
 
-              {/* VAT Toggle */}
-              <div className="flex items-center gap-2">
-                <Switch id="include-vat" checked={formData.include_vat} onCheckedChange={checked => setFormData({
-                ...formData,
-                include_vat: checked
-              })} />
-                <Label htmlFor="include-vat" className="cursor-pointer">
-                  Include VAT/Tax
-                </Label>
+              {/* Amount */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <Label htmlFor="amount" className="font-medium">
+                    Amount <span className="text-destructive">*</span>
+                  </Label>
+                  <div className="flex items-center gap-2">
+                    <Label htmlFor="include-vat" className="text-sm text-muted-foreground cursor-pointer">
+                      Include VAT
+                    </Label>
+                    <Switch 
+                      id="include-vat" 
+                      checked={formData.include_vat} 
+                      onCheckedChange={checked => setFormData({ ...formData, include_vat: checked })} 
+                    />
+                  </div>
+                </div>
+                <CurrencyInput 
+                  id="amount" 
+                  value={formData.amount} 
+                  onValueChange={value => setFormData({ ...formData, amount: value })} 
+                  error={errors.amount} 
+                />
               </div>
 
-              {/* VAT Breakdown */}
-              {formData.include_vat && <div className="space-y-3 rounded-lg border bg-muted/50 p-4">
+              {/* VAT Breakdown Panel */}
+              {formData.include_vat && (
+                <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
                   <div className="flex items-center justify-between">
                     <div className="space-y-2 flex-1">
-                      <Label htmlFor="vat-rate">VAT Rate</Label>
+                      <Label htmlFor="vat-rate" className="text-sm">VAT Rate</Label>
                       <Select 
                         value={formData.vat_rate.toString()} 
                         onValueChange={value => setFormData({
@@ -331,25 +347,24 @@ export function ExpenseModal({
                         })}
                         disabled={formData.manual_vat_override}
                       >
-                        <SelectTrigger id="vat-rate" className={formData.manual_vat_override ? 'opacity-50' : ''}>
+                        <SelectTrigger id="vat-rate" className={cn("h-10", formData.manual_vat_override && 'opacity-50')}>
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          {VAT_RATES.map(rate => <SelectItem key={rate} value={rate.toString()}>
-                              {rate}%
-                            </SelectItem>)}
+                          {VAT_RATES.map(rate => (
+                            <SelectItem key={rate} value={rate.toString()}>{rate}%</SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
 
-                  {/* Manual VAT Override Toggle */}
+                  {/* Manual VAT Override */}
                   <div className="flex items-center gap-2">
                     <Switch 
                       id="manual-vat-override" 
                       checked={formData.manual_vat_override} 
                       onCheckedChange={checked => {
-                        // When enabling override, pre-fill with calculated VAT
                         if (checked && !formData.manual_vat_amount) {
                           setFormData({
                             ...formData,
@@ -357,14 +372,11 @@ export function ExpenseModal({
                             manual_vat_amount: vatBreakdown.vatAmount.toFixed(2)
                           });
                         } else {
-                          setFormData({
-                            ...formData,
-                            manual_vat_override: checked
-                          });
+                          setFormData({ ...formData, manual_vat_override: checked });
                         }
                       }} 
                     />
-                    <Label htmlFor="manual-vat-override" className="cursor-pointer text-sm">
+                    <Label htmlFor="manual-vat-override" className="cursor-pointer text-sm text-muted-foreground">
                       Override calculated VAT amount
                     </Label>
                   </div>
@@ -372,11 +384,11 @@ export function ExpenseModal({
                   <Separator />
 
                   <div className="space-y-2 text-sm">
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center py-1.5 px-3 rounded-md bg-background">
                       <span className="text-muted-foreground">Amount (Ex VAT):</span>
                       <span className="font-medium">£{vatBreakdown.amountExVat.toFixed(2)}</span>
                     </div>
-                    <div className="flex justify-between items-center">
+                    <div className="flex justify-between items-center py-1.5 px-3 rounded-md bg-background">
                       <span className="text-muted-foreground">
                         VAT {formData.manual_vat_override ? '(Manual)' : `(${formData.vat_rate}%)`}:
                       </span>
@@ -384,10 +396,7 @@ export function ExpenseModal({
                         <div className="w-28">
                           <CurrencyInput
                             value={formData.manual_vat_amount}
-                            onValueChange={value => setFormData({
-                              ...formData,
-                              manual_vat_amount: value
-                            })}
+                            onValueChange={value => setFormData({ ...formData, manual_vat_amount: value })}
                             error={errors.manual_vat}
                           />
                         </div>
@@ -395,215 +404,204 @@ export function ExpenseModal({
                         <span className="font-medium">£{vatBreakdown.vatAmount.toFixed(2)}</span>
                       )}
                     </div>
-                    {errors.manual_vat && (
-                      <p className="text-sm text-destructive">{errors.manual_vat}</p>
-                    )}
-                    <div className="flex justify-between border-t pt-1">
+                    {errors.manual_vat && <p className="text-sm text-destructive px-3">{errors.manual_vat}</p>}
+                    <div className="flex justify-between items-center py-2 px-3 rounded-md bg-primary/5 border-t mt-2">
                       <span className="font-semibold">Total (Inc VAT):</span>
-                      <span className="font-semibold">
-                        £{vatBreakdown.amountIncVat.toFixed(2)}
-                      </span>
+                      <span className="font-semibold">£{vatBreakdown.amountIncVat.toFixed(2)}</span>
                     </div>
                   </div>
-                </div>}
+                </div>
+              )}
             </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              {/* Date */}
-              <div className="space-y-2">
-                <Label>
-                  Date <span className="text-destructive">*</span>
-                </Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !formData.date && 'text-muted-foreground')}>
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {formData.date ? format(formData.date, 'PPP') : <span>Pick a date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <CalendarPicker mode="single" selected={formData.date} onSelect={date => date && setFormData({
-                    ...formData,
-                    date
-                  })} initialFocus className="pointer-events-auto" />
-                  </PopoverContent>
-                </Popover>
-              </div>
+            <Separator />
 
-              {/* Category */}
-              <div className="space-y-2">
-                <Label htmlFor="category">
-                  Category <span className="text-destructive">*</span>
-                </Label>
-                <Select value={formData.category} onValueChange={value => setFormData({
-                ...formData,
-                category: value
-              })}>
-                  <SelectTrigger id="category" className={errors.category ? 'border-destructive' : ''}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {allCategories.map(cat => <SelectItem key={cat} value={cat}>
-                        {formatCategoryDisplay(cat)}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-                {errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
-              </div>
-            </div>
+            {/* Classification Section */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Classification</h4>
+              
+              <div className="grid gap-4 sm:grid-cols-2">
+                {/* Date */}
+                <div className="space-y-2">
+                  <Label className="font-medium">Date <span className="text-destructive">*</span></Label>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button 
+                        variant="outline" 
+                        className={cn('w-full justify-start text-left font-normal h-11', !formData.date && 'text-muted-foreground')}
+                      >
+                        <CalendarIcon className="mr-2 h-4 w-4" />
+                        {formData.date ? format(formData.date, 'PPP') : <span>Pick a date</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <CalendarPicker 
+                        mode="single" 
+                        selected={formData.date} 
+                        onSelect={date => date && setFormData({ ...formData, date })} 
+                        initialFocus 
+                        className="pointer-events-auto" 
+                      />
+                    </PopoverContent>
+                  </Popover>
+                </div>
 
-            <div className="grid gap-4 sm:grid-cols-2">
-              {/* Supplier */}
-              <div className="space-y-2">
-                <Label htmlFor="supplier">Vendor / Supplier (Optional)</Label>
-                <Select value={formData.supplier_id?.toString() || 'none'} onValueChange={value => {
-                if (value === 'none') {
-                  setFormData({
-                    ...formData,
-                    supplier_id: null
-                  });
-                } else {
-                  setFormData({
-                    ...formData,
-                    supplier_id: parseInt(value)
-                  });
-                }
-              }}>
-                  <SelectTrigger id="supplier">
-                    <SelectValue placeholder="Select Supplier" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">None</SelectItem>
-                    {suppliers.map(supplier => <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                        {supplier.name}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-              </div>
+                {/* Category */}
+                <div className="space-y-2">
+                  <Label htmlFor="category" className="font-medium">Category <span className="text-destructive">*</span></Label>
+                  <Select value={formData.category} onValueChange={value => setFormData({ ...formData, category: value })}>
+                    <SelectTrigger id="category" className={cn("h-11", errors.category && 'border-destructive')}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {allCategories.map(cat => (
+                        <SelectItem key={cat} value={cat}>{formatCategoryDisplay(cat)}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.category && <p className="text-sm text-destructive">{errors.category}</p>}
+                </div>
 
-              {/* Payment Method */}
-              <div className="space-y-2">
-                <Label htmlFor="payment">
-                  Payment Method <span className="text-destructive">*</span>
-                </Label>
-                <Select value={formData.payment_method} onValueChange={value => setFormData({
-                ...formData,
-                payment_method: value
-              })}>
-                  <SelectTrigger id="payment" className={errors.payment_method ? 'border-destructive' : ''}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PAYMENT_METHODS.map(method => <SelectItem key={method.value} value={method.value}>
-                        {method.label}
-                      </SelectItem>)}
-                  </SelectContent>
-                </Select>
-                {errors.payment_method && <p className="text-sm text-destructive">{errors.payment_method}</p>}
+                {/* Supplier */}
+                <div className="space-y-2">
+                  <Label htmlFor="supplier" className="font-medium">Vendor / Supplier</Label>
+                  <Select 
+                    value={formData.supplier_id?.toString() || 'none'} 
+                    onValueChange={value => setFormData({ 
+                      ...formData, 
+                      supplier_id: value === 'none' ? null : parseInt(value) 
+                    })}
+                  >
+                    <SelectTrigger id="supplier" className="h-11">
+                      <SelectValue placeholder="Select Supplier" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">None</SelectItem>
+                      {suppliers.map(supplier => (
+                        <SelectItem key={supplier.id} value={supplier.id.toString()}>{supplier.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Payment Method */}
+                <div className="space-y-2">
+                  <Label htmlFor="payment" className="font-medium">Payment Method <span className="text-destructive">*</span></Label>
+                  <Select value={formData.payment_method} onValueChange={value => setFormData({ ...formData, payment_method: value })}>
+                    <SelectTrigger id="payment" className={cn("h-11", errors.payment_method && 'border-destructive')}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {PAYMENT_METHODS.map(method => (
+                        <SelectItem key={method.value} value={method.value}>{method.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  {errors.payment_method && <p className="text-sm text-destructive">{errors.payment_method}</p>}
+                </div>
               </div>
             </div>
 
-            {/* COGS Toggle */}
-            <div className="flex items-center gap-2">
-              <Switch id="is-cogs" checked={formData.is_cogs} onCheckedChange={checked => setFormData({
-              ...formData,
-              is_cogs: checked
-            })} />
-              <Label htmlFor="is-cogs" className="cursor-pointer">
-                This is a Cost of Goods Sold (COGS)
-              </Label>
+            <Separator />
+
+            {/* Options Section */}
+            <div className="space-y-4">
+              <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Options</h4>
+              
+              {/* COGS Toggle */}
+              <div className="flex items-center justify-between rounded-lg bg-muted/30 p-4 border">
+                <div>
+                  <Label htmlFor="is-cogs" className="font-medium cursor-pointer">
+                    Cost of Goods Sold (COGS)
+                  </Label>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Include in cost of goods calculations
+                  </p>
+                </div>
+                <Switch 
+                  id="is-cogs" 
+                  checked={formData.is_cogs} 
+                  onCheckedChange={checked => setFormData({ ...formData, is_cogs: checked })} 
+                />
+              </div>
+
+              {/* Notes */}
+              <div className="space-y-2">
+                <Label htmlFor="notes" className="font-medium">Notes</Label>
+                <Textarea 
+                  id="notes" 
+                  placeholder="Add any additional details..." 
+                  value={formData.notes} 
+                  onChange={e => setFormData({ ...formData, notes: e.target.value })} 
+                  rows={3} 
+                  className="resize-none"
+                />
+              </div>
             </div>
 
-            {/* Notes */}
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes (Optional)</Label>
-              <Textarea id="notes" placeholder="Additional notes..." value={formData.notes} onChange={e => setFormData({
-              ...formData,
-              notes: e.target.value
-            })} rows={3} />
-            </div>
-
-            {/* Receipts */}
-            <div className="space-y-2">
-              <Label>Receipt Upload (Optional)</Label>
+            {/* Receipt Upload Section */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Receipt</h4>
               <ReceiptUpload 
                 expenseId={mode === 'edit' ? expense?.id : undefined}
                 onStagedFilesChange={setStagedReceipts}
               />
             </div>
 
-            {/* Recurring Expenses */}
+            {/* Recurring Expense Section */}
             <div className="space-y-4 rounded-lg border bg-muted/20 p-4">
-              <div className="flex items-center gap-2">
-                <Switch id="recurring" checked={formData.recurring} onCheckedChange={checked => {
-                if (checked) {
-                  // Auto-calculate next due date based on current frequency when enabling
-                  const baseDate = formData.date || new Date();
-                  let nextDate: Date;
-                  switch (formData.frequency) {
-                    case 'weekly':
-                      nextDate = addWeeks(baseDate, 1);
-                      break;
-                    case 'monthly':
-                      nextDate = addMonths(baseDate, 1);
-                      break;
-                    case 'quarterly':
-                      nextDate = addMonths(baseDate, 3);
-                      break;
-                    case 'annually':
-                      nextDate = addYears(baseDate, 1);
-                      break;
-                    default:
-                      nextDate = addMonths(baseDate, 1);
-                  }
-                  setFormData({
-                    ...formData,
-                    recurring: checked,
-                    next_due_date: nextDate
-                  });
-                } else {
-                  setFormData({
-                    ...formData,
-                    recurring: checked
-                  });
-                }
-              }} />
-                <Label htmlFor="recurring" className="cursor-pointer font-semibold">
-                  Make this a recurring expense
-                </Label>
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label htmlFor="recurring" className="font-medium cursor-pointer">
+                    Make this a recurring expense
+                  </Label>
+                  <p className="text-sm text-muted-foreground mt-0.5">
+                    Automatically track this expense on a schedule
+                  </p>
+                </div>
+                <Switch 
+                  id="recurring" 
+                  checked={formData.recurring} 
+                  onCheckedChange={checked => {
+                    if (checked) {
+                      const baseDate = formData.date || new Date();
+                      let nextDate: Date;
+                      switch (formData.frequency) {
+                        case 'weekly': nextDate = addWeeks(baseDate, 1); break;
+                        case 'monthly': nextDate = addMonths(baseDate, 1); break;
+                        case 'quarterly': nextDate = addMonths(baseDate, 3); break;
+                        case 'annually': nextDate = addYears(baseDate, 1); break;
+                        default: nextDate = addMonths(baseDate, 1);
+                      }
+                      setFormData({ ...formData, recurring: checked, next_due_date: nextDate });
+                    } else {
+                      setFormData({ ...formData, recurring: checked });
+                    }
+                  }} 
+                />
               </div>
 
-              {formData.recurring && <div className="space-y-4 pl-6">
+              {formData.recurring && (
+                <div className="space-y-4 pt-3 border-t">
                   <div className="grid gap-4 sm:grid-cols-2">
                     <div className="space-y-2">
-                      <Label htmlFor="frequency">Frequency</Label>
-                      <Select value={formData.frequency} onValueChange={(value: 'weekly' | 'monthly' | 'quarterly' | 'annually') => {
-                    // Calculate next due date based on frequency
-                    const baseDate = formData.date || new Date();
-                    let nextDate: Date;
-                    switch (value) {
-                      case 'weekly':
-                        nextDate = addWeeks(baseDate, 1);
-                        break;
-                      case 'monthly':
-                        nextDate = addMonths(baseDate, 1);
-                        break;
-                      case 'quarterly':
-                        nextDate = addMonths(baseDate, 3);
-                        break;
-                      case 'annually':
-                        nextDate = addYears(baseDate, 1);
-                        break;
-                      default:
-                        nextDate = addMonths(baseDate, 1);
-                    }
-                    setFormData({
-                      ...formData,
-                      frequency: value,
-                      next_due_date: nextDate
-                    });
-                  }}>
-                        <SelectTrigger id="frequency">
+                      <Label htmlFor="frequency" className="text-sm">Frequency</Label>
+                      <Select 
+                        value={formData.frequency} 
+                        onValueChange={(value: 'weekly' | 'monthly' | 'quarterly' | 'annually') => {
+                          const baseDate = formData.date || new Date();
+                          let nextDate: Date;
+                          switch (value) {
+                            case 'weekly': nextDate = addWeeks(baseDate, 1); break;
+                            case 'monthly': nextDate = addMonths(baseDate, 1); break;
+                            case 'quarterly': nextDate = addMonths(baseDate, 3); break;
+                            case 'annually': nextDate = addYears(baseDate, 1); break;
+                            default: nextDate = addMonths(baseDate, 1);
+                          }
+                          setFormData({ ...formData, frequency: value, next_due_date: nextDate });
+                        }}
+                      >
+                        <SelectTrigger id="frequency" className="h-10">
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -616,43 +614,58 @@ export function ExpenseModal({
                     </div>
 
                     <div className="space-y-2">
-                      <Label>Next Due Date</Label>
+                      <Label className="text-sm">Next Due Date</Label>
                       <Popover>
                         <PopoverTrigger asChild>
-                          <Button variant="outline" className={cn('w-full justify-start text-left font-normal', !formData.next_due_date && 'text-muted-foreground')}>
+                          <Button 
+                            variant="outline" 
+                            className={cn('w-full justify-start text-left font-normal h-10', !formData.next_due_date && 'text-muted-foreground')}
+                          >
                             <CalendarIcon className="mr-2 h-4 w-4" />
                             {formData.next_due_date ? format(formData.next_due_date, 'PPP') : <span>Pick a date</span>}
                           </Button>
                         </PopoverTrigger>
                         <PopoverContent className="w-auto p-0" align="start">
-                          <CalendarPicker mode="single" selected={formData.next_due_date} onSelect={date => date && setFormData({
-                        ...formData,
-                        next_due_date: date
-                      })} initialFocus className="pointer-events-auto" />
+                          <CalendarPicker 
+                            mode="single" 
+                            selected={formData.next_due_date} 
+                            onSelect={date => date && setFormData({ ...formData, next_due_date: date })} 
+                            initialFocus 
+                            className="pointer-events-auto" 
+                          />
                         </PopoverContent>
                       </Popover>
                     </div>
                   </div>
-                </div>}
-            </div>
-
-            {/* Recorded By */}
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-muted-foreground">Recorded by:</span>
-              <Badge variant="outline">{user?.email}</Badge>
+                </div>
+              )}
             </div>
           </div>
 
-          <DialogFooter className="gap-2">
-            {mode === 'edit' && isOwner && <Button type="button" variant="destructive" onClick={() => setShowDeleteDialog(true)}>
-                Delete
-              </Button>}
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Cancel
-            </Button>
-            <Button type="button" onClick={handleSave} disabled={!isValid}>
-              {mode === 'create' ? 'Record Expense' : 'Update Expense'}
-            </Button>
+          <Separator />
+
+          {/* Footer */}
+          <DialogFooter className="px-6 py-4 bg-muted/30 shrink-0">
+            <div className="flex items-center justify-between w-full gap-3">
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <span>Recording as:</span>
+                <Badge variant="outline" className="font-normal">{user?.email}</Badge>
+              </div>
+              <div className="flex items-center gap-2">
+                {mode === 'edit' && isOwner && (
+                  <Button type="button" variant="destructive" size="sm" onClick={() => setShowDeleteDialog(true)}>
+                    Delete
+                  </Button>
+                )}
+                <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
+                  Cancel
+                </Button>
+                <Button type="button" onClick={handleSave} disabled={!isValid} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  {mode === 'create' ? 'Record Expense' : 'Update Expense'}
+                </Button>
+              </div>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -668,9 +681,15 @@ export function ExpenseModal({
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>Delete</AlertDialogAction>
+            <AlertDialogAction 
+              onClick={handleDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </>;
+    </>
+  );
 }
