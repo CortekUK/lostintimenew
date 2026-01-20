@@ -106,9 +106,7 @@ export function SupplierKPICards({
               <p className="text-sm font-medium text-muted-foreground">Linked Products</p>
               <p className="text-3xl font-luxury font-bold mt-1">{productCount}</p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0">
-              <Package className="h-6 w-6 text-muted-foreground" />
-            </div>
+            <Package className="h-5 w-5 text-muted-foreground" />
           </div>
           <p className="text-xs text-muted-foreground mt-2">Click to view inventory</p>
         </CardContent>
@@ -129,9 +127,7 @@ export function SupplierKPICards({
                 })}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0">
-              <TrendingUp className="h-6 w-6 text-muted-foreground" />
-            </div>
+            <TrendingUp className="h-5 w-5 text-muted-foreground" />
           </div>
           {supplierType === 'customer' ? (
             <p className="text-xs text-muted-foreground mt-2">
@@ -179,9 +175,7 @@ export function SupplierKPICards({
                 </>
               )}
             </div>
-            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0">
-              <AlertCircle className="h-6 w-6 text-muted-foreground" />
-            </div>
+            <AlertCircle className="h-5 w-5 text-muted-foreground" />
           </div>
         </CardContent>
       </Card>
@@ -198,9 +192,7 @@ export function SupplierKPICards({
                 {createdAt ? format(new Date(createdAt), 'MMM yyyy') : '—'}
               </p>
             </div>
-            <div className="h-12 w-12 rounded-full bg-muted flex items-center justify-center shrink-0">
-              <Calendar className="h-6 w-6 text-muted-foreground" />
-            </div>
+            <Calendar className="h-5 w-5 text-muted-foreground" />
           </div>
           {createdAt && (
             <p className="text-xs text-muted-foreground mt-2">
