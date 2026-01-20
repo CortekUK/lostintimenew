@@ -221,7 +221,7 @@ export default function Customers() {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 min-h-[3.5rem]">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Total Customers
             </CardTitle>
@@ -232,7 +232,7 @@ export default function Customers() {
           </CardContent>
         </Card>
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 min-h-[3.5rem]">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Platinum Customers
             </CardTitle>
@@ -243,7 +243,7 @@ export default function Customers() {
           </CardContent>
         </Card>
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 min-h-[3.5rem]">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Birthdays (30d)
             </CardTitle>
@@ -254,7 +254,7 @@ export default function Customers() {
           </CardContent>
         </Card>
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between pb-2">
+          <CardHeader className="flex flex-row items-center justify-between pb-2 min-h-[3.5rem]">
             <CardTitle className="text-sm font-medium text-muted-foreground">
               Anniversaries (30d)
             </CardTitle>

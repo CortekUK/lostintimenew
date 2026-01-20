@@ -129,7 +129,7 @@ export default function CustomerDetail() {
         {/* Stats Cards */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[3.5rem]">
             <CardTitle className="text-sm font-medium text-muted-foreground">Lifetime Spend</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -138,7 +138,7 @@ export default function CustomerDetail() {
           </CardContent>
         </Card>
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[3.5rem]">
             <CardTitle className="text-sm font-medium text-muted-foreground">Total Purchases</CardTitle>
             <ShoppingBag className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -147,7 +147,7 @@ export default function CustomerDetail() {
           </CardContent>
         </Card>
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[3.5rem]">
             <CardTitle className="text-sm font-medium text-muted-foreground">Avg. Order Value</CardTitle>
             <Gem className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
@@ -161,7 +161,7 @@ export default function CustomerDetail() {
           </CardContent>
         </Card>
         <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[3.5rem]">
             <CardTitle className="text-sm font-medium text-muted-foreground">Member Since</CardTitle>
             <Calendar className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
