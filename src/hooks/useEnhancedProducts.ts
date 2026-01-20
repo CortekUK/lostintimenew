@@ -20,7 +20,6 @@ export interface EnhancedProductFilters {
   gemstones: string[];
   suppliers: string[];
   locations: string[];
-  stockLevel: 'all' | 'in' | 'risk' | 'out';
   priceRange: { min: number; max: number };
   marginRange: { min: number; max: number };
   isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
@@ -173,34 +172,6 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
               : new Date(product.created_at);
             const daysInInventory = Math.floor((now.getTime() - purchaseDate.getTime()) / (1000 * 60 * 60 * 24));
             return daysInInventory >= ageThreshold;
-          });
-        }
-        
-        // Stock level filter using new logic
-        if (filters.stockLevel !== 'all') {
-          // Get stock status data for filtering
-          const productIds = processedProducts.map(p => p.id);
-          const { data: stockStatusData } = await supabase
-            .from('v_stock_status')
-            .select('product_id, qty_on_hand, is_out_of_stock, is_at_risk')
-            .in('product_id', productIds);
-          
-          const stockStatusMap = new Map(stockStatusData?.map(s => [s.product_id, s]) || []);
-          
-          filteredProducts = filteredProducts.filter(product => {
-            const status = stockStatusMap.get(product.id);
-            if (!status) return filters.stockLevel === 'in'; // Default to 'in stock' if no status
-            
-            switch (filters.stockLevel) {
-              case 'in':
-                return status.qty_on_hand > 0 && !status.is_at_risk;
-              case 'risk':
-                return status.is_at_risk;
-              case 'out':
-                return status.is_out_of_stock;
-              default:
-                return true;
-            }
           });
         }
 
