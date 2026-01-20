@@ -1157,7 +1157,7 @@ export default function Suppliers() {
               </div>
               <p className="text-xs text-muted-foreground">
                 {suppliers?.filter(s => s.supplier_type === 'registered' && s.status === 'active').length || 0} Registered, {' '}
-                {suppliers?.filter(s => s.supplier_type === 'customer' && s.status === 'active').length || 0} Customer
+                {suppliers?.filter(s => s.supplier_type === 'customer' && s.status === 'active').length || 0} Individual{(suppliers?.filter(s => s.supplier_type === 'customer' && s.status === 'active').length || 0) !== 1 ? 's' : ''}
               </p>
             </CardContent>
           </Card>
