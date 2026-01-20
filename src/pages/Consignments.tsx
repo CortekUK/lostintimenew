@@ -615,54 +615,50 @@ export default function Consignments() {
         </div>
 
         {/* Main Content */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="w-full h-auto flex flex-wrap gap-1 p-1">
-              <TabsTrigger 
-                value="active" 
-                className="flex-1 min-w-[80px] text-xs sm:text-sm"
-              >
-                Active Stock
-              </TabsTrigger>
-              <TabsTrigger 
-                value="sold_unsettled" 
-                className="flex-1 min-w-[80px] text-xs sm:text-sm gap-2"
-              >
-                <span className="hidden sm:inline">Sold & Unsettled</span>
-                <span className="sm:hidden">Unsettled</span>
-                {soldUnsettledSettlements.length > 0 && (
-                  <Badge variant="secondary" className="h-5 px-1.5 text-xs font-medium">
-                    {soldUnsettledSettlements.length}
-                  </Badge>
-                )}
-              </TabsTrigger>
-              <TabsTrigger 
-                value="settled" 
-                className="flex-1 min-w-[80px] text-xs sm:text-sm"
-              >
-                Settled
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          
-          <Select value={supplierTypeFilter} onValueChange={setSupplierTypeFilter}>
-            <SelectTrigger className="w-full sm:w-[180px]">
-              <SelectValue placeholder="Supplier Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Supplier Types</SelectItem>
-              <SelectItem value="registered">Registered Suppliers</SelectItem>
-              <SelectItem value="customer">Individual Suppliers</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+          <TabsList className="w-full h-auto flex flex-wrap gap-1 p-1 mb-4">
+            <TabsTrigger 
+              value="active" 
+              className="flex-1 min-w-[80px] text-xs sm:text-sm"
+            >
+              Active Stock
+            </TabsTrigger>
+            <TabsTrigger 
+              value="sold_unsettled" 
+              className="flex-1 min-w-[80px] text-xs sm:text-sm gap-2"
+            >
+              <span className="hidden sm:inline">Sold & Unsettled</span>
+              <span className="sm:hidden">Unsettled</span>
+              {soldUnsettledSettlements.length > 0 && (
+                <Badge variant="secondary" className="h-5 px-1.5 text-xs font-medium">
+                  {soldUnsettledSettlements.length}
+                </Badge>
+              )}
+            </TabsTrigger>
+            <TabsTrigger 
+              value="settled" 
+              className="flex-1 min-w-[80px] text-xs sm:text-sm"
+            >
+              Settled
+            </TabsTrigger>
+          </TabsList>
 
           <TabsContent value="active" className="space-y-4">
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-sm text-muted-foreground">
-                Showing {filteredActiveProducts.length} items
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <Select value={supplierTypeFilter} onValueChange={setSupplierTypeFilter}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Supplier Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Supplier Types</SelectItem>
+                    <SelectItem value="registered">Registered Suppliers</SelectItem>
+                    <SelectItem value="customer">Individual Suppliers</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="text-sm text-muted-foreground">
+                  Showing {filteredActiveProducts.length} items
+                </div>
               </div>
               <Button variant="outline" size="sm" onClick={handleExportActiveStock}>
                 <Download className="h-4 w-4 mr-2" />
@@ -680,9 +676,21 @@ export default function Consignments() {
           </TabsContent>
 
           <TabsContent value="sold_unsettled" className="space-y-4">
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-sm text-muted-foreground">
-                Showing {filteredUnsettledSettlements.length} items
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <Select value={supplierTypeFilter} onValueChange={setSupplierTypeFilter}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Supplier Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Supplier Types</SelectItem>
+                    <SelectItem value="registered">Registered Suppliers</SelectItem>
+                    <SelectItem value="customer">Individual Suppliers</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="text-sm text-muted-foreground">
+                  Showing {filteredUnsettledSettlements.length} items
+                </div>
               </div>
               <Button variant="outline" size="sm" onClick={handleExportUnsettled}>
                 <Download className="h-4 w-4 mr-2" />
@@ -700,9 +708,21 @@ export default function Consignments() {
           </TabsContent>
 
           <TabsContent value="settled" className="space-y-4">
-            <div className="flex justify-between items-center mb-4">
-              <div className="text-sm text-muted-foreground">
-                Showing {filteredSettledSettlements.length} items
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-4">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4">
+                <Select value={supplierTypeFilter} onValueChange={setSupplierTypeFilter}>
+                  <SelectTrigger className="w-full sm:w-[180px]">
+                    <SelectValue placeholder="Supplier Type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Supplier Types</SelectItem>
+                    <SelectItem value="registered">Registered Suppliers</SelectItem>
+                    <SelectItem value="customer">Individual Suppliers</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="text-sm text-muted-foreground">
+                  Showing {filteredSettledSettlements.length} items
+                </div>
               </div>
               <Button variant="outline" size="sm" onClick={handleExportSettled}>
                 <Download className="h-4 w-4 mr-2" />
