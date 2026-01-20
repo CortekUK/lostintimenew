@@ -118,9 +118,11 @@ export function SupplierActivityFeed({ supplierId }: SupplierActivityFeedProps) 
     }
   };
 
+  const cardClasses = "shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-elegant)] transition-all duration-300";
+
   if (isLoading) {
     return (
-      <Card>
+      <Card className={cardClasses}>
         <CardHeader className="pb-2">
           <CardTitle className="font-luxury text-base flex items-center gap-2">
             <Clock className="h-4 w-4 text-muted-foreground" />
@@ -145,7 +147,7 @@ export function SupplierActivityFeed({ supplierId }: SupplierActivityFeedProps) 
   }
 
   return (
-    <Card>
+    <Card className={cardClasses}>
       <CardHeader className="pb-2">
         <CardTitle className="font-luxury text-base flex items-center gap-2">
           <Clock className="h-4 w-4 text-muted-foreground" />
