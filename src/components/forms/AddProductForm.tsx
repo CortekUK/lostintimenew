@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -14,11 +14,13 @@ import { ProductCreationDocuments } from '@/components/documents/ProductCreation
 import { useSuppliers } from '@/hooks/useSuppliers';
 import { useLocations } from '@/hooks/useLocations';
 import { useAllProductCategories, useAddCustomProductCategory } from '@/hooks/useProductCategories';
+import { useProductAISuggestions } from '@/hooks/useProductAISuggestions';
 import { InlineSupplierAdd } from '@/components/forms/InlineSupplierAdd';
 import { DocumentType } from '@/types';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
+import { toast } from '@/hooks/use-toast';
 import {
   Package,
   Users,
@@ -35,7 +37,8 @@ import {
   X,
   Search,
   Check,
-  UserPlus
+  UserPlus,
+  Sparkles
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -117,7 +120,57 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
   const [images, setImages] = useState<string[]>([]);
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState('');
-  
+
+  // AI suggestions state - track which fields user has manually edited
+  const [aiFilledFields, setAiFilledFields] = useState<Set<string>>(new Set());
+  const [userEditedFields, setUserEditedFields] = useState<Set<string>>(new Set());
+  const { suggestions, isLoading: aiLoading, hasSuggested } = useProductAISuggestions(formData.name);
+  const lastAppliedSuggestions = useRef<string | null>(null);
+
+  // Apply AI suggestions when they arrive - update AI-filled or empty fields, but not user-edited ones
+  useEffect(() => {
+    if (!suggestions) return;
+
+    // Create a key to track if we've already applied these exact suggestions
+    const suggestionsKey = JSON.stringify(suggestions);
+    if (lastAppliedSuggestions.current === suggestionsKey) return;
+
+    const updates: Partial<typeof formData> = {};
+    const newAiFields = new Set<string>();
+
+    // Update field if: it's empty OR it was AI-filled (not manually edited by user)
+    const canUpdateField = (field: string, currentValue: string) => {
+      return !currentValue || aiFilledFields.has(field) || !userEditedFields.has(field);
+    };
+
+    if (suggestions.category && canUpdateField('category', formData.category)) {
+      updates.category = suggestions.category;
+      newAiFields.add('category');
+    }
+    if (suggestions.metal && canUpdateField('metal', formData.metal)) {
+      updates.metal = suggestions.metal;
+      newAiFields.add('metal');
+    }
+    if (suggestions.karat && canUpdateField('karat', formData.karat)) {
+      updates.karat = suggestions.karat;
+      newAiFields.add('karat');
+    }
+    if (suggestions.gemstone && canUpdateField('gemstone', formData.gemstone)) {
+      updates.gemstone = suggestions.gemstone;
+      newAiFields.add('gemstone');
+    }
+
+    if (Object.keys(updates).length > 0) {
+      lastAppliedSuggestions.current = suggestionsKey;
+      setFormData(prev => ({ ...prev, ...updates }));
+      setAiFilledFields(prev => new Set([...prev, ...newAiFields]));
+      toast({
+        title: 'AI suggested product details',
+        description: 'Fields auto-filled based on product name. You can edit them if needed.',
+      });
+    }
+  }, [suggestions]);
+
   // Individual supplier search state (walk-in sellers, not customers)
   const [selectedIndividualSupplier, setSelectedIndividualSupplier] = useState<{
     id: number;
@@ -178,15 +231,34 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
           <AccordionContent className="space-y-6 pt-4 pb-6 px-1.5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
-                <Label htmlFor="name" className="text-primary font-medium">Product Name *</Label>
-                <Input 
-                  id="name" 
-                  placeholder="Diamond Solitaire Ring..."
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  required 
-                  className="focus:border-primary"
-                />
+                <Label htmlFor="name" className="text-primary font-medium flex items-center gap-2">
+                  Product Name *
+                  <span className="flex items-center gap-1 text-xs font-normal text-muted-foreground">
+                    <Sparkles className="h-3 w-3 text-amber-500" />
+                    AI-assisted
+                  </span>
+                </Label>
+                <div className="relative">
+                  <Input
+                    id="name"
+                    placeholder="Diamond Solitaire Ring..."
+                    value={formData.name}
+                    onChange={(e) => {
+                      setFormData({...formData, name: e.target.value});
+                      // Reset tracking when product name changes - allow AI to re-suggest
+                      lastAppliedSuggestions.current = null;
+                      setUserEditedFields(new Set());
+                      setAiFilledFields(new Set());
+                    }}
+                    required
+                    className="focus:border-primary"
+                  />
+                  {aiLoading && (
+                    <div className="absolute right-3 top-1/2 -translate-y-1/2">
+                      <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                    </div>
+                  )}
+                </div>
               </div>
               
               <div className="space-y-2">
@@ -671,12 +743,26 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
             <div className="flex items-center space-x-3">
               <Settings className="h-5 w-5 text-primary" />
               <span className="font-luxury text-lg">Specifications</span>
+              {aiLoading && (
+                <span className="flex items-center gap-1 text-xs font-normal text-muted-foreground ml-2">
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                  AI analyzing...
+                </span>
+              )}
             </div>
           </AccordionTrigger>
           <AccordionContent className="space-y-6 pt-4 pb-6 px-1.5">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
-                <Label>Category</Label>
+                <Label className="flex items-center gap-2">
+                  Category
+                  {aiFilledFields.has('category') && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-amber-100 text-amber-700 border-amber-200">
+                      <Sparkles className="h-2.5 w-2.5 mr-0.5" />
+                      AI
+                    </Badge>
+                  )}
+                </Label>
                 {!showNewCategoryInput ? (
                   <div className="space-y-2">
                     <Select value={formData.category} onValueChange={(value) => {
@@ -684,6 +770,12 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                         setShowNewCategoryInput(true);
                       } else {
                         setFormData({...formData, category: value});
+                        setAiFilledFields(prev => {
+                          const next = new Set(prev);
+                          next.delete('category');
+                          return next;
+                        });
+                        setUserEditedFields(prev => new Set([...prev, 'category']));
                       }
                     }}>
                       <SelectTrigger>
@@ -765,30 +857,78 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
               </div>
               
               <div className="space-y-2">
-                <Label>Metal</Label>
-                <Input 
-                  placeholder="Gold, Silver, Platinum..." 
+                <Label className="flex items-center gap-2">
+                  Metal
+                  {aiFilledFields.has('metal') && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-amber-100 text-amber-700 border-amber-200">
+                      <Sparkles className="h-2.5 w-2.5 mr-0.5" />
+                      AI
+                    </Badge>
+                  )}
+                </Label>
+                <Input
+                  placeholder="Gold, Silver, Platinum..."
                   value={formData.metal}
-                  onChange={(e) => setFormData({...formData, metal: e.target.value})}
+                  onChange={(e) => {
+                    setFormData({...formData, metal: e.target.value});
+                    setAiFilledFields(prev => {
+                      const next = new Set(prev);
+                      next.delete('metal');
+                      return next;
+                    });
+                    setUserEditedFields(prev => new Set([...prev, 'metal']));
+                  }}
                 />
               </div>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
-                <Label>Karat</Label>
-                <Input 
-                  placeholder="9ct, 18ct, 24ct..." 
+                <Label className="flex items-center gap-2">
+                  Karat
+                  {aiFilledFields.has('karat') && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-amber-100 text-amber-700 border-amber-200">
+                      <Sparkles className="h-2.5 w-2.5 mr-0.5" />
+                      AI
+                    </Badge>
+                  )}
+                </Label>
+                <Input
+                  placeholder="9ct, 18ct, 24ct..."
                   value={formData.karat}
-                  onChange={(e) => setFormData({...formData, karat: e.target.value})}
+                  onChange={(e) => {
+                    setFormData({...formData, karat: e.target.value});
+                    setAiFilledFields(prev => {
+                      const next = new Set(prev);
+                      next.delete('karat');
+                      return next;
+                    });
+                    setUserEditedFields(prev => new Set([...prev, 'karat']));
+                  }}
                 />
               </div>
-              
+
               <div className="space-y-2">
-                <Label>Gemstone</Label>
-                <Input 
-                  placeholder="Diamond, Ruby, Sapphire..." 
+                <Label className="flex items-center gap-2">
+                  Gemstone
+                  {aiFilledFields.has('gemstone') && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-amber-100 text-amber-700 border-amber-200">
+                      <Sparkles className="h-2.5 w-2.5 mr-0.5" />
+                      AI
+                    </Badge>
+                  )}
+                </Label>
+                <Input
+                  placeholder="Diamond, Ruby, Sapphire..."
                   value={formData.gemstone}
-                  onChange={(e) => setFormData({...formData, gemstone: e.target.value})}
+                  onChange={(e) => {
+                    setFormData({...formData, gemstone: e.target.value});
+                    setAiFilledFields(prev => {
+                      const next = new Set(prev);
+                      next.delete('gemstone');
+                      return next;
+                    });
+                    setUserEditedFields(prev => new Set([...prev, 'gemstone']));
+                  }}
                 />
               </div>
             </div>
