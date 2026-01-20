@@ -517,10 +517,6 @@ export default function Transactions() {
             <CardTitle className="flex items-center justify-between flex-wrap gap-4">
               <span className="font-luxury">Filters</span>
               <div className="flex items-center gap-2">
-                <Button variant="outline" size="sm" onClick={handleViewSoldItems}>
-                  <ArrowRight className="h-4 w-4 mr-2" />
-                  View Sold Items
-                </Button>
                 <Button
                   variant="outline" 
                   size="sm"
