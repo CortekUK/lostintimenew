@@ -410,11 +410,11 @@ export default function MySales() {
     >
       <div className="space-y-8">
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 auto-rows-fr">
           {/* Revenue Cards */}
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground min-h-[2.5rem] flex items-end">This Week</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">This Week</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
             </CardHeader>
             <CardContent>
@@ -425,7 +425,7 @@ export default function MySales() {
           
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground min-h-[2.5rem] flex items-end">This Month</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
               <PoundSterling className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
             </CardHeader>
             <CardContent>
@@ -436,7 +436,7 @@ export default function MySales() {
           
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground min-h-[2.5rem] flex items-end">Total Sales</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Sales</CardTitle>
               <ReceiptPoundSterling className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
             </CardHeader>
             <CardContent>
@@ -450,7 +450,7 @@ export default function MySales() {
             <>
               <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20">
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400 min-h-[2.5rem] flex items-end">Week Commission</CardTitle>
+                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Week Commission</CardTitle>
                   <Coins className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-1" />
                 </CardHeader>
                 <CardContent>
@@ -461,7 +461,7 @@ export default function MySales() {
               
               <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20">
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400 min-h-[2.5rem] flex items-end">Month Commission</CardTitle>
+                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Month Commission</CardTitle>
                   <Percent className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-1" />
                 </CardHeader>
                 <CardContent>
@@ -472,7 +472,7 @@ export default function MySales() {
               
               <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20">
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400 min-h-[2.5rem] flex items-end">Est. Commission</CardTitle>
+                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Est. Commission</CardTitle>
                   <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-1" />
                 </CardHeader>
                 <CardContent>
