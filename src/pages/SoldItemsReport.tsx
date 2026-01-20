@@ -322,14 +322,14 @@ export default function SoldItemsReport() {
     },
     {
       key: 'margin',
-      title: 'Profit Margin',
+      title: 'Markup %',
       sortable: true,
       width: 110,
       render: (value: any, row: any, index: number) => {
-        const margin = row.line_revenue > 0 ? (row.line_gross_profit / row.line_revenue) * 100 : 0;
+        const markup = row.line_cogs > 0 ? (row.line_gross_profit / row.line_cogs) * 100 : 0;
         return (
-          <span className={`font-mono font-bold ${margin >= 0 ? 'text-success' : 'text-destructive'}`}>
-            {margin.toFixed(1)}%
+          <span className={`font-mono font-bold ${markup >= 0 ? 'text-success' : 'text-destructive'}`}>
+            {markup.toFixed(1)}%
           </span>
         );
       }
