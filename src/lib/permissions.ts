@@ -85,7 +85,7 @@ export const PERMISSION_MATRIX: PermissionMatrix = {
   },
   staff: {
     dashboard: { view: true },
-    products: { view: true, create: false, edit: false, delete: false },
+    products: { view: true, create: true, edit: true, delete: false },
     suppliers: { view: true, create: false, edit: false, delete: false },
     customers: { view: true, create: true, edit: false, delete: false },
     sales: { view: true, create: true, edit: false, delete: false },
