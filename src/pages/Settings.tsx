@@ -32,30 +32,20 @@ import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 interface SettingsSectionProps {
   title: string;
   description?: string;
-  icon?: React.ElementType;
   children: React.ReactNode;
   id?: string;
 }
 
-function SettingsSection({ title, description, icon: Icon, children, id }: SettingsSectionProps) {
+function SettingsSection({ title, description, children, id }: SettingsSectionProps) {
   return (
     <section id={id} className="space-y-6">
       <div className="space-y-1">
-        <div className="flex items-center gap-3">
-          {Icon && (
-            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
-              <Icon className="h-5 w-5 text-primary" />
-            </div>
-          )}
-          <div>
-            <h2 className="text-xl font-luxury tracking-tight">{title}</h2>
-            {description && (
-              <p className="text-sm text-muted-foreground">{description}</p>
-            )}
-          </div>
-        </div>
+        <h2 className="text-xl font-luxury tracking-tight">{title}</h2>
+        {description && (
+          <p className="text-sm text-muted-foreground">{description}</p>
+        )}
       </div>
-      <div className="space-y-6 pl-0 md:pl-[52px]">
+      <div className="space-y-6">
         {children}
       </div>
     </section>
@@ -618,7 +608,6 @@ export default function Settings() {
               <SettingsSection 
                 title="Account & Security" 
                 description="Your personal account details and security settings"
-                icon={User}
               >
             <Card>
               <CardContent className="p-6 space-y-6">
@@ -743,7 +732,6 @@ export default function Settings() {
               <SettingsSection 
                 title="Team & Permissions" 
                 description="Manage users and control what each role can access"
-                icon={Shield}
               >
                 <UserManagement />
                 <RolePermissionsManager />
@@ -757,7 +745,6 @@ export default function Settings() {
               <SettingsSection 
                 title="Business Information" 
                 description="Your store details, locations, and contact information"
-                icon={Building}
               >
             {/* Store Information */}
             <Card>
@@ -855,7 +842,6 @@ export default function Settings() {
               <SettingsSection 
                 title="Application Settings" 
                 description="General preferences, inventory, and POS configuration"
-                icon={SettingsIcon}
               >
             {/* General Settings */}
             <Card>
@@ -1063,7 +1049,6 @@ export default function Settings() {
               <SettingsSection 
                 title="Customer & Sales" 
                 description="VIP tiers, commission rates, and sales tracking"
-                icon={Crown}
               >
             {/* Customer VIP Tiers */}
             <Card>
@@ -1322,7 +1307,6 @@ export default function Settings() {
               <SettingsSection 
                 title="Customization" 
                 description="Quick filters and interface preferences"
-                icon={Filter}
               >
             {/* Quick Filters Settings */}
             <Card id="quick-filters">
@@ -1521,7 +1505,6 @@ export default function Settings() {
               <SettingsSection 
                 title="Data & System" 
                 description="Import, export, and system utilities"
-                icon={Database}
               >
             {/* Data Management */}
             <Card>
