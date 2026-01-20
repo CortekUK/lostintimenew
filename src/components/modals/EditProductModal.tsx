@@ -65,8 +65,9 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
   const stockAdjustment = useStockAdjustment();
   const documentUpload = useDocumentUpload();
   const { toast } = useToast();
-  const { canDelete } = usePermissions();
+  const { canDelete, canEdit } = usePermissions();
   const canDeleteProducts = canDelete(CRM_MODULES.PRODUCTS);
+  const canEditProducts = canEdit(CRM_MODULES.PRODUCTS);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   
@@ -956,17 +957,19 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
                 onClick={() => onOpenChange(false)}
                 disabled={isLoading || deleteProduct.isPending}
               >
-                Cancel
+                {canEditProducts ? 'Cancel' : 'Close'}
               </Button>
-              <Button
-                type="submit"
-                disabled={isLoading || deleteProduct.isPending || hasInvalidConsignmentDates}
-                className="bg-primary hover:bg-primary/90"
-              >
-                {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                <Save className="mr-2 h-4 w-4" />
-                Save Changes
-              </Button>
+              {canEditProducts && (
+                <Button
+                  type="submit"
+                  disabled={isLoading || deleteProduct.isPending || hasInvalidConsignmentDates}
+                  className="bg-primary hover:bg-primary/90"
+                >
+                  {isLoading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </Button>
+              )}
             </div>
           </div>
         </form>
