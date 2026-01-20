@@ -564,7 +564,7 @@ export default function Products() {
         <div className="grid gap-6 md:grid-cols-3">
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <CardTitle className="font-luxury text-sm">Active Products</CardTitle>
+              <CardTitle className="font-luxury text-sm font-medium text-muted-foreground">Active Products</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
@@ -575,7 +575,7 @@ export default function Products() {
           
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300 relative">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <CardTitle className="font-luxury text-sm">Inventory Value</CardTitle>
+              <CardTitle className="font-luxury text-sm font-medium text-muted-foreground">Inventory Value</CardTitle>
               <PoundSterling className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
@@ -586,7 +586,7 @@ export default function Products() {
           
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2">
-              <CardTitle className="font-luxury text-sm">Low Stock Items</CardTitle>
+              <CardTitle className="font-luxury text-sm font-medium text-muted-foreground">Low Stock Items</CardTitle>
               <AlertTriangle className="h-4 w-4 text-muted-foreground flex-shrink-0" />
             </CardHeader>
             <CardContent>
