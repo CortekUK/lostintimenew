@@ -5,8 +5,9 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter } from '@/components/ui/sheet';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { ToggleChip } from '@/components/ui/toggle-chip';
 import { Filter, X } from 'lucide-react';
 
 export interface CustomerFilters {
@@ -33,6 +34,7 @@ interface CustomerFiltersProps {
   filters: CustomerFilters;
   onFiltersChange: (filters: CustomerFilters) => void;
   activeFiltersCount: number;
+  resultCount?: number;
 }
 
 const SPEND_RANGES = [
@@ -56,6 +58,7 @@ export function CustomerFiltersComponent({
   filters,
   onFiltersChange,
   activeFiltersCount,
+  resultCount,
 }: CustomerFiltersProps) {
   const [open, setOpen] = useState(false);
 
@@ -144,6 +147,7 @@ export function CustomerFiltersComponent({
   };
 
   const activeBadges = getActiveFilterBadges();
+  const hasActiveFilters = activeFiltersCount > 0;
 
   return (
     <div className="flex flex-col gap-3">
@@ -153,77 +157,115 @@ export function CustomerFiltersComponent({
             <Filter className="h-4 w-4" />
             Filters
             {activeFiltersCount > 0 && (
-              <Badge variant="secondary" className="ml-1 px-1.5 py-0.5 text-xs">
+              <Badge variant="secondary" className="ml-1 h-5 w-5 p-0 flex items-center justify-center text-xs rounded-full">
                 {activeFiltersCount}
               </Badge>
             )}
           </Button>
         </SheetTrigger>
-        <SheetContent className="w-full sm:max-w-md">
-          <SheetHeader className="pb-4">
+        <SheetContent className="w-full sm:max-w-md flex flex-col p-0">
+          <SheetHeader className="px-6 pt-6 pb-4 border-b">
             <div className="flex items-center justify-between">
-              <SheetTitle>Filter Customers</SheetTitle>
-              {activeFiltersCount > 0 && (
+              <SheetTitle className="font-luxury">Filter Customers</SheetTitle>
+              {hasActiveFilters && (
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={clearAllFilters}
-                  className="h-auto py-1 px-2 text-xs text-muted-foreground"
+                  className="text-muted-foreground h-8"
                 >
                   Clear all
                 </Button>
               )}
             </div>
+            {resultCount !== undefined && (
+              <p className="text-sm text-muted-foreground">
+                {resultCount} {resultCount === 1 ? 'customer' : 'customers'} match
+              </p>
+            )}
           </SheetHeader>
 
-          <ScrollArea className="h-[calc(100vh-8rem)] pr-4">
-            <div className="space-y-6 px-3">
-              {/* Spend Range */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Lifetime Spend</Label>
-                <Select
-                  value={filters.spendRange}
-                  onValueChange={(value) => updateFilter('spendRange', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {SPEND_RANGES.map((range) => (
-                      <SelectItem key={range.value} value={range.value}>
-                        {range.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+          <ScrollArea className="flex-1">
+            <div className="px-6 py-6 space-y-6">
+              {/* Purchase History Section */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Purchase History</h4>
+                
+                <div className="space-y-4 rounded-lg border border-border/50 p-4 bg-muted/30">
+                  {/* Spend Range */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Lifetime Spend</Label>
+                    <Select
+                      value={filters.spendRange}
+                      onValueChange={(value) => updateFilter('spendRange', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {SPEND_RANGES.map((range) => (
+                          <SelectItem key={range.value} value={range.value}>
+                            {range.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
-              {/* Purchase Count */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Purchase Count</Label>
-                <Select
-                  value={filters.purchaseCount}
-                  onValueChange={(value) => updateFilter('purchaseCount', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {PURCHASE_COUNTS.map((count) => (
-                      <SelectItem key={count.value} value={count.value}>
-                        {count.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {/* Purchase Count */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Purchase Count</Label>
+                    <Select
+                      value={filters.purchaseCount}
+                      onValueChange={(value) => updateFilter('purchaseCount', value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {PURCHASE_COUNTS.map((count) => (
+                          <SelectItem key={count.value} value={count.value}>
+                            {count.label}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
               </div>
 
               <Separator />
 
-              {/* Upcoming Events */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Upcoming Events (30 days)</Label>
-                <div className="space-y-3">
+              {/* Preferences Section */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Preferences</h4>
+                
+                <div className="space-y-4 rounded-lg border border-border/50 p-4 bg-muted/30">
+                  {/* Metal Preference - toggle chips */}
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Metal Preference</Label>
+                    <div className="flex flex-wrap gap-1.5">
+                      {METAL_OPTIONS.map((metal) => (
+                        <ToggleChip
+                          key={metal}
+                          selected={filters.metalPreference.includes(metal)}
+                          onToggle={() => toggleMetalPreference(metal)}
+                        >
+                          {metal}
+                        </ToggleChip>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <Separator />
+
+              {/* Events Section */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Upcoming Events</h4>
+                
+                <div className="space-y-3 rounded-lg border border-border/50 p-4 bg-muted/30">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="birthday"
@@ -236,7 +278,7 @@ export function CustomerFiltersComponent({
                       htmlFor="birthday"
                       className="text-sm leading-none cursor-pointer"
                     >
-                      Upcoming Birthday
+                      Birthday in next 30 days
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -251,7 +293,7 @@ export function CustomerFiltersComponent({
                       htmlFor="anniversary"
                       className="text-sm leading-none cursor-pointer"
                     >
-                      Upcoming Anniversary
+                      Anniversary in next 30 days
                     </label>
                   </div>
                 </div>
@@ -259,29 +301,11 @@ export function CustomerFiltersComponent({
 
               <Separator />
 
-              {/* Metal Preference */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Metal Preference</Label>
-                <div className="flex flex-wrap gap-2">
-                  {METAL_OPTIONS.map((metal) => (
-                    <Button
-                      key={metal}
-                      variant={filters.metalPreference.includes(metal) ? 'default' : 'outline'}
-                      size="sm"
-                      onClick={() => toggleMetalPreference(metal)}
-                    >
-                      {metal}
-                    </Button>
-                  ))}
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Contact Info */}
-              <div className="space-y-3">
-                <Label className="text-sm font-medium">Contact Information</Label>
-                <div className="space-y-3">
+              {/* Contact Info Section */}
+              <div className="space-y-4">
+                <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contact Information</h4>
+                
+                <div className="space-y-3 rounded-lg border border-border/50 p-4 bg-muted/30">
                   <div className="flex items-center space-x-2">
                     <Checkbox
                       id="hasEmail"
@@ -292,7 +316,7 @@ export function CustomerFiltersComponent({
                       htmlFor="hasEmail"
                       className="text-sm leading-none cursor-pointer"
                     >
-                      Has Email Address
+                      Has email address
                     </label>
                   </div>
                   <div className="flex items-center space-x-2">
@@ -305,13 +329,37 @@ export function CustomerFiltersComponent({
                       htmlFor="hasPhone"
                       className="text-sm leading-none cursor-pointer"
                     >
-                      Has Phone Number
+                      Has phone number
                     </label>
                   </div>
                 </div>
               </div>
             </div>
           </ScrollArea>
+
+          <SheetFooter className="px-6 py-4 border-t bg-background">
+            <div className="flex w-full gap-3">
+              <Button 
+                variant="outline" 
+                onClick={clearAllFilters}
+                disabled={!hasActiveFilters}
+                className="flex-1"
+              >
+                Clear All
+              </Button>
+              <Button 
+                onClick={() => setOpen(false)}
+                className="flex-1"
+              >
+                Done
+                {activeFiltersCount > 0 && (
+                  <Badge variant="secondary" className="ml-2 bg-primary-foreground/20 text-primary-foreground">
+                    {activeFiltersCount}
+                  </Badge>
+                )}
+              </Button>
+            </div>
+          </SheetFooter>
         </SheetContent>
       </Sheet>
 
