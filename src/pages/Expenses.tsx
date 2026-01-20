@@ -262,53 +262,6 @@ export default function Expenses() {
   return (
     <AppLayout title="Expenses" subtitle="Track and manage business expenses">
       <div className="space-y-6">
-        {/* Header Actions */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          {/* Left group: Filters */}
-          <div className="flex items-center gap-3">
-            <ExpenseFiltersEnhanced
-              filters={filters}
-              onFiltersChange={setFilters}
-              suppliers={suppliers}
-              staffMembers={staffMembers}
-            />
-          </div>
-
-          {/* Right group: Actions */}
-          <div className="flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  <Download className="mr-2 h-4 w-4" />
-                  Export
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-48">
-                {exportPeriods.map((period) => (
-                  <DropdownMenuSub key={period.value}>
-                    <DropdownMenuSubTrigger>{period.label}</DropdownMenuSubTrigger>
-                    <DropdownMenuSubContent>
-                      <DropdownMenuItem onClick={() => handleExportCSV(period.value)}>
-                        CSV
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleExportPDF(period.value)}>
-                        PDF
-                      </DropdownMenuItem>
-                    </DropdownMenuSubContent>
-                  </DropdownMenuSub>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {canCreateExpenses && (
-              <Button variant="premium" size="sm" onClick={() => { setShowModal(true); setEditingExpense(null); }}>
-                <Plus className="mr-2 h-4 w-4" />
-                Record Expense
-              </Button>
-            )}
-          </div>
-        </div>
-
         {/* Summary Stats */}
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
@@ -380,6 +333,53 @@ export default function Expenses() {
               )}
             </CardContent>
           </Card>
+        </div>
+
+        {/* Header Actions */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          {/* Left group: Filters */}
+          <div className="flex items-center gap-3">
+            <ExpenseFiltersEnhanced
+              filters={filters}
+              onFiltersChange={setFilters}
+              suppliers={suppliers}
+              staffMembers={staffMembers}
+            />
+          </div>
+
+          {/* Right group: Actions */}
+          <div className="flex items-center gap-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  <Download className="mr-2 h-4 w-4" />
+                  Export
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-48">
+                {exportPeriods.map((period) => (
+                  <DropdownMenuSub key={period.value}>
+                    <DropdownMenuSubTrigger>{period.label}</DropdownMenuSubTrigger>
+                    <DropdownMenuSubContent>
+                      <DropdownMenuItem onClick={() => handleExportCSV(period.value)}>
+                        CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleExportPDF(period.value)}>
+                        PDF
+                      </DropdownMenuItem>
+                    </DropdownMenuSubContent>
+                  </DropdownMenuSub>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+
+            {canCreateExpenses && (
+              <Button variant="premium" size="sm" onClick={() => { setShowModal(true); setEditingExpense(null); }}>
+                <Plus className="mr-2 h-4 w-4" />
+                Record Expense
+              </Button>
+            )}
+          </div>
         </div>
 
         {/* Charts */}
