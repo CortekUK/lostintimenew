@@ -507,20 +507,16 @@ export default function SoldItemsReport() {
             <>
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <span>Total Items Sold</span>
-                {totals.tradeInCount > 0 && (
-                  <Badge variant="secondary" className="text-xs font-normal">
-                    {totals.tradeInCount} PX excluded
-                  </Badge>
-                )}
-              </CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Items Sold</CardTitle>
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold font-luxury">{totals.items}</div>
               <p className="text-xs text-muted-foreground mt-1">
                 across {filteredItems.length} line items
+                {totals.tradeInCount > 0 && (
+                  <span className="ml-1">({totals.tradeInCount} PX excluded)</span>
+                )}
               </p>
             </CardContent>
           </Card>
