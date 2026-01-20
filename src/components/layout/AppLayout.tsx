@@ -34,18 +34,30 @@ export const AppLayout = ({ children, title, subtitle, showSearch = false, showD
     const segments = pathname.split('/').filter(Boolean);
     const breadcrumbs = [{ title: 'Home', href: '/' }];
     
+    // Map for top-level segments
     const pageMap: Record<string, string> = {
       'products': 'Products',
       'suppliers': 'Suppliers',
-      'sales': 'Sales/POS',
+      'sales': 'Sales',
       'expenses': 'Expenses',
       'reports': 'Reports',
       'settings': 'Settings',
     };
-    
+
+    // Map for nested segments (e.g., /sales/my-sales)
+    const nestedPageMap: Record<string, string> = {
+      'my-sales': 'My Sales',
+      'items': 'Sold Items',
+    };
+
+    let accumulatedPath = '';
     segments.forEach((segment) => {
-      const title = pageMap[segment] || segment.charAt(0).toUpperCase() + segment.slice(1);
-      breadcrumbs.push({ title, href: `/${segment}` });
+      accumulatedPath += `/${segment}`;
+      // Check nested map first, then top-level, then format the segment
+      const title = nestedPageMap[segment] 
+        || pageMap[segment] 
+        || segment.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      breadcrumbs.push({ title, href: accumulatedPath });
     });
     
     return breadcrumbs;
