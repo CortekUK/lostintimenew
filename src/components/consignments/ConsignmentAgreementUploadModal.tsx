@@ -238,7 +238,7 @@ export function ConsignmentAgreementUploadModal({
             </div>
 
             <div>
-              <Label>Expiry Date (optional)</Label>
+              <Label>Expiry Date (Optional)</Label>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button

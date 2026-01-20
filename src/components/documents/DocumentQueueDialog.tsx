@@ -217,7 +217,7 @@ export function DocumentQueueDialog({ onDocumentAdded, trigger }: DocumentQueueD
 
           {/* Expiry Date */}
           <div className="space-y-2">
-            <Label>Expiry Date (optional)</Label>
+            <Label>Expiry Date (Optional)</Label>
             <Popover>
               <PopoverTrigger asChild>
                 <Button
