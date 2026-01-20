@@ -4,7 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Package, TrendingDown, Eye, Edit, Image as ImageIcon, Clock, PoundSterling, Award, Repeat, Copy, MapPin, Search, LayoutList, LayoutGrid, Tag } from 'lucide-react';
+import { Plus, Package, Archive, Eye, Edit, Image as ImageIcon, Clock, PoundSterling, Award, Repeat, Copy, MapPin, Search, LayoutList, LayoutGrid, Tag } from 'lucide-react';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useSuppliers, useCreateProduct, useStockAdjustment } from '@/hooks/useDatabase';
 import { useLocations } from '@/hooks/useLocations';
@@ -726,7 +726,7 @@ export default function Products() {
               className="gap-2 w-full sm:w-auto shrink-0"
             >
               View Sold Items Archive
-              <TrendingDown className="h-4 w-4" />
+              <Archive className="h-4 w-4" />
             </Button>
           </CardContent>
         </Card>
