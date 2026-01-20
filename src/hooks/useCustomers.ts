@@ -185,9 +185,12 @@ export function useUpdateCustomer() {
         .update(updates)
         .eq('id', id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        throw new Error('Unable to update customer. You may not have permission.');
+      }
       return data as Customer;
     },
     onSuccess: (data) => {
