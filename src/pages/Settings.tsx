@@ -10,7 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Settings as SettingsIcon, User, Building, ShoppingCart, Download, Upload, Smartphone, Sparkles, Filter, Clock, Package, Store, Plus, Pencil, Trash2, Watch, CircleDot, Gem, Star, Heart, Crown, Diamond, Zap, Tag, Percent, Users, ExternalLink, KeyRound } from 'lucide-react';
+import { Settings as SettingsIcon, User, Building, ShoppingCart, Download, Upload, Smartphone, Sparkles, Filter, Clock, Package, Store, Plus, Pencil, Trash2, Watch, CircleDot, Gem, Star, Heart, Crown, Diamond, Zap, Tag, Percent, Users, ExternalLink, KeyRound, Shield, MapPin, Database, Play } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings, CustomFilter } from '@/contexts/SettingsContext';
 import { CustomFilterDialog } from '@/components/settings/CustomFilterDialog';
@@ -26,6 +26,40 @@ import { productCSVHeaders, supplierCSVHeaders, expenseCSVHeaders, productTypeCo
 import { CommissionSettingsModal } from '@/components/reports/CommissionSettingsModal';
 import { useStaffCommissionOverrides } from '@/hooks/useStaffCommissionOverrides';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
+
+// Section header component for consistent styling
+interface SettingsSectionProps {
+  title: string;
+  description?: string;
+  icon?: React.ElementType;
+  children: React.ReactNode;
+  id?: string;
+}
+
+function SettingsSection({ title, description, icon: Icon, children, id }: SettingsSectionProps) {
+  return (
+    <section id={id} className="space-y-6">
+      <div className="space-y-1">
+        <div className="flex items-center gap-3">
+          {Icon && (
+            <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-primary/10">
+              <Icon className="h-5 w-5 text-primary" />
+            </div>
+          )}
+          <div>
+            <h2 className="text-xl font-luxury tracking-tight">{title}</h2>
+            {description && (
+              <p className="text-sm text-muted-foreground">{description}</p>
+            )}
+          </div>
+        </div>
+      </div>
+      <div className="space-y-6 pl-0 md:pl-[52px]">
+        {children}
+      </div>
+    </section>
+  );
+}
 
 // Timezone options grouped by region
 const timezoneOptions = [
@@ -544,988 +578,1077 @@ export default function Settings() {
   }
 
   return (
-    <AppLayout title="Settings" subtitle="Manage your account information and application preferences">
-      <div className="p-4 md:p-6">
-        <div className="space-y-6">
+    <AppLayout title="Settings" subtitle="Manage your account, team, and application preferences">
+      <div className="p-4 md:p-6 lg:p-8">
+        <div className="max-w-5xl mx-auto space-y-12">
 
-          {/* Account Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Account Information</CardTitle>
-              <CardDescription>
-                Your personal account details and role information.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Profile Image */}
-              <div>
-                <Label>Profile Image</Label>
-                <div className="flex items-center gap-4 mt-2">
-                  <div className="relative">
-                    {avatarUrl ? (
-                      <img
-                        src={avatarUrl}
-                        alt="Profile"
-                        className="h-20 w-20 rounded-full object-cover border-2 border-border"
-                      />
-                    ) : (
-                      <div className="h-20 w-20 rounded-full bg-muted flex items-center justify-center border-2 border-border">
-                        <User className="h-10 w-10 text-muted-foreground" />
-                      </div>
-                    )}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={isUploadingAvatar}
-                      onClick={() => document.getElementById('avatar-upload')?.click()}
-                    >
-                      <Upload className="h-4 w-4 mr-2" />
-                      {isUploadingAvatar ? 'Uploading...' : 'Upload'}
-                    </Button>
-                    {avatarUrl && (
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 1: ACCOUNT & SECURITY
+          ═══════════════════════════════════════════════════════════════════ */}
+          <SettingsSection 
+            title="Account & Security" 
+            description="Your personal account details and security settings"
+            icon={User}
+            id="account"
+          >
+            <Card>
+              <CardContent className="p-6 space-y-6">
+                {/* Profile Image & Basic Info */}
+                <div className="flex flex-col md:flex-row gap-6">
+                  {/* Avatar Section */}
+                  <div className="flex flex-col items-center gap-3">
+                    <div className="relative">
+                      {avatarUrl ? (
+                        <img
+                          src={avatarUrl}
+                          alt="Profile"
+                          className="h-24 w-24 rounded-full object-cover border-2 border-border"
+                        />
+                      ) : (
+                        <div className="h-24 w-24 rounded-full bg-muted flex items-center justify-center border-2 border-border">
+                          <User className="h-12 w-12 text-muted-foreground" />
+                        </div>
+                      )}
+                    </div>
+                    <div className="flex gap-2">
                       <Button
                         variant="outline"
                         size="sm"
                         disabled={isUploadingAvatar}
-                        onClick={handleAvatarRemove}
+                        onClick={() => document.getElementById('avatar-upload')?.click()}
                       >
-                        Remove
+                        <Upload className="h-4 w-4 mr-2" />
+                        {isUploadingAvatar ? 'Uploading...' : 'Upload'}
                       </Button>
-                    )}
-                    <input
-                      id="avatar-upload"
-                      type="file"
-                      accept="image/*"
-                      className="hidden"
-                      onChange={handleAvatarUpload}
-                    />
+                      {avatarUrl && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          disabled={isUploadingAvatar}
+                          onClick={handleAvatarRemove}
+                        >
+                          Remove
+                        </Button>
+                      )}
+                      <input
+                        id="avatar-upload"
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={handleAvatarUpload}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Profile Fields */}
+                  <div className="flex-1 space-y-4">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <Label htmlFor="email">Email</Label>
+                        <Input id="email" type="email" defaultValue={user?.email} disabled className="mt-1.5" />
+                      </div>
+                      <div>
+                        <Label htmlFor="role">Role</Label>
+                        <div className="flex items-center gap-2 mt-2.5">
+                          <Badge variant={userRole === 'owner' ? 'default' : 'secondary'}>
+                            {userRole}
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <div>
+                        <Label htmlFor="name">Full Name</Label>
+                        <Input 
+                          id="name" 
+                          placeholder="Enter your full name"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          onBlur={() => handleProfileUpdate('full_name', fullName)}
+                          className="mt-1.5"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="bio">Bio</Label>
+                        <Input 
+                          id="bio" 
+                          placeholder="Tell us about yourself"
+                          value={bio}
+                          onChange={(e) => setBio(e.target.value)}
+                          onBlur={() => handleProfileUpdate('bio', bio)}
+                          className="mt-1.5"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="email">Email</Label>
-                  <Input id="email" type="email" defaultValue={user?.email} disabled />
-                </div>
-                <div>
-                  <Label htmlFor="role">Role</Label>
-                  <div className="flex items-center gap-2 mt-2">
-                    <Badge variant={userRole === 'owner' ? 'default' : 'secondary'}>
-                      {userRole}
-                    </Badge>
-                  </div>
-                </div>
-              </div>
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="name">Full Name</Label>
-                  <Input 
-                    id="name" 
-                    placeholder="Enter your full name"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    onBlur={() => handleProfileUpdate('full_name', fullName)}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="bio">Bio</Label>
-                  <Input 
-                    id="bio" 
-                    placeholder="Tell us about yourself"
-                    value={bio}
-                    onChange={(e) => setBio(e.target.value)}
-                    onBlur={() => handleProfileUpdate('bio', bio)}
-                  />
-                </div>
-              </div>
+                <Separator />
 
-              <Separator />
-
-              {/* Change Password */}
-              <div>
-                <Label>Password</Label>
-                <p className="text-sm text-muted-foreground mb-2">
-                  Update your account password for security.
-                </p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowPasswordModal(true)}
-                  className="gap-2"
-                >
-                  <KeyRound className="h-4 w-4" />
-                  Change Password
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          <ChangePasswordModal open={showPasswordModal} onOpenChange={setShowPasswordModal} />
-
-          {/* User Management */}
-          <UserManagement />
-
-          {/* Role Permissions - Customize what managers and staff can access */}
-          <RolePermissionsManager />
-
-          {/* Store Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Store Information</CardTitle>
-              <CardDescription>
-                Your business contact details that appear on receipts and documents.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="storeName">Store Name</Label>
-                  <Input
-                    id="storeName"
-                    placeholder="Your Store Name"
-                    value={storeInfo.name}
-                    onChange={(e) => setStoreInfo({ ...storeInfo, name: e.target.value })}
-                    onBlur={() => handleStoreInfoUpdate('name', storeInfo.name)}
-                    disabled={settingsLoading || isUpdating}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="storeTagline">Tagline</Label>
-                  <Input
-                    id="storeTagline"
-                    placeholder="Your Business Tagline"
-                    value={storeInfo.tagline}
-                    onChange={(e) => setStoreInfo({ ...storeInfo, tagline: e.target.value })}
-                    onBlur={() => handleStoreInfoUpdate('tagline', storeInfo.tagline)}
-                    disabled={settingsLoading || isUpdating}
-                  />
-                </div>
-              </div>
-              
-              <div>
-                <Label htmlFor="storeAddress">Address</Label>
-                <Textarea
-                  id="storeAddress"
-                  placeholder="Store Address"
-                  value={storeInfo.address}
-                  onChange={(e) => setStoreInfo({ ...storeInfo, address: e.target.value })}
-                  onBlur={() => handleStoreInfoUpdate('address', storeInfo.address)}
-                  disabled={settingsLoading || isUpdating}
-                  rows={3}
-                />
-              </div>
-              
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="storePhone">Phone</Label>
-                  <Input
-                    id="storePhone"
-                    type="tel"
-                    placeholder="Phone Number"
-                    value={storeInfo.phone}
-                    onChange={(e) => setStoreInfo({ ...storeInfo, phone: e.target.value })}
-                    onBlur={() => handleStoreInfoUpdate('phone', storeInfo.phone)}
-                    disabled={settingsLoading || isUpdating}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="storeEmail">Email</Label>
-                  <Input
-                    id="storeEmail"
-                    type="email"
-                    placeholder="info@yourstore.com"
-                    value={storeInfo.email}
-                    onChange={(e) => setStoreInfo({ ...storeInfo, email: e.target.value })}
-                    onBlur={() => handleStoreInfoUpdate('email', storeInfo.email)}
-                    disabled={settingsLoading || isUpdating}
-                  />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Store Locations */}
-          <LocationsSettings />
-
-          {/* General Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>General Settings</CardTitle>
-              <CardDescription>
-                Basic application preferences and currency settings.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-3">
-                <div>
-                  <Label htmlFor="currency">Currency Symbol</Label>
-                  <Select 
-                    value={localSettings.currency} 
-                    onValueChange={(value) => handleSettingChange('currency', value)}
-                    disabled={settingsLoading}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="£">£ (GBP)</SelectItem>
-                      <SelectItem value="$">$ (USD)</SelectItem>
-                      <SelectItem value="€">€ (EUR)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="lowStock">Low Stock Threshold</Label>
-                  <Input
-                    id="lowStock"
-                    type="number"
-                    min="0"
-                    value={localSettings.lowStockThreshold}
-                    onChange={(e) => handleSettingChange('lowStockThreshold', parseInt(e.target.value) || 1)}
-                    disabled={settingsLoading}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="timezone">Timezone</Label>
-                  <Select 
-                    value={localSettings.timezone} 
-                    onValueChange={(value) => handleSettingChange('timezone', value)}
-                    disabled={settingsLoading}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {timezoneOptions.map(group => (
-                        <React.Fragment key={group.label}>
-                          <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
-                            {group.label}
-                          </div>
-                          {group.options.map(option => (
-                            <SelectItem key={option.value} value={option.value}>
-                              {option.label}
-                            </SelectItem>
-                          ))}
-                        </React.Fragment>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-0.5">
-                  <Label>Tax-Inclusive Pricing Display</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Show prices with tax included (display only)
-                  </p>
-                </div>
-                <Switch
-                  checked={localSettings.taxInclusive}
-                  onCheckedChange={(checked) => handleSettingChange('taxInclusive', checked)}
-                  disabled={settingsLoading}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Inventory Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Inventory Settings</CardTitle>
-              <CardDescription>
-                Stock management and inventory control preferences.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="reorderPoint">Reorder Point Default</Label>
-                  <Input
-                    id="reorderPoint"
-                    type="number"
-                    min="0"
-                    value={localSettings.reorderPointDefault}
-                    onChange={(e) => handleSettingChange('reorderPointDefault', parseInt(e.target.value) || 5)}
-                    disabled={settingsLoading}
-                  />
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Default reorder threshold applied to new products
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-0.5">
-                  <Label>Require Stock for Tracked Items</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Prevent overselling by blocking sales when stock is insufficient
-                  </p>
-                </div>
-                <Switch
-                  checked={localSettings.requireStock}
-                  onCheckedChange={(checked) => handleSettingChange('requireStock', checked)}
-                  disabled={settingsLoading}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Customer VIP Tiers */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Crown className="h-5 w-5 text-amber-500" />
-                Customer VIP Tiers
-              </CardTitle>
-              <CardDescription>
-                Set the lifetime spending thresholds that determine customer loyalty tiers.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="grid gap-4 md:grid-cols-3">
-                <div>
-                  <Label htmlFor="silverThreshold" className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
-                      Silver
-                    </Badge>
-                    Threshold
-                  </Label>
-                  <div className="relative mt-2">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      {localSettings.currency}
-                    </span>
-                    <Input
-                      id="silverThreshold"
-                      type="number"
-                      min="0"
-                      className="pl-7"
-                      value={localSettings.vipTierThresholds?.silver ?? 500}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value) || 0;
-                        handleSettingChange('vipTierThresholds', {
-                          ...localSettings.vipTierThresholds,
-                          silver: value,
-                        });
-                      }}
-                      disabled={settingsLoading}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="goldThreshold" className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
-                      Gold
-                    </Badge>
-                    Threshold
-                  </Label>
-                  <div className="relative mt-2">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      {localSettings.currency}
-                    </span>
-                    <Input
-                      id="goldThreshold"
-                      type="number"
-                      min="0"
-                      className="pl-7"
-                      value={localSettings.vipTierThresholds?.gold ?? 2000}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value) || 0;
-                        handleSettingChange('vipTierThresholds', {
-                          ...localSettings.vipTierThresholds,
-                          gold: value,
-                        });
-                      }}
-                      disabled={settingsLoading}
-                    />
-                  </div>
-                </div>
-                <div>
-                  <Label htmlFor="platinumThreshold" className="flex items-center gap-2">
-                    <Badge variant="outline" className="bg-gradient-to-r from-violet-50 to-purple-50 text-purple-700 dark:from-violet-900/30 dark:to-purple-900/30 dark:text-purple-300">
-                      Platinum
-                    </Badge>
-                    Threshold
-                  </Label>
-                  <div className="relative mt-2">
-                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      {localSettings.currency}
-                    </span>
-                    <Input
-                      id="platinumThreshold"
-                      type="number"
-                      min="0"
-                      className="pl-7"
-                      value={localSettings.vipTierThresholds?.platinum ?? 5000}
-                      onChange={(e) => {
-                        const value = parseInt(e.target.value) || 0;
-                        handleSettingChange('vipTierThresholds', {
-                          ...localSettings.vipTierThresholds,
-                          platinum: value,
-                        });
-                      }}
-                      disabled={settingsLoading}
-                    />
-                  </div>
-                </div>
-              </div>
-              <p className="text-sm text-muted-foreground">
-                Customers automatically move to higher tiers as their lifetime spend increases.
-              </p>
-            </CardContent>
-          </Card>
-          {/* POS Settings */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Point of Sale Settings</CardTitle>
-              <CardDescription>
-                Configure POS behavior and receipt preferences.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="defaultPayment">Default Payment Method</Label>
-                  <Select 
-                    value={localSettings.defaultPayment} 
-                    onValueChange={(value: 'cash' | 'card' | 'bank_transfer') => handleSettingChange('defaultPayment', value)}
-                    disabled={settingsLoading}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="cash">Cash</SelectItem>
-                      <SelectItem value="card">Card</SelectItem>
-                      <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label htmlFor="digitalReceipt">Digital Receipt Default</Label>
-                  <Select 
-                    value={localSettings.digitalReceiptDefault} 
-                    onValueChange={(value: 'email' | 'none') => handleSettingChange('digitalReceiptDefault', value)}
-                    disabled={settingsLoading}
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="email">Email</SelectItem>
-                      <SelectItem value="none">None</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Send receipts via email when customer email is provided
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-0.5">
-                  <Label>Print Receipt After Checkout</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Automatically show print dialog after successful sale
-                  </p>
-                </div>
-                <Switch
-                  checked={localSettings.printAfterCheckout}
-                  onCheckedChange={(checked) => handleSettingChange('printAfterCheckout', checked)}
-                  disabled={settingsLoading}
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Commission Settings */}
-          <Card id="commission-settings">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Percent className="h-5 w-5" />
-                Commission Settings
-              </CardTitle>
-              <CardDescription>
-                Configure staff commission rates for sales tracking.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="space-y-0.5">
-                  <Label>Enable Commission Tracking</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Show estimated commission on the My Sales page
-                  </p>
-                </div>
-                <Switch
-                  checked={localSettings.commissionSettings?.enabled ?? true}
-                  onCheckedChange={(checked) => handleSettingChange('commissionSettings', {
-                    ...localSettings.commissionSettings,
-                    enabled: checked
-                  })}
-                  disabled={settingsLoading}
-                />
-              </div>
-
-              <div className="grid gap-4 md:grid-cols-2">
-                <div>
-                  <Label htmlFor="commissionRate">Default Commission Rate</Label>
-                  <div className="relative mt-2">
-                    <Input
-                      id="commissionRate"
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.5"
-                      className="pr-8"
-                      value={localSettings.commissionSettings?.defaultRate ?? 5}
-                      onChange={(e) => {
-                        const value = parseFloat(e.target.value) || 0;
-                        handleSettingChange('commissionSettings', {
-                          ...localSettings.commissionSettings,
-                          defaultRate: Math.min(100, Math.max(0, value))
-                        });
-                      }}
-                      disabled={settingsLoading}
-                    />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-                      %
-                    </span>
-                  </div>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Percentage of revenue paid as commission
-                  </p>
-                </div>
-
-                <div>
-                  <Label htmlFor="calculationBasis">Calculation Basis</Label>
-                  <Select 
-                    value={localSettings.commissionSettings?.calculationBasis ?? 'revenue'} 
-                    onValueChange={(value: 'revenue' | 'profit') => handleSettingChange('commissionSettings', {
-                      ...localSettings.commissionSettings,
-                      calculationBasis: value
-                    })}
-                    disabled={settingsLoading}
-                  >
-                    <SelectTrigger className="mt-2">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="revenue">Revenue (Sale Total)</SelectItem>
-                      <SelectItem value="profit">Profit (Revenue - Cost)</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    Calculate commission on revenue or gross profit
-                  </p>
-                </div>
-              </div>
-
-              <div className="p-4 bg-muted/50 rounded-lg">
-                <h4 className="text-sm font-medium mb-2">Example Calculation</h4>
-                <p className="text-sm text-muted-foreground">
-                  A £1,000 sale at {localSettings.commissionSettings?.defaultRate ?? 5}% rate = <span className="font-mono font-medium text-green-600 dark:text-green-400">£{((localSettings.commissionSettings?.defaultRate ?? 5) * 10).toFixed(2)}</span> commission
-                </p>
-              </div>
-
-              <Separator className="my-4" />
-
-              {/* Staff Commission Overrides Section */}
-              <div className="space-y-4">
+                {/* Password Section */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                   <div>
-                    <h4 className="font-medium">Per-Staff Commission Rates</h4>
+                    <Label>Password</Label>
                     <p className="text-sm text-muted-foreground">
-                      Set custom commission rates for individual staff members
+                      Update your account password for security.
                     </p>
                   </div>
                   <Button 
                     variant="outline" 
-                    onClick={() => setShowCommissionModal(true)}
-                    disabled={userRole !== 'owner'}
+                    onClick={() => setShowPasswordModal(true)}
+                    className="gap-2"
                   >
-                    <Users className="h-4 w-4 mr-2" />
-                    Manage Staff Rates
+                    <KeyRound className="h-4 w-4" />
+                    Change Password
                   </Button>
                 </div>
+              </CardContent>
+            </Card>
+          </SettingsSection>
 
-                {commissionOverrides.length > 0 ? (
-                  <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-sm">
-                      <span className="font-medium">{commissionOverrides.length}</span> staff member(s) have custom commission rates
+          <ChangePasswordModal open={showPasswordModal} onOpenChange={setShowPasswordModal} />
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 2: TEAM & PERMISSIONS
+          ═══════════════════════════════════════════════════════════════════ */}
+          <SettingsSection 
+            title="Team & Permissions" 
+            description="Manage users and control what each role can access"
+            icon={Shield}
+            id="team"
+          >
+            <UserManagement />
+            <RolePermissionsManager />
+          </SettingsSection>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 3: BUSINESS INFORMATION
+          ═══════════════════════════════════════════════════════════════════ */}
+          <SettingsSection 
+            title="Business Information" 
+            description="Your store details, locations, and contact information"
+            icon={Building}
+            id="business"
+          >
+            {/* Store Information */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Store className="h-4 w-4" />
+                  Store Details
+                </CardTitle>
+                <CardDescription>
+                  Your business contact details that appear on receipts and documents.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label htmlFor="storeName">Store Name</Label>
+                    <Input
+                      id="storeName"
+                      placeholder="Your Store Name"
+                      value={storeInfo.name}
+                      onChange={(e) => setStoreInfo({ ...storeInfo, name: e.target.value })}
+                      onBlur={() => handleStoreInfoUpdate('name', storeInfo.name)}
+                      disabled={settingsLoading || isUpdating}
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="storeTagline">Tagline</Label>
+                    <Input
+                      id="storeTagline"
+                      placeholder="Your Business Tagline"
+                      value={storeInfo.tagline}
+                      onChange={(e) => setStoreInfo({ ...storeInfo, tagline: e.target.value })}
+                      onBlur={() => handleStoreInfoUpdate('tagline', storeInfo.tagline)}
+                      disabled={settingsLoading || isUpdating}
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
+                
+                <div>
+                  <Label htmlFor="storeAddress">Address</Label>
+                  <Textarea
+                    id="storeAddress"
+                    placeholder="Store Address"
+                    value={storeInfo.address}
+                    onChange={(e) => setStoreInfo({ ...storeInfo, address: e.target.value })}
+                    onBlur={() => handleStoreInfoUpdate('address', storeInfo.address)}
+                    disabled={settingsLoading || isUpdating}
+                    rows={3}
+                    className="mt-1.5"
+                  />
+                </div>
+                
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label htmlFor="storePhone">Phone</Label>
+                    <Input
+                      id="storePhone"
+                      type="tel"
+                      placeholder="Phone Number"
+                      value={storeInfo.phone}
+                      onChange={(e) => setStoreInfo({ ...storeInfo, phone: e.target.value })}
+                      onBlur={() => handleStoreInfoUpdate('phone', storeInfo.phone)}
+                      disabled={settingsLoading || isUpdating}
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="storeEmail">Email</Label>
+                    <Input
+                      id="storeEmail"
+                      type="email"
+                      placeholder="info@yourstore.com"
+                      value={storeInfo.email}
+                      onChange={(e) => setStoreInfo({ ...storeInfo, email: e.target.value })}
+                      onBlur={() => handleStoreInfoUpdate('email', storeInfo.email)}
+                      disabled={settingsLoading || isUpdating}
+                      className="mt-1.5"
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Store Locations */}
+            <LocationsSettings />
+          </SettingsSection>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 4: APPLICATION SETTINGS
+          ═══════════════════════════════════════════════════════════════════ */}
+          <SettingsSection 
+            title="Application Settings" 
+            description="General preferences, inventory, and POS configuration"
+            icon={SettingsIcon}
+            id="application"
+          >
+            {/* General Settings */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">General</CardTitle>
+                <CardDescription>
+                  Basic application preferences and currency settings.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div>
+                    <Label htmlFor="currency">Currency Symbol</Label>
+                    <Select 
+                      value={localSettings.currency} 
+                      onValueChange={(value) => handleSettingChange('currency', value)}
+                      disabled={settingsLoading}
+                    >
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="£">£ (GBP)</SelectItem>
+                        <SelectItem value="$">$ (USD)</SelectItem>
+                        <SelectItem value="€">€ (EUR)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="lowStock">Low Stock Threshold</Label>
+                    <Input
+                      id="lowStock"
+                      type="number"
+                      min="0"
+                      value={localSettings.lowStockThreshold}
+                      onChange={(e) => handleSettingChange('lowStockThreshold', parseInt(e.target.value) || 1)}
+                      disabled={settingsLoading}
+                      className="mt-1.5"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="timezone">Timezone</Label>
+                    <Select 
+                      value={localSettings.timezone} 
+                      onValueChange={(value) => handleSettingChange('timezone', value)}
+                      disabled={settingsLoading}
+                    >
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {timezoneOptions.map(group => (
+                          <React.Fragment key={group.label}>
+                            <div className="px-2 py-1.5 text-sm font-semibold text-muted-foreground">
+                              {group.label}
+                            </div>
+                            {group.options.map(option => (
+                              <SelectItem key={option.value} value={option.value}>
+                                {option.label}
+                              </SelectItem>
+                            ))}
+                          </React.Fragment>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-muted/30">
+                  <div className="space-y-0.5">
+                    <Label>Tax-Inclusive Pricing Display</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Show prices with tax included (display only)
                     </p>
                   </div>
-                ) : (
-                  <p className="text-sm text-muted-foreground">
-                    All staff members are using the global default rate
-                  </p>
-                )}
-              </div>
+                  <Switch
+                    checked={localSettings.taxInclusive}
+                    onCheckedChange={(checked) => handleSettingChange('taxInclusive', checked)}
+                    disabled={settingsLoading}
+                  />
+                </div>
+              </CardContent>
+            </Card>
 
-              <Separator className="my-4" />
+            {/* Inventory Settings */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Package className="h-4 w-4" />
+                  Inventory
+                </CardTitle>
+                <CardDescription>
+                  Stock management and inventory control preferences.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label htmlFor="reorderPoint">Reorder Point Default</Label>
+                    <Input
+                      id="reorderPoint"
+                      type="number"
+                      min="0"
+                      value={localSettings.reorderPointDefault}
+                      onChange={(e) => handleSettingChange('reorderPointDefault', parseInt(e.target.value) || 5)}
+                      disabled={settingsLoading}
+                      className="mt-1.5"
+                    />
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Default reorder threshold applied to new products
+                    </p>
+                  </div>
+                </div>
 
-              {/* Quick Link to Commission Report */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <h4 className="font-medium">View Commission Report</h4>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-muted/30">
+                  <div className="space-y-0.5">
+                    <Label>Require Stock for Tracked Items</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Prevent overselling by blocking sales when stock is insufficient
+                    </p>
+                  </div>
+                  <Switch
+                    checked={localSettings.requireStock}
+                    onCheckedChange={(checked) => handleSettingChange('requireStock', checked)}
+                    disabled={settingsLoading}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* POS Settings */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <ShoppingCart className="h-4 w-4" />
+                  Point of Sale
+                </CardTitle>
+                <CardDescription>
+                  Configure checkout defaults, payment methods, and receipt settings.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label htmlFor="defaultPayment">Default Payment Method</Label>
+                  <Select 
+                      value={localSettings.defaultPayment} 
+                      onValueChange={(value: 'cash' | 'card' | 'bank_transfer') => handleSettingChange('defaultPayment', value)}
+                      disabled={settingsLoading}
+                    >
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="cash">Cash</SelectItem>
+                        <SelectItem value="card">Card</SelectItem>
+                        <SelectItem value="bank_transfer">Bank Transfer</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="digitalReceipt">Digital Receipt Default</Label>
+                    <Select 
+                      value={localSettings.digitalReceiptDefault} 
+                      onValueChange={(value: 'email' | 'none') => handleSettingChange('digitalReceiptDefault', value)}
+                      disabled={settingsLoading}
+                    >
+                      <SelectTrigger className="mt-1.5">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="email">Email</SelectItem>
+                        <SelectItem value="none">None</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Send receipts via email when customer email is provided
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-muted/30">
+                  <div className="space-y-0.5">
+                    <Label>Print Receipt After Checkout</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Automatically show print dialog after successful sale
+                    </p>
+                  </div>
+                  <Switch
+                    checked={localSettings.printAfterCheckout}
+                    onCheckedChange={(checked) => handleSettingChange('printAfterCheckout', checked)}
+                    disabled={settingsLoading}
+                  />
+                </div>
+              </CardContent>
+            </Card>
+          </SettingsSection>
+
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 5: CUSTOMER & SALES
+          ═══════════════════════════════════════════════════════════════════ */}
+          <SettingsSection 
+            title="Customer & Sales" 
+            description="VIP tiers, commission rates, and sales tracking"
+            icon={Crown}
+            id="customer-sales"
+          >
+            {/* Customer VIP Tiers */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Crown className="h-4 w-4 text-amber-500" />
+                  Customer VIP Tiers
+                </CardTitle>
+                <CardDescription>
+                  Set the lifetime spending thresholds that determine customer loyalty tiers.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-3">
+                  <div>
+                    <Label htmlFor="silverThreshold" className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-200">
+                        Silver
+                      </Badge>
+                      Threshold
+                    </Label>
+                    <div className="relative mt-2">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        {localSettings.currency}
+                      </span>
+                      <Input
+                        id="silverThreshold"
+                        type="number"
+                        min="0"
+                        className="pl-7"
+                        value={localSettings.vipTierThresholds?.silver ?? 500}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          handleSettingChange('vipTierThresholds', {
+                            ...localSettings.vipTierThresholds,
+                            silver: value,
+                          });
+                        }}
+                        disabled={settingsLoading}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="goldThreshold" className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300">
+                        Gold
+                      </Badge>
+                      Threshold
+                    </Label>
+                    <div className="relative mt-2">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        {localSettings.currency}
+                      </span>
+                      <Input
+                        id="goldThreshold"
+                        type="number"
+                        min="0"
+                        className="pl-7"
+                        value={localSettings.vipTierThresholds?.gold ?? 2000}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          handleSettingChange('vipTierThresholds', {
+                            ...localSettings.vipTierThresholds,
+                            gold: value,
+                          });
+                        }}
+                        disabled={settingsLoading}
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <Label htmlFor="platinumThreshold" className="flex items-center gap-2">
+                      <Badge variant="outline" className="bg-violet-50 text-violet-700 dark:bg-violet-900/30 dark:text-violet-300">
+                        Platinum
+                      </Badge>
+                      Threshold
+                    </Label>
+                    <div className="relative mt-2">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        {localSettings.currency}
+                      </span>
+                      <Input
+                        id="platinumThreshold"
+                        type="number"
+                        min="0"
+                        className="pl-7"
+                        value={localSettings.vipTierThresholds?.platinum ?? 10000}
+                        onChange={(e) => {
+                          const value = parseInt(e.target.value) || 0;
+                          handleSettingChange('vipTierThresholds', {
+                            ...localSettings.vipTierThresholds,
+                            platinum: value,
+                          });
+                        }}
+                        disabled={settingsLoading}
+                      />
+                    </div>
+                  </div>
+                </div>
+                <p className="text-sm text-muted-foreground">
+                  Customers are automatically upgraded when their lifetime spend reaches these thresholds.
+                </p>
+              </CardContent>
+            </Card>
+
+            {/* Commission Settings */}
+            <Card id="commission-settings">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Percent className="h-4 w-4" />
+                  Commission Settings
+                </CardTitle>
+                <CardDescription>
+                  Configure staff commission rates for sales tracking.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-muted/30">
+                  <div className="space-y-0.5">
+                    <Label>Enable Commission Tracking</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Show estimated commission on the My Sales page
+                    </p>
+                  </div>
+                  <Switch
+                    checked={localSettings.commissionSettings?.enabled ?? true}
+                    onCheckedChange={(checked) => handleSettingChange('commissionSettings', {
+                      ...localSettings.commissionSettings,
+                      enabled: checked
+                    })}
+                    disabled={settingsLoading}
+                  />
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div>
+                    <Label htmlFor="commissionRate">Default Commission Rate</Label>
+                    <div className="relative mt-2">
+                      <Input
+                        id="commissionRate"
+                        type="number"
+                        min="0"
+                        max="100"
+                        step="0.5"
+                        className="pr-8"
+                        value={localSettings.commissionSettings?.defaultRate ?? 5}
+                        onChange={(e) => {
+                          const value = parseFloat(e.target.value) || 0;
+                          handleSettingChange('commissionSettings', {
+                            ...localSettings.commissionSettings,
+                            defaultRate: Math.min(100, Math.max(0, value))
+                          });
+                        }}
+                        disabled={settingsLoading}
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                        %
+                      </span>
+                    </div>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Percentage of revenue paid as commission
+                    </p>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="calculationBasis">Calculation Basis</Label>
+                    <Select 
+                      value={localSettings.commissionSettings?.calculationBasis ?? 'revenue'} 
+                      onValueChange={(value: 'revenue' | 'profit') => handleSettingChange('commissionSettings', {
+                        ...localSettings.commissionSettings,
+                        calculationBasis: value
+                      })}
+                      disabled={settingsLoading}
+                    >
+                      <SelectTrigger className="mt-2">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="revenue">Revenue (Sale Total)</SelectItem>
+                        <SelectItem value="profit">Profit (Revenue - Cost)</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Calculate commission on revenue or gross profit
+                    </p>
+                  </div>
+                </div>
+
+                <div className="p-4 bg-muted/50 rounded-lg">
+                  <h4 className="text-sm font-medium mb-2">Example Calculation</h4>
                   <p className="text-sm text-muted-foreground">
-                    See commission breakdown and record payments
+                    A £1,000 sale at {localSettings.commissionSettings?.defaultRate ?? 5}% rate = <span className="font-mono font-medium text-green-600 dark:text-green-400">£{((localSettings.commissionSettings?.defaultRate ?? 5) * 10).toFixed(2)}</span> commission
                   </p>
                 </div>
-                <Button variant="ghost" asChild>
-                  <a href="/reports?tab=commission">
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Go to Report
-                  </a>
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+
+                <Separator />
+
+                {/* Staff Commission Overrides Section */}
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h4 className="font-medium">Per-Staff Commission Rates</h4>
+                      <p className="text-sm text-muted-foreground">
+                        Set custom commission rates for individual staff members
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowCommissionModal(true)}
+                      disabled={userRole !== 'owner'}
+                    >
+                      <Users className="h-4 w-4 mr-2" />
+                      Manage Staff Rates
+                    </Button>
+                  </div>
+
+                  {commissionOverrides.length > 0 ? (
+                    <div className="p-3 bg-muted/50 rounded-lg">
+                      <p className="text-sm">
+                        <span className="font-medium">{commissionOverrides.length}</span> staff member(s) have custom commission rates
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">
+                      All staff members are using the global default rate
+                    </p>
+                  )}
+                </div>
+
+                <Separator />
+
+                {/* Quick Link to Commission Report */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div>
+                    <h4 className="font-medium">View Commission Report</h4>
+                    <p className="text-sm text-muted-foreground">
+                      See commission breakdown and record payments
+                    </p>
+                  </div>
+                  <Button variant="ghost" asChild>
+                    <a href="/reports?tab=commission">
+                      <ExternalLink className="h-4 w-4 mr-2" />
+                      Go to Report
+                    </a>
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </SettingsSection>
 
           <CommissionSettingsModal 
             open={showCommissionModal} 
             onClose={() => setShowCommissionModal(false)} 
           />
 
-          {/* Quick Filters Settings */}
-          <Card id="quick-filters">
-            <CardHeader>
-              <CardTitle>Quick Filters</CardTitle>
-              <CardDescription>
-                Choose which filter presets appear in the quick filters bar on the Products page, or create your own custom filters.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Built-in Presets */}
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <Label className="text-base font-medium">Built-in Presets ({localSettings.quickFilterPresets.length}/8)</Label>
-                </div>
-                
-                <div className="grid gap-4">
-                  {['Categories', 'Metals', 'Stock', 'Price'].map(category => (
-                    <div key={category} className="space-y-3">
-                      <h4 className="text-sm font-medium text-muted-foreground">{category}</h4>
-                      <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-                        {availablePresets
-                          .filter(preset => preset.category === category)
-                          .map(preset => (
-                            <div key={preset.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={preset.id}
-                                checked={localSettings.quickFilterPresets.includes(preset.id)}
-                                onCheckedChange={(checked) => {
-                                  const newPresets = checked
-                                    ? [...localSettings.quickFilterPresets, preset.id]
-                                    : localSettings.quickFilterPresets.filter(id => id !== preset.id);
-                                  handleSettingChange('quickFilterPresets', newPresets);
-                                }}
-                                disabled={settingsLoading || userRole !== 'owner'}
-                              />
-                              <Label
-                                htmlFor={preset.id}
-                                className="text-sm font-normal cursor-pointer"
-                              >
-                                {preset.label}
-                              </Label>
-                            </div>
-                          ))
-                        }
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 6: CUSTOMIZATION
+          ═══════════════════════════════════════════════════════════════════ */}
+          <SettingsSection 
+            title="Customization" 
+            description="Quick filters and interface preferences"
+            icon={Filter}
+            id="customization"
+          >
+            {/* Quick Filters Settings */}
+            <Card id="quick-filters">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Quick Filters</CardTitle>
+                <CardDescription>
+                  Choose which filter presets appear in the quick filters bar on the Products page, or create your own custom filters.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Built-in Presets */}
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <Label className="text-base font-medium">Built-in Presets ({localSettings.quickFilterPresets.length}/8)</Label>
+                  </div>
+                  
+                  <div className="grid gap-4">
+                    {['Categories', 'Metals', 'Stock', 'Price'].map(category => (
+                      <div key={category} className="space-y-3">
+                        <h4 className="text-sm font-medium text-muted-foreground">{category}</h4>
+                        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+                          {availablePresets
+                            .filter(preset => preset.category === category)
+                            .map(preset => (
+                              <div key={preset.id} className="flex items-center space-x-2">
+                                <Checkbox
+                                  id={preset.id}
+                                  checked={localSettings.quickFilterPresets.includes(preset.id)}
+                                  onCheckedChange={(checked) => {
+                                    const newPresets = checked
+                                      ? [...localSettings.quickFilterPresets, preset.id]
+                                      : localSettings.quickFilterPresets.filter(id => id !== preset.id);
+                                    handleSettingChange('quickFilterPresets', newPresets);
+                                  }}
+                                  disabled={settingsLoading || userRole !== 'owner'}
+                                />
+                                <Label
+                                  htmlFor={preset.id}
+                                  className="text-sm font-normal cursor-pointer"
+                                >
+                                  {preset.label}
+                                </Label>
+                              </div>
+                            ))
+                          }
+                        </div>
                       </div>
+                    ))}
+                  </div>
+                  
+                  <div className="pt-4 border-t">
+                    <div className="flex gap-2 flex-wrap">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSettingChange('quickFilterPresets', ['watches', 'rings', 'gold', 'white-gold', 'rose-gold', 'silver', 'in-stock', 'low-stock'])}
+                        disabled={settingsLoading || userRole !== 'owner'}
+                      >
+                        Reset to Defaults
+                      </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleSettingChange('quickFilterPresets', [])}
+                        disabled={settingsLoading || userRole !== 'owner'}
+                      >
+                        Clear All
+                      </Button>
                     </div>
-                  ))}
-                </div>
-                
-                <div className="pt-4 border-t">
-                  <div className="flex gap-2 flex-wrap">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSettingChange('quickFilterPresets', ['watches', 'rings', 'gold', 'white-gold', 'rose-gold', 'silver', 'in-stock', 'low-stock'])}
-                      disabled={settingsLoading || userRole !== 'owner'}
-                    >
-                      Reset to Defaults
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleSettingChange('quickFilterPresets', [])}
-                      disabled={settingsLoading || userRole !== 'owner'}
-                    >
-                      Clear All
-                    </Button>
                   </div>
                 </div>
-              </div>
 
-              <Separator />
+                <Separator />
 
-              {/* Custom Filters Section */}
-              <div className="space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                  <div>
-                    <Label className="text-base font-medium">Custom Filters ({(localSettings.customFilters || []).length})</Label>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      Create your own filter shortcuts with custom criteria
-                    </p>
+                {/* Custom Filters Section */}
+                <div className="space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <Label className="text-base font-medium">Custom Filters ({(localSettings.customFilters || []).length})</Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Create your own filter shortcuts with custom criteria
+                      </p>
+                    </div>
+                    {userRole === 'owner' && (
+                      <Button
+                        size="sm"
+                        onClick={() => {
+                          setEditingFilter(undefined);
+                          setShowCustomFilterDialog(true);
+                        }}
+                      >
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Filter
+                      </Button>
+                    )}
                   </div>
-                  {userRole === 'owner' && (
-                    <Button
-                      size="sm"
-                      onClick={() => {
-                        setEditingFilter(undefined);
-                        setShowCustomFilterDialog(true);
-                      }}
-                    >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Filter
-                    </Button>
+
+                  {(localSettings.customFilters || []).length === 0 ? (
+                    <div className="text-center py-8 border rounded-lg bg-muted/30">
+                      <Filter className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
+                      <p className="text-sm text-muted-foreground">
+                        No custom filters yet. Create one to quickly filter products.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {(localSettings.customFilters || []).map((filter) => {
+                        const getFilterSummary = (f: CustomFilter) => {
+                          const parts: string[] = [];
+                          if (f.filters.categories?.length) parts.push(`${f.filters.categories.length} categories`);
+                          if (f.filters.metals?.length) parts.push(`${f.filters.metals.length} metals`);
+                          if (f.filters.stockLevel && f.filters.stockLevel !== 'all') parts.push('stock filter');
+                          if (f.filters.priceRange) parts.push('price range');
+                          if (f.filters.isTradeIn === 'trade_in_only') parts.push('part exchange');
+                          return parts.join(', ') || 'No criteria';
+                        };
+
+                        const IconMap: Record<string, React.ElementType> = {
+                          filter: Filter,
+                          tag: Tag,
+                          watch: Watch,
+                          ring: CircleDot,
+                          gem: Gem,
+                          star: Star,
+                          sparkles: Sparkles,
+                          heart: Heart,
+                          crown: Crown,
+                          diamond: Diamond,
+                          zap: Zap,
+                        };
+                        const FilterIcon = IconMap[filter.icon || 'filter'] || Filter;
+
+                        return (
+                          <div
+                            key={filter.id}
+                            className="flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/30 transition-colors"
+                          >
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted">
+                                <FilterIcon className="h-4 w-4 text-muted-foreground" />
+                              </div>
+                              <div className="min-w-0">
+                                <p className="font-medium truncate">{filter.name}</p>
+                                <p className="text-xs text-muted-foreground truncate">
+                                  {getFilterSummary(filter)}
+                                </p>
+                              </div>
+                            </div>
+                            {userRole === 'owner' && (
+                              <div className="flex gap-1 flex-shrink-0">
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8"
+                                  onClick={() => {
+                                    setEditingFilter(filter);
+                                    setShowCustomFilterDialog(true);
+                                  }}
+                                >
+                                  <Pencil className="h-4 w-4" />
+                                </Button>
+                                <Button
+                                  size="icon"
+                                  variant="ghost"
+                                  className="h-8 w-8 text-destructive hover:text-destructive"
+                                  onClick={() => {
+                                    const newFilters = (localSettings.customFilters || []).filter(
+                                      (f) => f.id !== filter.id
+                                    );
+                                    handleSettingChange('customFilters', newFilters);
+                                  }}
+                                >
+                                  <Trash2 className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
 
-                {(localSettings.customFilters || []).length === 0 ? (
-                  <div className="text-center py-8 border rounded-lg bg-muted/30">
-                    <Filter className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-                    <p className="text-sm text-muted-foreground">
-                      No custom filters yet. Create one to quickly filter products.
-                    </p>
-                  </div>
-                ) : (
-                  <div className="space-y-2">
-                    {(localSettings.customFilters || []).map((filter) => {
-                      const getFilterSummary = (f: CustomFilter) => {
-                        const parts: string[] = [];
-                        if (f.filters.categories?.length) parts.push(`${f.filters.categories.length} categories`);
-                        if (f.filters.metals?.length) parts.push(`${f.filters.metals.length} metals`);
-                        if (f.filters.stockLevel && f.filters.stockLevel !== 'all') parts.push('stock filter');
-                        if (f.filters.priceRange) parts.push('price range');
-                        if (f.filters.isTradeIn === 'trade_in_only') parts.push('part exchange');
-                        return parts.join(', ') || 'No criteria';
-                      };
-
-                      const IconMap: Record<string, React.ElementType> = {
-                        filter: Filter,
-                        tag: Tag,
-                        watch: Watch,
-                        ring: CircleDot,
-                        gem: Gem,
-                        star: Star,
-                        sparkles: Sparkles,
-                        heart: Heart,
-                        crown: Crown,
-                        diamond: Diamond,
-                        zap: Zap,
-                      };
-                      const FilterIcon = IconMap[filter.icon || 'filter'] || Filter;
-
-                      return (
-                        <div
-                          key={filter.id}
-                          className="flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/30 transition-colors"
-                        >
-                          <div className="flex items-center gap-3 min-w-0">
-                            <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted">
-                              <FilterIcon className="h-4 w-4 text-muted-foreground" />
-                            </div>
-                            <div className="min-w-0">
-                              <p className="font-medium truncate">{filter.name}</p>
-                              <p className="text-xs text-muted-foreground truncate">
-                                {getFilterSummary(filter)}
-                              </p>
-                            </div>
-                          </div>
-                          {userRole === 'owner' && (
-                            <div className="flex gap-1 flex-shrink-0">
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8"
-                                onClick={() => {
-                                  setEditingFilter(filter);
-                                  setShowCustomFilterDialog(true);
-                                }}
-                              >
-                                <Pencil className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                size="icon"
-                                variant="ghost"
-                                className="h-8 w-8 text-destructive hover:text-destructive"
-                                onClick={() => {
-                                  const newFilters = (localSettings.customFilters || []).filter(
-                                    (f) => f.id !== filter.id
-                                  );
-                                  handleSettingChange('customFilters', newFilters);
-                                }}
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </div>
-
-              <p className="text-sm text-muted-foreground">
-                Changes will be reflected immediately in the Products page quick filters bar.
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* Data Management */}
-          <Card>
-            <CardHeader>
-              <CardTitle>Data Management</CardTitle>
-              <CardDescription>
-                Import and export your business data.
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Export Section */}
-              <div>
-                <h4 className="font-medium mb-3">Export Data</h4>
-                <div className="grid gap-3 md:grid-cols-3">
-                  <CSVExportButton
-                    data={[]}
-                    filename="products-export"
-                    headers={productCSVHeaders}
-                  >
-                    Export Products
-                  </CSVExportButton>
-                  
-                  <CSVExportButton
-                    data={[]}
-                    filename="suppliers-export"
-                    headers={supplierCSVHeaders}
-                  >
-                    Export Suppliers
-                  </CSVExportButton>
-                  
-                  <CSVExportButton
-                    data={[]}
-                    filename="expenses-export"
-                    headers={expenseCSVHeaders}
-                  >
-                    Export Expenses
-                  </CSVExportButton>
-                </div>
-              </div>
-
-              <Separator />
-
-              {/* Import Section */}
-              <div>
-                <h4 className="font-medium mb-3">Import Data</h4>
-                <div className="grid gap-3 md:grid-cols-3">
-                  <Button
-                    onClick={() => setShowProductImport(true)}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Import Products
-                  </Button>
-                  
-                  <Button
-                    onClick={() => setShowSupplierImport(true)}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Import Suppliers
-                  </Button>
-                  
-                  <Button
-                    onClick={() => setShowExpenseImport(true)}
-                    variant="outline"
-                    className="w-full"
-                  >
-                    <Upload className="h-4 w-4 mr-2" />
-                    Import Expenses
-                  </Button>
-                </div>
-                <p className="text-sm text-muted-foreground mt-2">
-                  Import CSV files with the correct column headers. Product and expense imports will map supplier names automatically.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* PWA Installation */}
-          {showInstallPrompt && (
-            <Card>
-              <CardHeader>
-              <CardTitle>Install App</CardTitle>
-                <CardDescription>
-                  Install Sourced Jewellers CRM as a Progressive Web App for better performance.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <Button 
-                  className="w-full md:w-auto"
-                  onClick={handleInstallPWA}
-                  disabled={!deferredPrompt}
-                >
-                  <Download className="h-4 w-4 mr-2" />
-                  Install App
-                </Button>
-                <p className="text-sm text-muted-foreground mt-3">
-                  {!deferredPrompt && "Your browser doesn't support PWA installation or the app is already installed."}
+                <p className="text-sm text-muted-foreground">
+                  Changes will be reflected immediately in the Products page quick filters bar.
                 </p>
               </CardContent>
             </Card>
-          )}
+          </SettingsSection>
 
-          {/* Onboarding Section */}
-          <Card id="onboarding">
-            <CardHeader>
-              <CardTitle>Onboarding</CardTitle>
-              <CardDescription>
-                Replay welcome tours and quick start guides for training new staff
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          {/* ═══════════════════════════════════════════════════════════════════
+              SECTION 7: DATA & SYSTEM
+          ═══════════════════════════════════════════════════════════════════ */}
+          <SettingsSection 
+            title="Data & System" 
+            description="Import, export, and system utilities"
+            icon={Database}
+            id="data-system"
+          >
+            {/* Data Management */}
+            <Card>
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg">Data Management</CardTitle>
+                <CardDescription>
+                  Import and export your business data.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                {/* Export Section */}
                 <div>
-                  <Label>Welcome Tour</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Replay the initial welcome and features overview
+                  <h4 className="font-medium mb-3">Export Data</h4>
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <CSVExportButton
+                      data={[]}
+                      filename="products-export"
+                      headers={productCSVHeaders}
+                    >
+                      Export Products
+                    </CSVExportButton>
+                    
+                    <CSVExportButton
+                      data={[]}
+                      filename="suppliers-export"
+                      headers={supplierCSVHeaders}
+                    >
+                      Export Suppliers
+                    </CSVExportButton>
+                    
+                    <CSVExportButton
+                      data={[]}
+                      filename="expenses-export"
+                      headers={expenseCSVHeaders}
+                    >
+                      Export Expenses
+                    </CSVExportButton>
+                  </div>
+                </div>
+
+                <Separator />
+
+                {/* Import Section */}
+                <div>
+                  <h4 className="font-medium mb-3">Import Data</h4>
+                  <div className="grid gap-3 md:grid-cols-3">
+                    <Button
+                      onClick={() => setShowProductImport(true)}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Import Products
+                    </Button>
+                    
+                    <Button
+                      onClick={() => setShowSupplierImport(true)}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Import Suppliers
+                    </Button>
+                    
+                    <Button
+                      onClick={() => setShowExpenseImport(true)}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      <Upload className="h-4 w-4 mr-2" />
+                      Import Expenses
+                    </Button>
+                  </div>
+                  <p className="text-sm text-muted-foreground mt-2">
+                    Import CSV files with the correct column headers. Product and expense imports will map supplier names automatically.
                   </p>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleReplayWelcome}
-                >
-                  Replay Tour
-                </Button>
-              </div>
-              
-              <Separator />
-              
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div>
-                  <Label>Quick Start Guide</Label>
-                  <p className="text-sm text-muted-foreground">
-                    Show the step-by-step setup guide again
+              </CardContent>
+            </Card>
+
+            {/* PWA Installation */}
+            {showInstallPrompt && (
+              <Card>
+                <CardHeader className="pb-4">
+                  <CardTitle className="text-lg flex items-center gap-2">
+                    <Smartphone className="h-4 w-4" />
+                    Install App
+                  </CardTitle>
+                  <CardDescription>
+                    Install Sourced Jewellers CRM as a Progressive Web App for better performance.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <Button 
+                    className="w-full md:w-auto"
+                    onClick={handleInstallPWA}
+                    disabled={!deferredPrompt}
+                  >
+                    <Download className="h-4 w-4 mr-2" />
+                    Install App
+                  </Button>
+                  <p className="text-sm text-muted-foreground mt-3">
+                    {!deferredPrompt && "Your browser doesn't support PWA installation or the app is already installed."}
                   </p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Onboarding Section */}
+            <Card id="onboarding">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Play className="h-4 w-4" />
+                  Onboarding
+                </CardTitle>
+                <CardDescription>
+                  Replay welcome tours and quick start guides for training new staff
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-muted/30">
+                  <div>
+                    <Label>Welcome Tour</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Replay the initial welcome and features overview
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleReplayWelcome}
+                  >
+                    Replay Tour
+                  </Button>
                 </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleReplayQuickStart}
-                >
-                  Replay Guide
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 p-4 rounded-lg bg-muted/30">
+                  <div>
+                    <Label>Quick Start Guide</Label>
+                    <p className="text-sm text-muted-foreground">
+                      Show the step-by-step setup guide again
+                    </p>
+                  </div>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={handleReplayQuickStart}
+                  >
+                    Replay Guide
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </SettingsSection>
+
         </div>
 
         {/* CSV Import Modals */}
