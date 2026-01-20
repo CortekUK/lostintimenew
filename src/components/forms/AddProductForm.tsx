@@ -135,10 +135,10 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
     return '00XXX (auto-generated)';
   };
 
-  // Calculate profit and margin
+  // Calculate profit and markup
   const profit = (Number(formData.unit_price) - Number(formData.unit_cost)) || 0;
-  const margin = Number(formData.unit_price) > 0
-    ? (((Number(formData.unit_price) - Number(formData.unit_cost)) / Number(formData.unit_price)) * 100)
+  const markup = Number(formData.unit_cost) > 0
+    ? (((Number(formData.unit_price) - Number(formData.unit_cost)) / Number(formData.unit_cost)) * 100)
     : 0;
 
   // Validate consignment dates
@@ -774,7 +774,7 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                       "font-luxury text-2xl font-semibold",
                       profit >= 0 ? "text-green-600" : "text-red-500"
                     )}>
-                      £{profit.toFixed(2)} ({margin.toFixed(1)}% margin)
+                      £{profit.toFixed(2)} ({markup.toFixed(1)}% markup)
                     </p>
                   </div>
                 </div>
