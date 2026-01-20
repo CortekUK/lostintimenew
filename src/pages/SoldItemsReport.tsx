@@ -260,7 +260,15 @@ export default function SoldItemsReport() {
       width: 280,
       render: (value: any, row: any, index: number) => (
         <div>
-          <div className="font-medium">{row?.products?.name || 'Unknown Product'}</div>
+          <button
+            onClick={() => {
+              setSelectedProductId(row.product_id);
+              setProductDetailOpen(true);
+            }}
+            className="font-medium text-left hover:text-primary hover:underline transition-colors"
+          >
+            {row?.products?.name || 'Unknown Product'}
+          </button>
           <div className="text-xs text-muted-foreground space-y-0.5">
             {row?.products?.internal_sku && (
               <div>INT: {row.products.internal_sku}</div>
