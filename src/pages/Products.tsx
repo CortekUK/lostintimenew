@@ -678,49 +678,47 @@ export default function Products() {
           </div>
         </div>
 
-        {/* Row 2: Quick Filters */}
-        <div className="w-full max-w-full overflow-hidden">
-          {filterOptions && (
-            <QuickFilters
-              filters={filters}
-              onFiltersChange={setFilters}
-              filterOptions={filterOptions}
-              onOpenFullFilters={() => {
-                const filtersButton = document.querySelector('[data-filter-trigger]') as HTMLButtonElement;
-                filtersButton?.click();
-              }}
-              activeFilters={activeFilters}
-              onClearAll={() => {
-                setFilters({
-                  categories: [],
-                  metals: [],
-                  karats: [],
-                  gemstones: [],
-                  suppliers: [],
-                  locations: [],
-                  priceRange: filterOptions?.priceRange || { min: 0, max: 50000 },
-                  marginRange: { min: 0, max: 100 },
-                  isTradeIn: 'all',
-                  inventoryAge: 'all'
-                });
-                setSearchQuery('');
-              }}
-            />
-          )}
+{/* Row 2: Quick Filters + Archive Link */}
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex-1 min-w-0 overflow-hidden">
+            {filterOptions && (
+              <QuickFilters
+                filters={filters}
+                onFiltersChange={setFilters}
+                filterOptions={filterOptions}
+                onOpenFullFilters={() => {
+                  const filtersButton = document.querySelector('[data-filter-trigger]') as HTMLButtonElement;
+                  filtersButton?.click();
+                }}
+                activeFilters={activeFilters}
+                onClearAll={() => {
+                  setFilters({
+                    categories: [],
+                    metals: [],
+                    karats: [],
+                    gemstones: [],
+                    suppliers: [],
+                    locations: [],
+                    priceRange: filterOptions?.priceRange || { min: 0, max: 50000 },
+                    marginRange: { min: 0, max: 100 },
+                    isTradeIn: 'all',
+                    inventoryAge: 'all'
+                  });
+                  setSearchQuery('');
+                }}
+              />
+            )}
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => navigate('/sales/items')}
+            className="gap-2 shrink-0"
+          >
+            <Archive className="h-4 w-4" />
+            View Sold Items Archive
+          </Button>
         </div>
-        
-{/* Quick link to sold items archive */}
-            <div className="flex justify-end">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate('/sales/items')}
-                className="gap-2"
-              >
-                <Archive className="h-4 w-4" />
-                View Sold Items Archive
-              </Button>
-            </div>
 
         {/* Products List/Grid View */}
         {viewMode === 'list' ? (
