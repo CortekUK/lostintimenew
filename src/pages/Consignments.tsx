@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ProductDetailModal } from '@/components/modals/ProductDetailModal';
+import { EditProductModal } from '@/components/modals/EditProductModal';
 import { SimpleTable, Column } from '@/components/ui/simple-table';
 import { RecordPayoutDialog } from '@/components/consignments/RecordPayoutDialog';
 import {
@@ -40,8 +41,14 @@ export default function Consignments() {
   const [supplierTypeFilter, setSupplierTypeFilter] = useState('all');
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [editModalOpen, setEditModalOpen] = useState(false);
   const [payoutDialogOpen, setPayoutDialogOpen] = useState(false);
   const [selectedSettlement, setSelectedSettlement] = useState<any>(null);
+
+  const handleEditFromView = () => {
+    setViewModalOpen(false);
+    setEditModalOpen(true);
+  };
 
   const { canEdit } = usePermissions();
   const canEditConsignments = canEdit(CRM_MODULES.CONSIGNMENTS);
@@ -746,12 +753,15 @@ export default function Consignments() {
           product={selectedProduct}
           open={viewModalOpen}
           onOpenChange={setViewModalOpen}
-          onEditClick={() => {
-            setViewModalOpen(false);
-            setSelectedProduct(null);
-          }}
+          onEditClick={handleEditFromView}
         />
       )}
+
+      <EditProductModal
+        product={selectedProduct}
+        open={editModalOpen}
+        onOpenChange={setEditModalOpen}
+      />
 
       {selectedSettlement && (
         <RecordPayoutDialog
