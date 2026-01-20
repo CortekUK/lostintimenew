@@ -22,7 +22,6 @@ interface EnhancedProductFiltersProps {
     gemstones: string[];
     suppliers: string[];
     locations: string[];
-    stockLevel: 'all' | 'in' | 'risk' | 'out';
     priceRange: { min: number; max: number };
     marginRange: { min: number; max: number };
     isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
@@ -61,7 +60,6 @@ export function EnhancedProductFilters({
       gemstones: [],
       suppliers: [],
       locations: [],
-      stockLevel: 'all',
       priceRange: { min: filterOptions.priceRange.min, max: filterOptions.priceRange.max },
       marginRange: { min: 0, max: 100 },
       isTradeIn: 'all',
@@ -73,8 +71,6 @@ export function EnhancedProductFilters({
   const removeFilter = (filterKey: string, value?: string) => {
     if (filterKey === 'searchQuery') {
       onSearchChange('');
-    } else if (filterKey === 'stockLevel') {
-      onFiltersChange({ ...filters, stockLevel: 'all' });
     } else if (filterKey === 'isTradeIn') {
       onFiltersChange({ ...filters, isTradeIn: 'all' });
     } else if (filterKey === 'inventoryAge') {
@@ -138,11 +134,6 @@ export function EnhancedProductFilters({
         chips.push({ key: 'locations', label: `Location: ${location.name}`, value: locationId });
       }
     });
-
-    if (filters.stockLevel !== 'all') {
-      const stockLabels = { in: 'In Stock', risk: 'At Risk', out: 'Out of Stock' };
-      chips.push({ key: 'stockLevel', label: `Stock: ${stockLabels[filters.stockLevel]}` });
-    }
 
     if (filters.isTradeIn && filters.isTradeIn !== 'all') {
       chips.push({ 
@@ -367,29 +358,6 @@ export function EnhancedProductFilters({
                       <SelectItem value="all">All Products</SelectItem>
                       <SelectItem value="trade_in_only">Part Exchange Only</SelectItem>
                       <SelectItem value="non_trade_in">Non-Trade-In Only</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <Separator />
-
-                {/* 7. Stock Level - Select */}
-                <div className="space-y-3">
-                  <Label className="font-luxury text-sm font-medium">Stock Level</Label>
-                  <Select 
-                    value={filters.stockLevel} 
-                    onValueChange={(value: 'all' | 'in' | 'risk' | 'out') => 
-                      onFiltersChange({...filters, stockLevel: value})
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Stock Levels</SelectItem>
-                      <SelectItem value="in">In Stock</SelectItem>
-                      <SelectItem value="risk">At Risk</SelectItem>
-                      <SelectItem value="out">Out of Stock</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

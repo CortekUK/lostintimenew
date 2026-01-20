@@ -284,7 +284,6 @@ export default function Products() {
     gemstones: [],
     suppliers: [],
     locations: [],
-    stockLevel: 'all',
     priceRange: { min: 0, max: 50000 },
     marginRange: { min: 0, max: 100 },
     isTradeIn: 'all',
@@ -453,7 +452,6 @@ export default function Products() {
     if (filters.karats.length > 0) count++;
     if (filters.gemstones.length > 0) count++;
     if (filters.suppliers.length > 0) count++;
-    if (filters.stockLevel !== 'all') count++;
     if (filters.isTradeIn && filters.isTradeIn !== 'all') count++;
     if (filters.priceRange.min > (filterOptions?.priceRange.min || 0) || 
         filters.priceRange.max < (filterOptions?.priceRange.max || 50000)) count++;
@@ -683,10 +681,10 @@ export default function Products() {
                   gemstones: [],
                   suppliers: [],
                   locations: [],
-                  stockLevel: 'all',
                   priceRange: filterOptions?.priceRange || { min: 0, max: 50000 },
                   marginRange: { min: 0, max: 100 },
-                  isTradeIn: 'all'
+                  isTradeIn: 'all',
+                  inventoryAge: 'all'
                 });
                 setSearchQuery('');
               }}
@@ -778,17 +776,18 @@ export default function Products() {
               {activeFilters > 0 ? (
                 <Button variant="outline" onClick={() => {
                   setSearchQuery('');
-                  setFilters({
-                    categories: [],
-                    metals: [],
-                    karats: [],
-                    gemstones: [],
-                    suppliers: [],
-                    locations: [],
-                    stockLevel: 'all',
-                    priceRange: filterOptions?.priceRange || { min: 0, max: 50000 },
-                    marginRange: { min: 0, max: 100 }
-                  });
+                setFilters({
+                  categories: [],
+                  metals: [],
+                  karats: [],
+                  gemstones: [],
+                  suppliers: [],
+                  locations: [],
+                  priceRange: filterOptions?.priceRange || { min: 0, max: 50000 },
+                  marginRange: { min: 0, max: 100 },
+                  isTradeIn: 'all',
+                  inventoryAge: 'all'
+                });
                 }}>
                   Clear All Filters
                 </Button>

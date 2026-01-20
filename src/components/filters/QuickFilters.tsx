@@ -33,7 +33,6 @@ interface QuickFiltersProps {
     karats: string[];
     gemstones: string[];
     suppliers: string[];
-    stockLevel: 'all' | 'in' | 'risk' | 'out';
     priceRange: { min: number; max: number };
     marginRange: { min: number; max: number };
     isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
@@ -74,11 +73,6 @@ const allPresets: PresetConfig[] = [
   { id: 'rose-gold', label: 'Rose Gold', icon: Crown, type: 'metal', filterValue: { metals: ['Rose Gold'] } },
   { id: 'silver', label: 'Silver', icon: Diamond, type: 'metal', filterValue: { metals: ['Silver'] } },
   { id: 'platinum', label: 'Platinum', icon: Zap, type: 'metal', filterValue: { metals: ['Platinum'] } },
-  
-  // Stock filters
-  { id: 'in-stock', label: 'In Stock', icon: Package, type: 'stock', filterValue: { stockLevel: 'in' } },
-  { id: 'at-risk', label: 'At Risk', icon: AlertTriangle, type: 'stock', filterValue: { stockLevel: 'risk' } },
-  { id: 'out-of-stock', label: 'Out of Stock', icon: X, type: 'stock', filterValue: { stockLevel: 'out' } },
   
   // Part Exchange filter
   { id: 'part-exchange', label: 'Part Exchange', icon: Repeat, type: 'stock', filterValue: { isTradeIn: 'trade_in_only' } },
@@ -136,11 +130,6 @@ export function QuickFilters({
       if (!allMetalsActive) return false;
     }
     
-    // Check stock level
-    if (cf.stockLevel && cf.stockLevel !== 'all') {
-      if (filters.stockLevel !== cf.stockLevel) return false;
-    }
-    
     // Check trade-in
     if (cf.isTradeIn === 'trade_in_only') {
       if (filters.isTradeIn !== 'trade_in_only') return false;
@@ -157,7 +146,6 @@ export function QuickFilters({
     const hasCriteria = 
       (cf.categories?.length || 0) > 0 ||
       (cf.metals?.length || 0) > 0 ||
-      (cf.stockLevel && cf.stockLevel !== 'all') ||
       cf.isTradeIn === 'trade_in_only' ||
       !!cf.priceRange;
     
@@ -178,9 +166,6 @@ export function QuickFilters({
       }
       if (cf.metals?.length) {
         newFilters.metals = filters.metals.filter(metal => !cf.metals!.includes(metal));
-      }
-      if (cf.stockLevel && cf.stockLevel !== 'all') {
-        newFilters.stockLevel = 'all';
       }
       if (cf.isTradeIn === 'trade_in_only') {
         newFilters.isTradeIn = 'all';
@@ -203,9 +188,6 @@ export function QuickFilters({
       if (cf.metals?.length) {
         newFilters.metals = [...new Set([...filters.metals, ...cf.metals])];
       }
-      if (cf.stockLevel && cf.stockLevel !== 'all') {
-        newFilters.stockLevel = cf.stockLevel;
-      }
       if (cf.isTradeIn === 'trade_in_only') {
         newFilters.isTradeIn = 'trade_in_only';
       }
@@ -224,10 +206,7 @@ export function QuickFilters({
       case 'metal':
         return preset.filterValue.metals.some((metal: string) => filters.metals.includes(metal));
       case 'stock':
-        // Handle both stock level and trade-in filters
-        if (preset.filterValue.stockLevel) {
-          return filters.stockLevel === preset.filterValue.stockLevel;
-        }
+        // Handle trade-in filter only
         if (preset.filterValue.isTradeIn) {
           return filters.isTradeIn === preset.filterValue.isTradeIn;
         }
@@ -259,11 +238,7 @@ export function QuickFilters({
         break;
         
       case 'stock':
-        // Handle both stock level and trade-in filters
-        if (preset.filterValue.stockLevel) {
-          const newStockLevel = isActive ? 'all' : preset.filterValue.stockLevel;
-          onFiltersChange({ ...filters, stockLevel: newStockLevel });
-        }
+        // Handle trade-in filter only
         if (preset.filterValue.isTradeIn) {
           const newTradeIn = isActive ? 'all' : preset.filterValue.isTradeIn;
           onFiltersChange({ ...filters, isTradeIn: newTradeIn });
@@ -360,7 +335,6 @@ export function QuickFilters({
         {/* Clear All Button */}
         {(filters.categories.length > 0 || 
           filters.metals.length > 0 || 
-          filters.stockLevel !== 'all' ||
           filters.priceRange.min > filterOptions.priceRange.min ||
           filters.priceRange.max < filterOptions.priceRange.max) && (
           <Button
@@ -378,7 +352,6 @@ export function QuickFilters({
       {/* Active Filter Summary */}
       {(filters.categories.length > 0 || 
         filters.metals.length > 0 || 
-        filters.stockLevel !== 'all' ||
         filters.priceRange.min > filterOptions.priceRange.min ||
         filters.priceRange.max < filterOptions.priceRange.max) && (
         <div className="flex flex-wrap gap-2">
@@ -415,17 +388,6 @@ export function QuickFilters({
               />
             </Badge>
           ))}
-          
-          {filters.stockLevel !== 'all' && (
-            <Badge variant="secondary" className="flex items-center gap-1">
-              {filters.stockLevel === 'in' ? 'In Stock' : 
-               filters.stockLevel === 'risk' ? 'At Risk' : 'Out of Stock'}
-              <X 
-                className="h-3 w-3 cursor-pointer hover:text-destructive" 
-                onClick={() => onFiltersChange({ ...filters, stockLevel: 'all' })}
-              />
-            </Badge>
-          )}
           
           {(filters.priceRange.min > filterOptions.priceRange.min ||
             filters.priceRange.max < filterOptions.priceRange.max) && (
