@@ -484,6 +484,24 @@ function SupplierTableRow({ supplier, onView }: SupplierCardProps) {
             {supplier.status === 'active' ? 'Active' : 'Inactive'}
           </Badge>
         </TableCell>
+        <TableCell>
+          {supplier.tags && supplier.tags.length > 0 ? (
+            <div className="flex flex-wrap gap-1 max-w-[150px]">
+              {supplier.tags.slice(0, 2).map(tag => (
+                <Badge key={tag} variant="outline" className="text-xs">
+                  {tag}
+                </Badge>
+              ))}
+              {supplier.tags.length > 2 && (
+                <Badge variant="outline" className="text-xs text-muted-foreground">
+                  +{supplier.tags.length - 2}
+                </Badge>
+              )}
+            </div>
+          ) : (
+            <span className="text-muted-foreground text-sm">—</span>
+          )}
+        </TableCell>
         <TableCell className="text-right">{supplier.product_count || 0}</TableCell>
         <TableCell className="text-right font-medium">
           £{(supplier.total_spend_this_year || 0).toLocaleString()}
@@ -1282,6 +1300,7 @@ export default function Suppliers() {
                       <TableHead>Contact</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Tags</TableHead>
                       <TableHead className="text-right">Products</TableHead>
                       <TableHead className="text-right">Spend</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
