@@ -30,9 +30,11 @@ interface EditSupplierDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
-const presetTags = ['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'];
+import { useSupplierTags, DEFAULT_SUPPLIER_TAGS } from '@/hooks/useSupplierTags';
 
 export function EditSupplierDialog({ supplier, open, onOpenChange }: EditSupplierDialogProps) {
+  const { data: presetTags = [...DEFAULT_SUPPLIER_TAGS] } = useSupplierTags();
+  
   const [editForm, setEditForm] = useState({
     name: '',
     supplier_type: 'registered' as 'registered' | 'customer',

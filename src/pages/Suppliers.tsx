@@ -4,6 +4,7 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { useSuppliers, useCreateSupplier, useUpdateSupplier, useDeleteSupplier } from '@/hooks/useSuppliers';
 import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { useSupplierMetricsSummary } from '@/hooks/useSupplierMetrics';
+import { useSupplierTags, DEFAULT_SUPPLIER_TAGS } from '@/hooks/useSupplierTags';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -34,7 +35,7 @@ import { cn } from '@/lib/utils';
     status: z.enum(["active", "inactive"])
   });
 
-const presetTags = ['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'];
+// Supplier tags are now managed via useSupplierTags hook
 
 interface Supplier {
   id: number;
@@ -56,9 +57,10 @@ interface Supplier {
 interface SupplierCardProps {
   supplier: Supplier;
   onView: (id: number) => void;
+  presetTags: string[];
 }
 
-function SupplierCard({ supplier, onView }: SupplierCardProps) {
+function SupplierCard({ supplier, onView, presetTags }: SupplierCardProps) {
   const { canEdit, canDelete } = usePermissions();
   const canEditSuppliers = canEdit(CRM_MODULES.SUPPLIERS);
   const canDeleteSuppliers = canDelete(CRM_MODULES.SUPPLIERS);
@@ -417,7 +419,7 @@ function SupplierCard({ supplier, onView }: SupplierCardProps) {
   );
 }
 
-function SupplierTableRow({ supplier, onView }: SupplierCardProps) {
+function SupplierTableRow({ supplier, onView, presetTags }: SupplierCardProps) {
   const { canEdit, canDelete } = usePermissions();
   const canEditSuppliers = canEdit(CRM_MODULES.SUPPLIERS);
   const canDeleteSuppliers = canDelete(CRM_MODULES.SUPPLIERS);
@@ -744,9 +746,10 @@ function SupplierTableRow({ supplier, onView }: SupplierCardProps) {
 interface AddSupplierDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  presetTags: string[];
 }
 
-function AddSupplierDialog({ open, onOpenChange }: AddSupplierDialogProps) {
+function AddSupplierDialog({ open, onOpenChange, presetTags }: AddSupplierDialogProps) {
   const [formData, setFormData] = useState({
     name: '',
     supplier_type: 'registered' as 'registered' | 'customer',
@@ -812,7 +815,7 @@ function AddSupplierDialog({ open, onOpenChange }: AddSupplierDialogProps) {
     });
   };
 
-  const presetTags = ['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'];
+  // Tags are now passed as prop from parent
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -1081,16 +1084,17 @@ export default function Suppliers() {
 
   const { data: suppliers, isLoading } = useSuppliers();
   const { data: summary } = useSupplierMetricsSummary();
+  const { data: supplierTags = [...DEFAULT_SUPPLIER_TAGS] } = useSupplierTags();
 
   // Collect all unique tags from suppliers for the filter dropdown
   const allTags = useMemo(() => {
-    if (!suppliers) return presetTags;
-    const tagsSet = new Set<string>(presetTags);
+    if (!suppliers) return supplierTags;
+    const tagsSet = new Set<string>(supplierTags);
     suppliers.forEach(s => {
       s.tags?.forEach(tag => tagsSet.add(tag));
     });
     return Array.from(tagsSet).sort();
-  }, [suppliers]);
+  }, [suppliers, supplierTags]);
 
   const filteredAndSortedSuppliers = useMemo(() => {
     if (!suppliers) return [];
@@ -1312,6 +1316,7 @@ export default function Suppliers() {
                         key={supplier.id}
                         supplier={supplier}
                         onView={handleViewSupplier}
+                        presetTags={supplierTags}
                       />
                     ))}
                   </TableBody>
@@ -1324,6 +1329,7 @@ export default function Suppliers() {
                     key={supplier.id}
                     supplier={supplier}
                     onView={handleViewSupplier}
+                    presetTags={supplierTags}
                   />
                 ))}
               </div>
@@ -1334,6 +1340,7 @@ export default function Suppliers() {
         <AddSupplierDialog 
           open={isAddDialogOpen} 
           onOpenChange={setIsAddDialogOpen}
+          presetTags={supplierTags}
         />
       </div>
     </AppLayout>

@@ -26,7 +26,7 @@ const supplierSchema = z.object({
   status: z.enum(["active", "inactive"])
 });
 
-const presetTags = ['Luxury Watches', 'Diamonds', 'Gold', 'Silver', 'Estate Jewellery', 'Vintage'];
+import { useSupplierTags, DEFAULT_SUPPLIER_TAGS } from '@/hooks/useSupplierTags';
 
 interface InlineSupplierAddProps {
   onSupplierCreated?: (supplierId: number) => void;
@@ -56,6 +56,7 @@ export function InlineSupplierAdd({
   hideTrigger = false,
   lockType = false
 }: InlineSupplierAddProps) {
+  const { data: presetTags = [...DEFAULT_SUPPLIER_TAGS] } = useSupplierTags();
   const [internalOpen, setInternalOpen] = useState(false);
   
   // Support both controlled and uncontrolled modes

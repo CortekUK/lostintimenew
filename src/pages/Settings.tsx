@@ -27,6 +27,7 @@ import { productCSVHeaders, supplierCSVHeaders, expenseCSVHeaders, productTypeCo
 import { CommissionSettingsModal } from '@/components/reports/CommissionSettingsModal';
 import { useStaffCommissionOverrides } from '@/hooks/useStaffCommissionOverrides';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
+import { SupplierTagsCard } from '@/components/settings/SupplierTagsCard';
 
 // Section header component for consistent styling
 interface SettingsSectionProps {
@@ -1495,6 +1496,9 @@ export default function Settings() {
                 </p>
               </CardContent>
             </Card>
+
+            {/* Supplier Tags Settings */}
+            <SupplierTagsCard userRole={userRole} />
           </SettingsSection>
             </TabsContent>
 
