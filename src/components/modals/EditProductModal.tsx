@@ -11,6 +11,8 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
+import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { useCreateProduct, useUpdateProduct, useDeleteProduct, useSuppliers, useStockAdjustment } from '@/hooks/useDatabase';
 import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { useLocations } from '@/hooks/useLocations';
@@ -34,11 +36,15 @@ import {
   User,
   Building2,
   Trash2,
-  MapPin
+  MapPin,
+  Search,
+  Check,
+  UserPlus
 } from 'lucide-react';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { DocumentUpload } from '@/components/ui/document-upload';
 import { AddProductForm } from '@/components/forms/AddProductForm';
+import { InlineSupplierAdd } from '@/components/forms/InlineSupplierAdd';
 import { getCleanedDescription, extractIndividualSeller, cn, formatCurrency } from '@/lib/utils';
 
 interface DocumentUploadItem {
@@ -69,6 +75,23 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
   const canDeleteProducts = canDelete(CRM_MODULES.PRODUCTS);
 
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  
+  // Supplier search state
+  const [selectedRegisteredSupplier, setSelectedRegisteredSupplier] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+  const [registeredSearchOpen, setRegisteredSearchOpen] = useState(false);
+  const [selectedIndividualSupplier, setSelectedIndividualSupplier] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+  const [individualSearchOpen, setIndividualSearchOpen] = useState(false);
+  const [showNewIndividualModal, setShowNewIndividualModal] = useState(false);
+  
+  // Filter suppliers by type
+  const registeredSuppliers = suppliers?.filter(s => s.supplier_type === 'registered') || [];
+  const individualSuppliers = suppliers?.filter(s => s.supplier_type === 'customer') || [];
   
   // Fetch related data for trade-in products
   const { data: partExchangeData } = usePartExchangesByProduct(product?.id || 0);
@@ -614,8 +637,11 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
                       <Label className="text-base font-medium">Supplier Type</Label>
                       <RadioGroup 
                         value={formData.supplier_type} 
-                        onValueChange={(value: 'registered' | 'individual') => 
-                          setFormData({...formData, supplier_type: value, supplier_id: '', individual_name: ''})}
+                        onValueChange={(value: 'registered' | 'individual') => {
+                          setFormData({...formData, supplier_type: value, supplier_id: '', individual_name: ''});
+                          setSelectedRegisteredSupplier(null);
+                          setSelectedIndividualSupplier(null);
+                        }}
                         className="flex gap-8 mt-3"
                       >
                         <div className="flex items-center space-x-2">
@@ -630,24 +656,191 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
                     </div>
                     
                     {formData.supplier_type === 'registered' ? (
-                      <Select value={formData.supplier_id} onValueChange={(value) => setFormData({...formData, supplier_id: value})}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select Supplier" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {suppliers?.map((supplier) => (
-                            <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                              {supplier.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      <div className="space-y-3">
+                        {selectedRegisteredSupplier || formData.supplier_id ? (
+                          // Show selected registered supplier as chip
+                          <div className="flex items-center gap-2 p-3 border border-border rounded-lg bg-muted/50">
+                            <Badge variant="secondary" className="flex items-center gap-2 py-1.5 px-3">
+                              <Check className="h-3 w-3 text-primary" />
+                              {selectedRegisteredSupplier?.name || 
+                                registeredSuppliers.find(s => s.id.toString() === formData.supplier_id)?.name || 
+                                'Selected Supplier'}
+                            </Badge>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedRegisteredSupplier(null);
+                                setFormData({...formData, supplier_id: ''});
+                              }}
+                              className="text-muted-foreground hover:text-foreground"
+                            >
+                              Change
+                            </Button>
+                          </div>
+                        ) : (
+                          // Show search combobox for registered suppliers
+                          <div className="flex gap-2">
+                            <Popover open={registeredSearchOpen} onOpenChange={setRegisteredSearchOpen}>
+                              <PopoverTrigger asChild>
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  className="flex-1 justify-start text-muted-foreground hover:text-foreground"
+                                >
+                                  <Search className="h-4 w-4 mr-2" />
+                                  Find registered supplier...
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[350px] p-0 border border-border bg-popover shadow-lg" align="start">
+                                <Command className="rounded-lg bg-popover">
+                                  <CommandInput placeholder="Search by name, phone, or email..." />
+                                  <CommandList>
+                                    <CommandEmpty>
+                                      <div className="py-4 text-center text-sm text-muted-foreground">
+                                        No registered suppliers found.
+                                      </div>
+                                    </CommandEmpty>
+                                    <CommandGroup heading="Registered Suppliers">
+                                      {registeredSuppliers.map((supplier) => (
+                                        <CommandItem
+                                          key={supplier.id}
+                                          value={`${supplier.name} ${supplier.email || ''} ${supplier.phone || ''}`}
+                                          onSelect={() => {
+                                            setSelectedRegisteredSupplier({ id: supplier.id, name: supplier.name });
+                                            setFormData({...formData, supplier_id: supplier.id.toString()});
+                                            setRegisteredSearchOpen(false);
+                                          }}
+                                          className="flex flex-col items-start py-3 cursor-pointer"
+                                        >
+                                          <span className="font-medium">{supplier.name}</span>
+                                          {(supplier.email || supplier.phone) && (
+                                            <span className="text-xs text-muted-foreground mt-0.5">
+                                              {[supplier.email, supplier.phone].filter(Boolean).join(' · ')}
+                                            </span>
+                                          )}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        )}
+                        <div className="flex justify-center">
+                          <InlineSupplierAdd 
+                            onSupplierCreated={(supplierId) => {
+                              const newSupplier = registeredSuppliers.find(s => s.id === supplierId);
+                              if (newSupplier) {
+                                setSelectedRegisteredSupplier({ id: newSupplier.id, name: newSupplier.name });
+                              }
+                              setFormData({...formData, supplier_id: supplierId.toString()});
+                            }}
+                            triggerClassName="text-xs"
+                            lockType
+                          />
+                        </div>
+                      </div>
                     ) : (
-                      <Input 
-                        placeholder="Customer name" 
-                        value={formData.individual_name}
-                        onChange={(e) => setFormData({...formData, individual_name: e.target.value})}
-                      />
+                      <div className="space-y-3">
+                        {selectedIndividualSupplier || formData.individual_name ? (
+                          // Show selected individual as chip
+                          <div className="flex items-center gap-2 p-3 border border-border rounded-lg bg-muted/50">
+                            <Badge variant="secondary" className="flex items-center gap-2 py-1.5 px-3">
+                              <Check className="h-3 w-3 text-primary" />
+                              {selectedIndividualSupplier?.name || formData.individual_name}
+                            </Badge>
+                            <Button
+                              type="button"
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => {
+                                setSelectedIndividualSupplier(null);
+                                setFormData({...formData, supplier_id: '', individual_name: ''});
+                              }}
+                              className="text-muted-foreground hover:text-foreground"
+                            >
+                              Change
+                            </Button>
+                          </div>
+                        ) : (
+                          // Show search combobox for individual suppliers
+                          <div className="flex gap-2">
+                            <Popover open={individualSearchOpen} onOpenChange={setIndividualSearchOpen}>
+                              <PopoverTrigger asChild>
+                                <Button 
+                                  type="button" 
+                                  variant="outline" 
+                                  className="flex-1 justify-start text-muted-foreground hover:text-foreground"
+                                >
+                                  <Search className="h-4 w-4 mr-2" />
+                                  Find existing individual...
+                                </Button>
+                              </PopoverTrigger>
+                              <PopoverContent className="w-[350px] p-0 border border-border bg-popover shadow-lg" align="start">
+                                <Command className="rounded-lg bg-popover">
+                                  <CommandInput placeholder="Search by name, phone, or email..." />
+                                  <CommandList>
+                                    <CommandEmpty>
+                                      <div className="py-4 text-center text-sm text-muted-foreground">
+                                        No individuals found.
+                                        <Button
+                                          type="button"
+                                          variant="link"
+                                          size="sm"
+                                          className="block mx-auto mt-2"
+                                          onClick={() => {
+                                            setIndividualSearchOpen(false);
+                                            setShowNewIndividualModal(true);
+                                          }}
+                                        >
+                                          <UserPlus className="h-3 w-3 mr-1" />
+                                          Add new individual
+                                        </Button>
+                                      </div>
+                                    </CommandEmpty>
+                                    <CommandGroup heading="Individuals">
+                                      {individualSuppliers.map((individual) => (
+                                        <CommandItem
+                                          key={individual.id}
+                                          value={`${individual.name} ${individual.email || ''} ${individual.phone || ''}`}
+                                          onSelect={() => {
+                                            setSelectedIndividualSupplier({ id: individual.id, name: individual.name });
+                                            setFormData({...formData, supplier_id: individual.id.toString(), individual_name: individual.name});
+                                            setIndividualSearchOpen(false);
+                                          }}
+                                          className="flex flex-col items-start py-3 cursor-pointer"
+                                        >
+                                          <span className="font-medium">{individual.name}</span>
+                                          {(individual.email || individual.phone) && (
+                                            <span className="text-xs text-muted-foreground mt-0.5">
+                                              {[individual.email, individual.phone].filter(Boolean).join(' · ')}
+                                            </span>
+                                          )}
+                                        </CommandItem>
+                                      ))}
+                                    </CommandGroup>
+                                  </CommandList>
+                                </Command>
+                              </PopoverContent>
+                            </Popover>
+                          </div>
+                        )}
+                        <div className="flex justify-center gap-2">
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowNewIndividualModal(true)}
+                            className="text-xs text-muted-foreground"
+                          >
+                            <UserPlus className="h-3 w-3 mr-1" />
+                            Add new individual
+                          </Button>
+                        </div>
+                      </div>
                     )}
                   </div>
                 )}
@@ -994,6 +1187,23 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
             </AlertDialogFooter>
           </AlertDialogContent>
         </AlertDialog>
+        
+        {/* Individual Supplier Add Modal */}
+        {showNewIndividualModal && (
+          <InlineSupplierAdd 
+            onSupplierCreated={(supplierId) => {
+              const newIndividual = individualSuppliers.find(s => s.id === supplierId);
+              if (newIndividual) {
+                setSelectedIndividualSupplier({ id: newIndividual.id, name: newIndividual.name });
+                setFormData({...formData, supplier_id: supplierId.toString(), individual_name: newIndividual.name});
+              }
+              setShowNewIndividualModal(false);
+            }}
+            triggerClassName="hidden"
+            lockType
+            defaultType="customer"
+          />
+        )}
       </DialogContent>
     </Dialog>
   );

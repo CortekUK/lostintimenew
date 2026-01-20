@@ -127,8 +127,16 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
   const [quickAddMode, setQuickAddMode] = useState(false);
   const [showNewIndividualModal, setShowNewIndividualModal] = useState(false);
   
-  // Filter individual suppliers for the search (type 'customer' in DB = individual sellers)
+  // Registered supplier search state
+  const [selectedRegisteredSupplier, setSelectedRegisteredSupplier] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
+  const [registeredSearchOpen, setRegisteredSearchOpen] = useState(false);
+  
+  // Filter suppliers by type
   const individualSuppliers = suppliers?.filter(s => s.supplier_type === 'customer') || [];
+  const registeredSuppliers = suppliers?.filter(s => s.supplier_type === 'registered') || [];
   
   // Generate SKU preview
   const generateSkuPreview = () => {
@@ -306,21 +314,87 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
               
               {formData.supplier_type === 'registered' ? (
                 <div className="space-y-3">
-                  <Select value={formData.supplier_id} onValueChange={(value) => setFormData({...formData, supplier_id: value})}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select Supplier" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {suppliers?.filter(s => s.supplier_type === 'registered').map((supplier) => (
-                        <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                          {supplier.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  {selectedRegisteredSupplier || formData.supplier_id ? (
+                    // Show selected registered supplier as chip
+                    <div className="flex items-center gap-2 p-3 border border-border rounded-lg bg-muted/50">
+                      <Badge variant="secondary" className="flex items-center gap-2 py-1.5 px-3">
+                        <Check className="h-3 w-3 text-primary" />
+                        {selectedRegisteredSupplier?.name || 
+                          registeredSuppliers.find(s => s.id.toString() === formData.supplier_id)?.name || 
+                          'Selected Supplier'}
+                      </Badge>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => {
+                          setSelectedRegisteredSupplier(null);
+                          setFormData({...formData, supplier_id: ''});
+                        }}
+                        className="text-muted-foreground hover:text-foreground"
+                      >
+                        Change
+                      </Button>
+                    </div>
+                  ) : (
+                    // Show search combobox for registered suppliers
+                    <div className="flex gap-2">
+                      <Popover open={registeredSearchOpen} onOpenChange={setRegisteredSearchOpen}>
+                        <PopoverTrigger asChild>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            className="flex-1 justify-start text-muted-foreground hover:text-foreground"
+                          >
+                            <Search className="h-4 w-4 mr-2" />
+                            Find registered supplier...
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-[350px] p-0 border border-border bg-popover shadow-lg" align="start">
+                          <Command className="rounded-lg bg-popover">
+                            <CommandInput placeholder="Search by name, phone, or email..." />
+                            <CommandList>
+                              <CommandEmpty>
+                                <div className="py-4 text-center text-sm text-muted-foreground">
+                                  No registered suppliers found.
+                                </div>
+                              </CommandEmpty>
+                              <CommandGroup heading="Registered Suppliers">
+                                {registeredSuppliers.map((supplier) => (
+                                  <CommandItem
+                                    key={supplier.id}
+                                    value={`${supplier.name} ${supplier.email || ''} ${supplier.phone || ''}`}
+                                    onSelect={() => {
+                                      setSelectedRegisteredSupplier({ id: supplier.id, name: supplier.name });
+                                      setFormData({...formData, supplier_id: supplier.id.toString()});
+                                      setRegisteredSearchOpen(false);
+                                    }}
+                                    className="flex flex-col items-start py-3 cursor-pointer"
+                                  >
+                                    <span className="font-medium">{supplier.name}</span>
+                                    {(supplier.email || supplier.phone) && (
+                                      <span className="text-xs text-muted-foreground mt-0.5">
+                                        {[supplier.email, supplier.phone].filter(Boolean).join(' · ')}
+                                      </span>
+                                    )}
+                                  </CommandItem>
+                                ))}
+                              </CommandGroup>
+                            </CommandList>
+                          </Command>
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+                  )}
                   <div className="flex justify-center">
                     <InlineSupplierAdd 
-                      onSupplierCreated={(supplierId) => setFormData({...formData, supplier_id: supplierId.toString()})}
+                      onSupplierCreated={(supplierId) => {
+                        const newSupplier = registeredSuppliers.find(s => s.id === supplierId);
+                        if (newSupplier) {
+                          setSelectedRegisteredSupplier({ id: newSupplier.id, name: newSupplier.name });
+                        }
+                        setFormData({...formData, supplier_id: supplierId.toString()});
+                      }}
                       triggerClassName="text-xs"
                       lockType
                     />
