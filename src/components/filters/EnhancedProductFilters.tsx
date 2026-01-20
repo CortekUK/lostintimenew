@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter } from '@/components/ui/sheet';
-import { Slider } from '@/components/ui/slider';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -80,7 +80,22 @@ export function EnhancedProductFilters({
     onFiltersChange({ ...filters, [filterKey]: newArray });
   };
 
-  const formatCurrency = (value: number) => isNaN(value) ? '£0' : `£${value.toLocaleString()}`;
+  const handlePriceChange = (field: 'min' | 'max', value: string) => {
+    const numValue = value === '' ? (field === 'min' ? 0 : filterOptions.priceRange.max) : parseInt(value.replace(/[^0-9]/g, ''), 10);
+    onFiltersChange({
+      ...filters,
+      priceRange: { ...filters.priceRange, [field]: isNaN(numValue) ? 0 : numValue }
+    });
+  };
+
+  const handleMarginChange = (field: 'min' | 'max', value: string) => {
+    const numValue = value === '' ? (field === 'min' ? 0 : 100) : parseInt(value.replace(/[^0-9]/g, ''), 10);
+    const clampedValue = Math.min(100, Math.max(0, isNaN(numValue) ? 0 : numValue));
+    onFiltersChange({
+      ...filters,
+      marginRange: { ...filters.marginRange, [field]: clampedValue }
+    });
+  };
 
   const hasActiveFilters = activeFilters > 0;
 
@@ -206,7 +221,7 @@ export function EnhancedProductFilters({
                         className="w-full justify-between h-auto min-h-10 font-normal"
                       >
                         {filters.suppliers.length === 0 ? (
-                          <span className="text-muted-foreground">All suppliers</span>
+                          <span className="text-muted-foreground">All Suppliers</span>
                         ) : (
                           <div className="flex flex-wrap gap-1 py-0.5">
                             {filters.suppliers.slice(0, 2).map(id => {
@@ -270,10 +285,10 @@ export function EnhancedProductFilters({
                       }}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="All locations" />
+                        <SelectValue placeholder="All Locations" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="all">All locations</SelectItem>
+                        <SelectItem value="all">All Locations</SelectItem>
                         {locations.map((location) => (
                           <SelectItem key={location.id} value={location.id.toString()}>
                             {location.name}
@@ -294,12 +309,12 @@ export function EnhancedProductFilters({
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="All products" />
+                      <SelectValue placeholder="All Products" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">All products</SelectItem>
-                      <SelectItem value="trade_in_only">Part exchanges only</SelectItem>
-                      <SelectItem value="non_trade_in">Standard stock only</SelectItem>
+                      <SelectItem value="all">All Products</SelectItem>
+                      <SelectItem value="trade_in_only">Part Exchanges Only</SelectItem>
+                      <SelectItem value="non_trade_in">Standard Stock Only</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -313,30 +328,34 @@ export function EnhancedProductFilters({
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Price & Age</h4>
               
               <div className="space-y-4 rounded-lg border border-border/50 p-4 bg-muted/30">
-                {/* Price Range */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium">Price Range</Label>
-                    <span className="text-xs text-muted-foreground">
-                      {formatCurrency(filters.priceRange.min)} – {formatCurrency(filters.priceRange.max)}
-                    </span>
+                {/* Price Range - text inputs */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Price Range</Label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">£</span>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        value={filters.priceRange.min === 0 ? '' : filters.priceRange.min.toLocaleString()}
+                        onChange={(e) => handlePriceChange('min', e.target.value)}
+                        placeholder="Min"
+                        className="pl-7"
+                      />
+                    </div>
+                    <span className="text-muted-foreground">–</span>
+                    <div className="relative flex-1">
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">£</span>
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        value={filters.priceRange.max === filterOptions.priceRange.max ? '' : filters.priceRange.max.toLocaleString()}
+                        onChange={(e) => handlePriceChange('max', e.target.value)}
+                        placeholder="Max"
+                        className="pl-7"
+                      />
+                    </div>
                   </div>
-                  <Slider
-                    value={[
-                      isNaN(filters.priceRange.min) ? 0 : filters.priceRange.min, 
-                      isNaN(filters.priceRange.max) ? 10000 : filters.priceRange.max
-                    ]}
-                    onValueChange={([min, max]) => 
-                      onFiltersChange({
-                        ...filters, 
-                        priceRange: { min, max }
-                      })
-                    }
-                    min={isNaN(filterOptions.priceRange.min) ? 0 : filterOptions.priceRange.min}
-                    max={isNaN(filterOptions.priceRange.max) ? 10000 : filterOptions.priceRange.max}
-                    step={100}
-                    className="w-full"
-                  />
                 </div>
 
                 {/* Inventory Age */}
@@ -349,38 +368,45 @@ export function EnhancedProductFilters({
                     }
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Any age" />
+                      <SelectValue placeholder="Any Age" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="all">Any age</SelectItem>
-                      <SelectItem value="30">Over 30 days</SelectItem>
-                      <SelectItem value="60">Over 60 days</SelectItem>
-                      <SelectItem value="90">Over 90 days</SelectItem>
+                      <SelectItem value="all">Any Age</SelectItem>
+                      <SelectItem value="30">Over 30 Days</SelectItem>
+                      <SelectItem value="60">Over 60 Days</SelectItem>
+                      <SelectItem value="90">Over 90 Days</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
 
-                {/* Profit Margin */}
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <Label className="text-sm font-medium">Profit Margin</Label>
-                    <span className="text-xs text-muted-foreground">
-                      {filters.marginRange.min}% – {filters.marginRange.max}%
-                    </span>
+                {/* Profit Margin - text inputs */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Profit Margin</Label>
+                  <div className="flex items-center gap-2">
+                    <div className="relative flex-1">
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        value={filters.marginRange.min === 0 ? '' : filters.marginRange.min}
+                        onChange={(e) => handleMarginChange('min', e.target.value)}
+                        placeholder="Min"
+                        className="pr-7"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+                    </div>
+                    <span className="text-muted-foreground">–</span>
+                    <div className="relative flex-1">
+                      <Input
+                        type="text"
+                        inputMode="numeric"
+                        value={filters.marginRange.max === 100 ? '' : filters.marginRange.max}
+                        onChange={(e) => handleMarginChange('max', e.target.value)}
+                        placeholder="Max"
+                        className="pr-7"
+                      />
+                      <span className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm">%</span>
+                    </div>
                   </div>
-                  <Slider
-                    value={[filters.marginRange.min, filters.marginRange.max]}
-                    onValueChange={([min, max]) => 
-                      onFiltersChange({
-                        ...filters, 
-                        marginRange: { min, max }
-                      })
-                    }
-                    min={0}
-                    max={100}
-                    step={5}
-                    className="w-full"
-                  />
                 </div>
               </div>
             </div>
