@@ -20,14 +20,23 @@ export function FlyoutSubmenu({ title, icon: Icon, subItems, isActive }: FlyoutS
   const [isOpen, setIsOpen] = useState(false);
   const [openedViaClick, setOpenedViaClick] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const closeTimeoutRef = useRef<number | null>(null);
 
   // Check if any child route is active
   const hasActiveChild = subItems.some(item => isActive(item.url));
+
+  const clearCloseTimeout = () => {
+    if (closeTimeoutRef.current) {
+      window.clearTimeout(closeTimeoutRef.current);
+      closeTimeoutRef.current = null;
+    }
+  };
 
   // Click outside detection
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (ref.current && !ref.current.contains(event.target as Node)) {
+        clearCloseTimeout();
         setIsOpen(false);
         setOpenedViaClick(false);
       }
@@ -43,22 +52,29 @@ export function FlyoutSubmenu({ title, icon: Icon, subItems, isActive }: FlyoutS
   }, [isOpen]);
 
   const handleClick = () => {
+    clearCloseTimeout();
     setIsOpen(!isOpen);
     setOpenedViaClick(!isOpen);
   };
 
   const handleMouseEnter = () => {
+    clearCloseTimeout();
     setIsOpen(true);
   };
 
   const handleMouseLeave = () => {
-    // Only close on mouse leave if not opened via click
+    // Small delay prevents the menu from closing while crossing the tiny gap
+    // between the icon and the flyout panel.
     if (!openedViaClick) {
-      setIsOpen(false);
+      clearCloseTimeout();
+      closeTimeoutRef.current = window.setTimeout(() => {
+        setIsOpen(false);
+      }, 140);
     }
   };
 
   const handleNavClick = () => {
+    clearCloseTimeout();
     setIsOpen(false);
     setOpenedViaClick(false);
   };
@@ -74,7 +90,7 @@ export function FlyoutSubmenu({ title, icon: Icon, subItems, isActive }: FlyoutS
   return (
     <div 
       ref={ref}
-      className="relative"
+      className="relative w-16 flex items-start justify-center"
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
     >
@@ -100,7 +116,10 @@ export function FlyoutSubmenu({ title, icon: Icon, subItems, isActive }: FlyoutS
 
       {/* Flyout panel */}
       {isOpen && (
-        <div className="absolute left-16 top-0 z-50 min-w-[220px] animate-in fade-in-0 slide-in-from-left-1 duration-200">
+        <div
+          className="absolute left-full -ml-px top-0 z-50 min-w-[220px] animate-in fade-in-0 slide-in-from-left-1 duration-200"
+          onMouseEnter={handleMouseEnter}
+        >
           <div className="bg-popover border border-[hsl(var(--sidebar-border))] rounded-xl shadow-[0_10px_24px_rgba(0,0,0,0.26)] p-2">
             <div className="px-3 py-2 text-xs font-semibold text-muted-foreground uppercase tracking-wide">
               {title}
