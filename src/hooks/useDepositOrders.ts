@@ -36,7 +36,6 @@ export interface CreateDepositOrderParams {
   initial_payment?: {
     amount: number;
     payment_method: PaymentMethod;
-    reference?: string;
   };
 }
 
@@ -44,7 +43,6 @@ export interface RecordPaymentParams {
   deposit_order_id: number;
   amount: number;
   payment_method: PaymentMethod;
-  reference?: string;
   notes?: string;
 }
 
@@ -172,8 +170,7 @@ export function useCreateDepositOrder() {
             deposit_order_id: order.id,
             amount: params.initial_payment.amount,
             payment_method: params.initial_payment.payment_method,
-            reference: params.initial_payment.reference,
-            recorded_by: user.id,
+            received_by: user.id,
           });
 
         if (paymentError) throw paymentError;
@@ -233,9 +230,8 @@ export function useRecordDepositPayment() {
           deposit_order_id: params.deposit_order_id,
           amount: params.amount,
           payment_method: params.payment_method,
-          reference: params.reference,
           notes: params.notes,
-          recorded_by: user.id,
+          received_by: user.id,
         })
         .select()
         .single();
@@ -321,7 +317,7 @@ export function useCompleteDepositOrder() {
           discount: 0,
           tax: 0,
           total: order.total_amount,
-          payment_method: 'other' as PaymentMethod,
+          payment_method: 'other',
           notes: `Converted from Deposit Order #${order.id}`,
           staff_id: user.id,
           location_id: order.location_id,
@@ -348,8 +344,7 @@ export function useCompleteDepositOrder() {
 
           if (itemError) throw itemError;
 
-          // Convert reserved stock to sold (release reserve, then record sale movement)
-          // First, release the reserve
+          // Release the reserve
           await supabase.from('stock_movements').insert({
             product_id: item.product_id,
             quantity: item.quantity,
@@ -358,7 +353,7 @@ export function useCompleteDepositOrder() {
             staff_id: user.id,
           });
 
-          // Then record the sale movement
+          // Record the sale movement
           await supabase.from('stock_movements').insert({
             product_id: item.product_id,
             quantity: -item.quantity,
@@ -415,10 +410,7 @@ export function useCancelDepositOrder() {
       // Get the order with items
       const { data: order, error: orderError } = await supabase
         .from('deposit_orders')
-        .select(`
-          *,
-          deposit_order_items (*)
-        `)
+        .select(`*, deposit_order_items (*)`)
         .eq('id', orderId)
         .single();
 
