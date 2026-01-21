@@ -14,6 +14,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useSoldItemsReport, useProducts } from '@/hooks/useDatabase';
 import { useAuth } from '@/contexts/AuthContext';
 import { exportSoldItemsCSV } from '@/utils/csvExport';
+import { getDateRange } from '@/lib/utils';
 import { 
   Package, 
   Search,
@@ -748,45 +749,43 @@ export default function SoldItemsReport() {
             <div className="flex gap-2 mt-4">
               <Button
                 variant="outline"
-                onClick={() => setFilters({
-                  dateRange: { from: new Date().toISOString().split('T')[0], to: new Date().toISOString().split('T')[0] },
-                  productSearch: '',
-                  category: 'all',
-                  metal: 'all',
-                  staffId: 'all',
-                  supplierId: 'all',
-                  flags: { consignment: false, partExchange: false, registered: false }
-                })}
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  dateRange: getDateRange('today')
+                }))}
               >
                 Today
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setFilters({
-                  dateRange: { from: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], to: new Date().toISOString().split('T')[0] },
-                  productSearch: '',
-                  category: 'all',
-                  metal: 'all',
-                  staffId: 'all',
-                  supplierId: 'all',
-                  flags: { consignment: false, partExchange: false, registered: false }
-                })}
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  dateRange: getDateRange('7d')
+                }))}
               >
                 7 Days
               </Button>
               <Button
                 variant="outline"
-                onClick={() => setFilters({
-                  dateRange: { from: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0], to: new Date().toISOString().split('T')[0] },
-                  productSearch: '',
-                  category: 'all',
-                  metal: 'all',
-                  staffId: 'all',
-                  supplierId: 'all',
-                  flags: { consignment: false, partExchange: false, registered: false }
-                })}
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  dateRange: getDateRange('this-month')
+                }))}
               >
-                30 Days
+                This Month
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setFilters(prev => ({
+                  ...prev,
+                  dateRange: getDateRange('last-month')
+                }))}
+              >
+                Last Month
               </Button>
               
               {userRole === 'owner' && (
