@@ -146,31 +146,38 @@ export function CheckoutForm({
         <div className="flex items-center justify-between gap-4">
           <CardTitle className="font-luxury">Checkout</CardTitle>
           {showDepositToggle && onDepositModeChange && (
-            <ToggleGroup
-              type="single"
-              value={depositMode ? 'deposit' : 'sale'}
-              onValueChange={(value) => {
-                if (value) onDepositModeChange(value === 'deposit');
-              }}
-              className="bg-muted/50 p-1 rounded-lg"
-            >
-              <ToggleGroupItem 
-                value="sale" 
-                aria-label="Complete sale now"
-                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
+            <div className="flex flex-col items-end gap-1">
+              <ToggleGroup
+                type="single"
+                value={depositMode ? 'deposit' : 'sale'}
+                onValueChange={(value) => {
+                  if (value) onDepositModeChange(value === 'deposit');
+                }}
+                className="bg-muted/50 p-1 rounded-lg"
               >
-                <ShoppingBag className="h-4 w-4" />
-                <span className="text-sm">Complete Sale</span>
-              </ToggleGroupItem>
-              <ToggleGroupItem 
-                value="deposit" 
-                aria-label="Create deposit order"
-                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
-              >
-                <Wallet className="h-4 w-4" />
-                <span className="text-sm">Deposit Order</span>
-              </ToggleGroupItem>
-            </ToggleGroup>
+                <ToggleGroupItem 
+                  value="sale" 
+                  aria-label="Complete sale now"
+                  className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
+                >
+                  <ShoppingBag className="h-4 w-4" />
+                  <span className="text-sm">Complete Sale</span>
+                </ToggleGroupItem>
+                <ToggleGroupItem 
+                  value="deposit" 
+                  aria-label="Create deposit order"
+                  className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
+                >
+                  <Wallet className="h-4 w-4" />
+                  <span className="text-sm">Deposit Order</span>
+                </ToggleGroupItem>
+              </ToggleGroup>
+              <p className="text-xs text-muted-foreground">
+                {depositMode 
+                  ? 'Customer pays partial now, balance on collection' 
+                  : 'Full payment and stock deducted immediately'}
+              </p>
+            </div>
           )}
         </div>
       </CardHeader>
