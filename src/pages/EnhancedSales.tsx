@@ -638,6 +638,7 @@ export default function EnhancedSales() {
                 onCreateDepositOrder={handleCreateDepositOrder}
                 isProcessing={createDepositOrder.isPending}
                 disabled={!canCreateSales}
+                onSwitchToSale={() => setDepositMode(false)}
               />
             ) : (
               <CheckoutForm
