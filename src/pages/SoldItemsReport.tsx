@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { EnhancedTable } from '@/components/ui/enhanced-table';
 import { DateRangePicker } from '@/components/reports/DateRangePicker';
 import { useToast } from '@/hooks/use-toast';
@@ -565,216 +566,234 @@ export default function SoldItemsReport() {
 
         {/* Filters */}
         <Card className="shadow-card">
-          <CardHeader>
-            <CardTitle className="flex items-center justify-between flex-wrap gap-4">
-              <span className="text-foreground">Advanced Filters</span>
-              <div className="flex items-center gap-2">
+          <CardHeader className="pb-3">
+            <div className="flex items-center justify-between flex-wrap gap-2">
+              <div>
+                <CardTitle className="text-foreground text-base">Filters</CardTitle>
                 {filters.saleId && (
-                  <Badge variant="secondary" className="px-3 py-1.5">
+                  <Badge variant="secondary" className="mt-1 text-xs">
                     Filtered by Sale #{filters.saleId}
                   </Badge>
                 )}
-                <Button
-                  variant="outline" 
-                  size="sm"
-                  onClick={handleRefresh}
-                  disabled={isLoading}
-                  aria-label="Refresh data"
-                  className="gap-2"
-                >
-                  <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
-                  Refresh
-                </Button>
               </div>
-            </CardTitle>
-            <CardDescription>
-              Filter sold items by various criteria
-            </CardDescription>
+              <Button
+                variant="ghost" 
+                size="sm"
+                onClick={handleRefresh}
+                disabled={isLoading}
+                aria-label="Refresh data"
+                className="h-8 px-2"
+              >
+                <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+              </Button>
+            </div>
           </CardHeader>
-          <CardContent className="space-y-4">
-            {/* Row 1: Date Range, Product Search, Category, Metal */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="date-range-filter">Date Range</Label>
-                <DateRangePicker
-                  dateRange={filters.dateRange}
-                  onDateRangeChange={(dateRange) => setFilters(prev => ({ ...prev, dateRange }))}
+          <CardContent className="space-y-3 pt-0">
+            {/* Row 1: Month Picker - Primary Navigation */}
+            <MonthPicker
+              dateRange={filters.dateRange}
+              onMonthSelect={(range) => setFilters(prev => ({ ...prev, dateRange: range }))}
+              monthsToShow={6}
+              showCustom={true}
+            />
+            
+            {/* Row 2: All filters in one compact row */}
+            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+              {/* Search */}
+              <div className="relative col-span-2 sm:col-span-1 lg:col-span-1">
+                <Search className="absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  placeholder="Search..."
+                  value={filters.productSearch}
+                  onChange={(e) => setFilters(prev => ({ ...prev, productSearch: e.target.value }))}
+                  className="pl-8 h-8 text-sm"
                 />
               </div>
               
-              <div className="space-y-2">
-                <Label htmlFor="product-search">Product Search</Label>
-                <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                  <Input
-                    id="product-search"
-                    placeholder="Search by name or SKU..."
-                    value={filters.productSearch}
-                    onChange={(e) => setFilters(prev => ({ ...prev, productSearch: e.target.value }))}
-                    className="pl-9"
-                    aria-label="Search products by name or SKU"
-                  />
-                </div>
-              </div>
+              {/* Staff */}
+              <Select
+                value={filters.staffId}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, staffId: value }))}
+              >
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Staff" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Staff</SelectItem>
+                  {filterOptions.staff.map(staff => (
+                    <SelectItem key={staff.id} value={staff.id}>
+                      {staff.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               
-              <div className="space-y-2">
-                <Label htmlFor="category-filter">Category</Label>
-                <Select
-                  value={filters.category}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All categories" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
-                    {filterOptions.categories.map(category => (
-                      <SelectItem key={category} value={category}>
-                        {category}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Supplier */}
+              <Select
+                value={filters.supplierId}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, supplierId: value }))}
+              >
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Supplier" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Suppliers</SelectItem>
+                  {filterOptions.suppliers.map(supplier => (
+                    <SelectItem key={supplier.id} value={supplier.id.toString()}>
+                      {supplier.name} {supplier.type === 'customer' && '(C)'}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               
-              <div className="space-y-2">
-                <Label htmlFor="metal-filter">Metal Type</Label>
-                <Select
-                  value={filters.metal}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, metal: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All metals" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Metals</SelectItem>
-                    {filterOptions.metals.map(metal => (
-                      <SelectItem key={metal} value={metal}>
-                        {metal}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Row 2: Staff, Supplier, Type Filters */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
-              <div className="space-y-2">
-                <Label htmlFor="staff-filter">Staff Member</Label>
-                <Select
-                  value={filters.staffId}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, staffId: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All staff" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Staff</SelectItem>
-                    {filterOptions.staff.map(staff => (
-                      <SelectItem key={staff.id} value={staff.id}>
-                        {staff.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="supplier-filter">Supplier</Label>
-                <Select
-                  value={filters.supplierId}
-                  onValueChange={(value) => setFilters(prev => ({ ...prev, supplierId: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="All suppliers" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Suppliers</SelectItem>
-                    {filterOptions.suppliers.map(supplier => (
-                      <SelectItem key={supplier.id} value={supplier.id.toString()}>
-                        {supplier.name} {supplier.type === 'customer' && '(Customer)'}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+              {/* Category */}
+              <Select
+                value={filters.category}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, category: value }))}
+              >
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Category" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Categories</SelectItem>
+                  {filterOptions.categories.map(category => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
               
-              {/* Type Filters inline */}
-              <div className="lg:col-span-2 space-y-2">
-                <Label>Filter by Type</Label>
-                <div className="flex flex-wrap gap-2">
-                  <Button
-                    variant={filters.flags.consignment ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilters(prev => ({
-                      ...prev,
-                      flags: { ...prev.flags, consignment: !prev.flags.consignment }
-                    }))}
-                    className="h-9"
-                  >
-                    <ConsignmentBadge className="text-xs mr-1" />
-                    Consignment
-                    {filters.flags.consignment && <X className="ml-1 h-3 w-3" />}
+              {/* Metal */}
+              <Select
+                value={filters.metal}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, metal: value }))}
+              >
+                <SelectTrigger className="h-8 text-sm">
+                  <SelectValue placeholder="Metal" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Metals</SelectItem>
+                  {filterOptions.metals.map(metal => (
+                    <SelectItem key={metal} value={metal}>
+                      {metal}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              
+              {/* Type Dropdown */}
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button variant="outline" size="sm" className="h-8 text-sm justify-between font-normal">
+                    <span className="flex items-center gap-1.5">
+                      <Filter className="h-3.5 w-3.5" />
+                      Type
+                      {(filters.flags.consignment || filters.flags.partExchange || filters.flags.registered) && (
+                        <Badge variant="secondary" className="h-4 px-1 text-[10px] rounded-full">
+                          {[filters.flags.consignment, filters.flags.partExchange, filters.flags.registered].filter(Boolean).length}
+                        </Badge>
+                      )}
+                    </span>
                   </Button>
-                  
-                  <Button
-                    variant={filters.flags.partExchange ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilters(prev => ({
-                      ...prev,
-                      flags: { ...prev.flags, partExchange: !prev.flags.partExchange }
-                    }))}
-                    className="h-9"
-                  >
-                    <TradeInBadge className="text-xs mr-1" />
-                    Part Exchange
-                    {filters.flags.partExchange && <X className="ml-1 h-3 w-3" />}
-                  </Button>
-                  
-                  <Button
-                    variant={filters.flags.registered ? "default" : "outline"}
-                    size="sm"
-                    onClick={() => setFilters(prev => ({
-                      ...prev,
-                      flags: { ...prev.flags, registered: !prev.flags.registered }
-                    }))}
-                    className="h-9"
-                  >
-                    <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/20 mr-1">
-                      Reg
-                    </Badge>
-                    Registered
-                    {filters.flags.registered && <X className="ml-1 h-3 w-3" />}
-                  </Button>
-                </div>
-              </div>
+                </PopoverTrigger>
+                <PopoverContent className="w-48 p-2 bg-popover" align="end">
+                  <div className="space-y-1">
+                    <label className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer text-sm">
+                      <input
+                        type="checkbox"
+                        checked={filters.flags.consignment}
+                        onChange={() => setFilters(prev => ({
+                          ...prev,
+                          flags: { ...prev.flags, consignment: !prev.flags.consignment }
+                        }))}
+                        className="rounded border-input"
+                      />
+                      Consignment
+                    </label>
+                    <label className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer text-sm">
+                      <input
+                        type="checkbox"
+                        checked={filters.flags.partExchange}
+                        onChange={() => setFilters(prev => ({
+                          ...prev,
+                          flags: { ...prev.flags, partExchange: !prev.flags.partExchange }
+                        }))}
+                        className="rounded border-input"
+                      />
+                      Part Exchange
+                    </label>
+                    <label className="flex items-center gap-2 px-2 py-1.5 rounded hover:bg-muted/50 cursor-pointer text-sm">
+                      <input
+                        type="checkbox"
+                        checked={filters.flags.registered}
+                        onChange={() => setFilters(prev => ({
+                          ...prev,
+                          flags: { ...prev.flags, registered: !prev.flags.registered }
+                        }))}
+                        className="rounded border-input"
+                      />
+                      Registered
+                    </label>
+                  </div>
+                </PopoverContent>
+              </Popover>
             </div>
             
-            {/* Row 3: Month Picker + Export */}
-            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/50">
-              <MonthPicker
-                dateRange={filters.dateRange}
-                onMonthSelect={(range) => setFilters(prev => ({ ...prev, dateRange: range }))}
-                monthsToShow={6}
-              />
-              
-              {userRole === 'owner' && (
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={handleExportCSV}
-                  className="gap-2"
-                  aria-label="Export filtered data to CSV"
-                >
-                  <Download className="h-4 w-4" />
-                  Export CSV
-                </Button>
-              )}
-            </div>
+            {/* Row 3: Active Type Filters + Export (only show when filters active) */}
+            {(filters.flags.consignment || filters.flags.partExchange || filters.flags.registered || userRole === 'owner') && (
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <div className="flex flex-wrap gap-1.5">
+                  {filters.flags.consignment && (
+                    <Badge variant="secondary" className="text-xs gap-1 pr-1">
+                      Consignment
+                      <button 
+                        onClick={() => setFilters(prev => ({ ...prev, flags: { ...prev.flags, consignment: false } }))}
+                        className="ml-0.5 hover:bg-muted rounded"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                  {filters.flags.partExchange && (
+                    <Badge variant="secondary" className="text-xs gap-1 pr-1">
+                      Part Exchange
+                      <button 
+                        onClick={() => setFilters(prev => ({ ...prev, flags: { ...prev.flags, partExchange: false } }))}
+                        className="ml-0.5 hover:bg-muted rounded"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                  {filters.flags.registered && (
+                    <Badge variant="secondary" className="text-xs gap-1 pr-1">
+                      Registered
+                      <button 
+                        onClick={() => setFilters(prev => ({ ...prev, flags: { ...prev.flags, registered: false } }))}
+                        className="ml-0.5 hover:bg-muted rounded"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  )}
+                </div>
+                
+                {userRole === 'owner' && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={handleExportCSV}
+                    className="h-7 text-xs gap-1.5"
+                  >
+                    <Download className="h-3 w-3" />
+                    Export
+                  </Button>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
-
         {/* Sold Items Table */}
         <Card className="shadow-card">
           <CardHeader>
