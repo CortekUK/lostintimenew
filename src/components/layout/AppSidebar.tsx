@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Repeat, Users, User, ReceiptPoundSterling, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Repeat, Users, User, ReceiptPoundSterling, Coins, type LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from 'next-themes';
@@ -64,7 +64,7 @@ const coreOperationsItems: NavigationItem[] = [
   }
 ];
 
-// Sales: POS, My Sales, Sold Items, Transactions
+// Sales: POS, My Sales, My Commission, Sold Items, Transactions
 const salesItems: NavigationItem[] = [
   {
     title: 'Sales',
@@ -74,6 +74,7 @@ const salesItems: NavigationItem[] = [
     subItems: [
       { title: 'POS', url: '/sales', icon: CreditCard },
       { title: 'My Sales', url: '/sales/my-sales', icon: User },
+      { title: 'My Commission', url: '/sales/my-commission', icon: Coins },
       { title: 'Sold Items', url: '/sales/items', icon: Package },
       { title: 'Transactions', url: '/sales/transactions', icon: ReceiptPoundSterling, module: CRM_MODULES.REPORTS }
     ]
