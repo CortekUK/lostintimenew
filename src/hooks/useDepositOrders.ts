@@ -10,7 +10,7 @@ type DepositOrderItem = Database['public']['Tables']['deposit_order_items']['Row
 type DepositPayment = Database['public']['Tables']['deposit_payments']['Row'];
 type DepositOrderSummary = Database['public']['Views']['v_deposit_order_summary']['Row'];
 
-export type DepositOrderStatus = 'pending' | 'completed' | 'cancelled';
+export type DepositOrderStatus = 'active' | 'completed' | 'cancelled' | 'expired';
 export type PaymentMethod = Database['public']['Enums']['payment_method'];
 
 // Extended types with relations
@@ -146,7 +146,7 @@ export function useCreateDepositOrder() {
           total_amount: totalAmount,
           amount_paid: 0,
           part_exchange_total: partExchangeTotal,
-          status: 'pending',
+          status: 'active',
           notes: params.notes,
           location_id: params.location_id,
           staff_id: user.id,
@@ -326,8 +326,8 @@ export function useCompleteDepositOrder() {
         .single();
 
       if (orderError) throw orderError;
-      if (order.status !== 'pending') {
-        throw new Error('Only pending orders can be completed');
+      if (order.status !== 'active') {
+        throw new Error('Only active orders can be completed');
       }
       if (order.balance_due > 0) {
         throw new Error(`Cannot complete order with outstanding balance of £${order.balance_due.toFixed(2)}`);
@@ -526,8 +526,8 @@ export function useCancelDepositOrder() {
         .single();
 
       if (orderError) throw orderError;
-      if (order.status !== 'pending') {
-        throw new Error('Only pending orders can be cancelled');
+      if (order.status !== 'active') {
+        throw new Error('Only active orders can be cancelled');
       }
 
       // Release reserved stock
@@ -630,7 +630,7 @@ export function useDepositOrderStats() {
       };
 
       for (const order of data || []) {
-        if (order.status === 'pending') {
+        if (order.status === 'active') {
           stats.pending.count++;
           stats.pending.totalValue += order.total_amount || 0;
           stats.pending.totalPaid += order.amount_paid || 0;
