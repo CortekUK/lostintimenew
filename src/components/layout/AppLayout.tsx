@@ -9,6 +9,7 @@ import { FocusManager } from '@/components/accessibility/FocusManager';
 import { useAppShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { GlobalSearchInput } from '@/components/search/GlobalSearchInput';
 import { CommandPalette } from '@/components/search/CommandPalette';
+import { ChatSidebar } from '@/components/chat/ChatSidebar';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -135,10 +136,13 @@ export const AppLayout = ({ children, title, subtitle, showSearch = false, showD
         </div>
         
         {/* Command Palette */}
-        <CommandPalette 
-          open={commandPaletteOpen} 
-          onOpenChange={setCommandPaletteOpen} 
+        <CommandPalette
+          open={commandPaletteOpen}
+          onOpenChange={setCommandPaletteOpen}
         />
+
+        {/* AI Chat Sidebar */}
+        <ChatSidebar />
       </div>
     </SidebarProvider>
   );
