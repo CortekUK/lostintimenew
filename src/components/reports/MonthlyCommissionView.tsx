@@ -201,26 +201,28 @@ export function MonthlyCommissionView() {
           )}
         </div>
         
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           {isOwner && (
             <Button 
               variant="outline" 
+              size="sm"
               onClick={() => setShowSettingsModal(true)}
             >
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
+              <Settings className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Settings</span>
             </Button>
           )}
           <Button 
-            variant="outline" 
+            variant="outline"
+            size="sm"
             onClick={() => setShowHistory(!showHistory)}
           >
-            <History className="h-4 w-4 mr-2" />
-            {showHistory ? 'Hide History' : 'Payment History'}
+            <History className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">{showHistory ? 'Hide History' : 'Payment History'}</span>
           </Button>
-          <Button variant="outline" onClick={handleExport} disabled={isLoading}>
-            <Download className="h-4 w-4 mr-2" />
-            Export CSV
+          <Button variant="outline" size="sm" onClick={handleExport} disabled={isLoading}>
+            <Download className="h-4 w-4 sm:mr-2" />
+            <span className="hidden sm:inline">Export CSV</span>
           </Button>
         </div>
       </div>
@@ -321,26 +323,29 @@ export function MonthlyCommissionView() {
               <Card>
                 <CollapsibleTrigger asChild>
                   <CardHeader className="cursor-pointer hover:bg-muted/50 transition-colors py-3">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+                      {/* Left side - Month info */}
+                      <div className="flex items-center gap-2 sm:gap-3 min-w-0">
                         {expandedMonths.has(month.month) ? (
-                          <ChevronDown className="h-4 w-4 text-muted-foreground" />
+                          <ChevronDown className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         ) : (
-                          <ChevronRight className="h-4 w-4 text-muted-foreground" />
+                          <ChevronRight className="h-4 w-4 text-muted-foreground flex-shrink-0" />
                         )}
-                        <Calendar className="h-4 w-4 text-muted-foreground" />
-                        <CardTitle className="text-base font-medium">{month.monthLabel}</CardTitle>
+                        <Calendar className="h-4 w-4 text-muted-foreground flex-shrink-0 hidden sm:block" />
+                        <CardTitle className="text-base font-medium truncate">{month.monthLabel}</CardTitle>
                         {getMonthStatusBadge(month)}
                       </div>
-                      <div className="flex items-center gap-4 text-sm">
-                        <span className="text-muted-foreground">
+                      
+                      {/* Right side - Stats and actions */}
+                      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm pl-6 sm:pl-0">
+                        <span className="text-muted-foreground text-xs sm:text-sm">
                           {month.staffData.length} staff • {month.totals.salesCount} sales
                         </span>
-                        <span className="font-mono font-medium">
-                          £{month.totals.owed.toFixed(2)} owed
+                        <span className="font-mono font-medium text-xs sm:text-sm">
+                          £{month.totals.owed.toFixed(2)} <span className="text-muted-foreground">owed</span>
                         </span>
-                        <span className="font-mono text-success">
-                          £{month.totals.paid.toFixed(2)} paid
+                        <span className="font-mono text-success text-xs sm:text-sm">
+                          £{month.totals.paid.toFixed(2)} <span className="text-muted-foreground">paid</span>
                         </span>
                         {month.totals.outstanding > 0 && (
                           <Button
@@ -350,10 +355,9 @@ export function MonthlyCommissionView() {
                               e.stopPropagation();
                               setBulkPayMonth(month);
                             }}
-                            className="ml-2"
                           >
-                            <CreditCard className="h-3 w-3 mr-1" />
-                            Pay All
+                            <CreditCard className="h-3 w-3 sm:mr-1" />
+                            <span className="hidden sm:inline">Pay All</span>
                           </Button>
                         )}
                       </div>
