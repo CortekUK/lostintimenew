@@ -8,6 +8,7 @@ import { RecordCommissionPaymentModal } from './RecordCommissionPaymentModal';
 import { CommissionSettingsModal } from './CommissionSettingsModal';
 import { StaffCommissionOverrideModal } from './StaffCommissionOverrideModal';
 import { CommissionPaymentHistory } from './CommissionPaymentHistory';
+import { BulkCommissionPaymentModal } from './BulkCommissionPaymentModal';
 import { useMonthlyCommission, MonthlyCommission, StaffMonthlyData } from '@/hooks/useMonthlyCommission';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useToast } from '@/hooks/use-toast';
@@ -28,7 +29,8 @@ import {
   Settings,
   Pencil,
   Star,
-  Calendar
+  Calendar,
+  CreditCard
 } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
@@ -52,6 +54,7 @@ export function MonthlyCommissionView() {
   const [showSettingsModal, setShowSettingsModal] = useState(false);
   const [editingStaff, setEditingStaff] = useState<{ id: string; name: string } | null>(null);
   const [filterStatus, setFilterStatus] = useState<'all' | 'unpaid' | 'paid'>('all');
+  const [bulkPayMonth, setBulkPayMonth] = useState<MonthlyCommission | null>(null);
 
   const toggleMonth = (month: string) => {
     setExpandedMonths(prev => {
@@ -131,14 +134,14 @@ export function MonthlyCommissionView() {
     
     if (outstanding === 0 && owed > 0) {
       return (
-        <Badge variant="default" className="bg-green-500/10 text-green-600 border-green-500/20">
+        <Badge variant="default" className="bg-success/10 text-success border-success/20">
           <CheckCircle className="h-3 w-3 mr-1" />
           All Paid
         </Badge>
       );
     } else if (paid > 0) {
       return (
-        <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+        <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
           <AlertCircle className="h-3 w-3 mr-1" />
           £{outstanding.toFixed(0)} outstanding
         </Badge>
@@ -154,14 +157,14 @@ export function MonthlyCommissionView() {
   const getStaffStatusBadge = (staff: StaffMonthlyData) => {
     if (staff.status === 'paid') {
       return (
-        <Badge variant="default" className="bg-green-500/10 text-green-600 border-green-500/20">
+        <Badge variant="default" className="bg-success/10 text-success border-success/20">
           <CheckCircle className="h-3 w-3 mr-1" />
           Paid
         </Badge>
       );
     } else if (staff.status === 'partial') {
       return (
-        <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+        <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
           <AlertCircle className="h-3 w-3 mr-1" />
           £{staff.outstanding.toFixed(2)} due
         </Badge>
@@ -251,10 +254,10 @@ export function MonthlyCommissionView() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Paid</CardTitle>
-            <CheckCircle className="h-4 w-4 text-green-500" />
+            <CheckCircle className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-600">£{grandTotals.paid.toFixed(2)}</div>
+            <div className="text-2xl font-bold text-success">£{grandTotals.paid.toFixed(2)}</div>
             <p className="text-xs text-muted-foreground">Already paid out</p>
           </CardContent>
         </Card>
@@ -262,10 +265,10 @@ export function MonthlyCommissionView() {
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
-            <AlertCircle className="h-4 w-4 text-yellow-500" />
+            <AlertCircle className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${grandTotals.outstanding > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+            <div className={`text-2xl font-bold ${grandTotals.outstanding > 0 ? 'text-warning' : 'text-muted-foreground'}`}>
               £{grandTotals.outstanding.toFixed(2)}
             </div>
             <p className="text-xs text-muted-foreground">Still to pay</p>
@@ -283,7 +286,7 @@ export function MonthlyCommissionView() {
               <span className="font-medium">{commissionRate}% of {commissionBasis === 'profit' ? 'gross profit' : 'revenue'}</span>
             </div>
             {!commissionEnabled && (
-              <Badge variant="outline" className="text-yellow-600 border-yellow-500/30">
+              <Badge variant="outline" className="text-warning border-warning/30">
                 Commission Tracking Disabled
               </Badge>
             )}
@@ -329,16 +332,30 @@ export function MonthlyCommissionView() {
                         <CardTitle className="text-base font-medium">{month.monthLabel}</CardTitle>
                         {getMonthStatusBadge(month)}
                       </div>
-                      <div className="flex items-center gap-6 text-sm">
+                      <div className="flex items-center gap-4 text-sm">
                         <span className="text-muted-foreground">
                           {month.staffData.length} staff • {month.totals.salesCount} sales
                         </span>
                         <span className="font-mono font-medium">
                           £{month.totals.owed.toFixed(2)} owed
                         </span>
-                        <span className="font-mono text-green-600">
+                        <span className="font-mono text-success">
                           £{month.totals.paid.toFixed(2)} paid
                         </span>
+                        {month.totals.outstanding > 0 && (
+                          <Button
+                            variant="default"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setBulkPayMonth(month);
+                            }}
+                            className="ml-2"
+                          >
+                            <CreditCard className="h-3 w-3 mr-1" />
+                            Pay All
+                          </Button>
+                        )}
                       </div>
                     </div>
                   </CardHeader>
@@ -471,6 +488,14 @@ export function MonthlyCommissionView() {
           commissionRate={selectedStaff.data.effectiveRate}
           commissionBasis={selectedStaff.data.effectiveBasis}
           alreadyPaid={selectedStaff.data.commissionPaid}
+        />
+      )}
+
+      {bulkPayMonth && (
+        <BulkCommissionPaymentModal
+          open={!!bulkPayMonth}
+          onOpenChange={(open) => !open && setBulkPayMonth(null)}
+          month={bulkPayMonth}
         />
       )}
     </div>
