@@ -448,36 +448,36 @@ export default function MySales() {
           {/* Commission Cards */}
           {commissionEnabled && (
             <>
-              <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20">
+              <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 min-h-[3.5rem]">
-                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Week Commission</CardTitle>
-                  <Coins className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-1" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Week Commission</CardTitle>
+                  <Coins className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold font-luxury text-green-700 dark:text-green-400">£{thisWeekStats.commission.toFixed(2)}</div>
-                  <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">at {commissionRate}% rate</p>
+                  <div className="text-2xl font-bold font-luxury text-[hsl(var(--gold))]">£{thisWeekStats.commission.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground mt-1">at {commissionRate}% rate</p>
                 </CardContent>
               </Card>
               
-              <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20">
+              <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 min-h-[3.5rem]">
-                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Month Commission</CardTitle>
-                  <Percent className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-1" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Month Commission</CardTitle>
+                  <Percent className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold font-luxury text-green-700 dark:text-green-400">£{thisMonthStats.commission.toFixed(2)}</div>
-                  <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">at {commissionRate}% rate</p>
+                  <div className="text-2xl font-bold font-luxury text-[hsl(var(--gold))]">£{thisMonthStats.commission.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground mt-1">at {commissionRate}% rate</p>
                 </CardContent>
               </Card>
               
-              <Card className="shadow-card hover:shadow-elegant transition-all duration-300 border-green-200 dark:border-green-800 bg-gradient-to-br from-green-50/50 to-emerald-50/50 dark:from-green-950/20 dark:to-emerald-950/20">
+              <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
                 <CardHeader className="flex flex-row items-start justify-between space-y-0 pb-2 min-h-[3.5rem]">
-                  <CardTitle className="text-sm font-medium text-green-700 dark:text-green-400">Est. Commission</CardTitle>
-                  <TrendingUp className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0 mt-1" />
+                  <CardTitle className="text-sm font-medium text-muted-foreground">Est. Commission</CardTitle>
+                  <TrendingUp className="h-4 w-4 text-muted-foreground flex-shrink-0 mt-1" />
                 </CardHeader>
                 <CardContent>
-                  <div className="text-2xl font-bold font-luxury text-green-700 dark:text-green-400">£{totalCommission.toFixed(2)}</div>
-                  <p className="text-xs text-green-600/70 dark:text-green-400/70 mt-1">filtered period</p>
+                  <div className="text-2xl font-bold font-luxury text-[hsl(var(--gold))]">£{totalCommission.toFixed(2)}</div>
+                  <p className="text-xs text-muted-foreground mt-1">filtered period</p>
                 </CardContent>
               </Card>
             </>
