@@ -591,7 +591,8 @@ export default function SoldItemsReport() {
               Filter sold items by various criteria
             </CardDescription>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-4">
+            {/* Row 1: Date Range, Product Search, Category, Metal */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="date-range-filter">Date Range</Label>
@@ -655,7 +656,10 @@ export default function SoldItemsReport() {
                   </SelectContent>
                 </Select>
               </div>
+            </div>
 
+            {/* Row 2: Staff, Supplier, Type Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 items-end">
               <div className="space-y-2">
                 <Label htmlFor="staff-filter">Staff Member</Label>
                 <Select
@@ -695,115 +699,72 @@ export default function SoldItemsReport() {
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            
-            {/* Flags Filter */}
-            <div className="mt-4">
-              <Label className="mb-2 block">Filter by Type</Label>
-              <div className="flex flex-wrap gap-2">
-                <Button
-                  variant={filters.flags.consignment ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilters(prev => ({
-                    ...prev,
-                    flags: { ...prev.flags, consignment: !prev.flags.consignment }
-                  }))}
-                  className="h-8"
-                >
-                  <ConsignmentBadge className="text-xs mr-1" />
-                  Consignment
-                  {filters.flags.consignment && <X className="ml-1 h-3 w-3" />}
-                </Button>
-                
-                <Button
-                  variant={filters.flags.partExchange ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilters(prev => ({
-                    ...prev,
-                    flags: { ...prev.flags, partExchange: !prev.flags.partExchange }
-                  }))}
-                  className="h-8"
-                >
-                  <TradeInBadge className="text-xs mr-1" />
-                  Part Exchange
-                  {filters.flags.partExchange && <X className="ml-1 h-3 w-3" />}
-                </Button>
-                
-                <Button
-                  variant={filters.flags.registered ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setFilters(prev => ({
-                    ...prev,
-                    flags: { ...prev.flags, registered: !prev.flags.registered }
-                  }))}
-                  className="h-8"
-                >
-                  <Badge variant="outline" className="text-xs bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20 mr-1">
-                    Reg
-                  </Badge>
-                  Registered
-                  {filters.flags.registered && <X className="ml-1 h-3 w-3" />}
-                </Button>
+              
+              {/* Type Filters inline */}
+              <div className="lg:col-span-2 space-y-2">
+                <Label>Filter by Type</Label>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant={filters.flags.consignment ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilters(prev => ({
+                      ...prev,
+                      flags: { ...prev.flags, consignment: !prev.flags.consignment }
+                    }))}
+                    className="h-9"
+                  >
+                    <ConsignmentBadge className="text-xs mr-1" />
+                    Consignment
+                    {filters.flags.consignment && <X className="ml-1 h-3 w-3" />}
+                  </Button>
+                  
+                  <Button
+                    variant={filters.flags.partExchange ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilters(prev => ({
+                      ...prev,
+                      flags: { ...prev.flags, partExchange: !prev.flags.partExchange }
+                    }))}
+                    className="h-9"
+                  >
+                    <TradeInBadge className="text-xs mr-1" />
+                    Part Exchange
+                    {filters.flags.partExchange && <X className="ml-1 h-3 w-3" />}
+                  </Button>
+                  
+                  <Button
+                    variant={filters.flags.registered ? "default" : "outline"}
+                    size="sm"
+                    onClick={() => setFilters(prev => ({
+                      ...prev,
+                      flags: { ...prev.flags, registered: !prev.flags.registered }
+                    }))}
+                    className="h-9"
+                  >
+                    <Badge variant="outline" className="text-xs bg-success/10 text-success border-success/20 mr-1">
+                      Reg
+                    </Badge>
+                    Registered
+                    {filters.flags.registered && <X className="ml-1 h-3 w-3" />}
+                  </Button>
+                </div>
               </div>
             </div>
             
-            {/* Month Picker Chips */}
-            <div className="mt-4">
-              <Label className="mb-2 block">Quick Month Select</Label>
+            {/* Row 3: Month Picker + Export */}
+            <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border/50">
               <MonthPicker
                 dateRange={filters.dateRange}
                 onMonthSelect={(range) => setFilters(prev => ({ ...prev, dateRange: range }))}
                 monthsToShow={6}
               />
-            </div>
-            
-            <div className="flex gap-2 mt-4">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  dateRange: getDateRange('today')
-                }))}
-              >
-                Today
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  dateRange: getDateRange('7d')
-                }))}
-              >
-                7 Days
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  dateRange: getDateRange('this-month')
-                }))}
-              >
-                This Month
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setFilters(prev => ({
-                  ...prev,
-                  dateRange: getDateRange('last-month')
-                }))}
-              >
-                Last Month
-              </Button>
               
               {userRole === 'owner' && (
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={handleExportCSV}
-                  className="ml-auto gap-2"
+                  className="gap-2"
                   aria-label="Export filtered data to CSV"
                 >
                   <Download className="h-4 w-4" />
