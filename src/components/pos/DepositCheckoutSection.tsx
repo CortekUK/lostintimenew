@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { formatCurrency, calculateCartTotals } from '@/lib/utils';
 import type { CartItem, PaymentMethod, PartExchangeItem } from '@/types';
-import { CreditCard, Banknote, Smartphone, Building, Loader2, Wallet } from 'lucide-react';
+import { CreditCard, Banknote, Smartphone, Building, Loader2, Wallet, ShoppingBag } from 'lucide-react';
 import { CustomerSearchInput } from './CustomerSearchInput';
 import { LocationSelector } from '@/components/cash-drawer/LocationSelector';
 import { Badge } from '@/components/ui/badge';
@@ -14,6 +14,7 @@ import { useLocation } from '@/hooks/useLocations';
 import { Progress } from '@/components/ui/progress';
 import { useState } from 'react';
 import { Textarea } from '@/components/ui/textarea';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface DepositCheckoutSectionProps {
   items: CartItem[];
@@ -35,6 +36,7 @@ interface DepositCheckoutSectionProps {
   onCreateDepositOrder: (initialPayment: number, paymentMethod: PaymentMethod) => void;
   isProcessing: boolean;
   disabled?: boolean;
+  onSwitchToSale?: () => void;
 }
 
 const paymentMethods = [
@@ -64,6 +66,7 @@ export function DepositCheckoutSection({
   onCreateDepositOrder,
   isProcessing,
   disabled,
+  onSwitchToSale,
 }: DepositCheckoutSectionProps) {
   const [initialPayment, setInitialPayment] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash');
@@ -107,9 +110,38 @@ export function DepositCheckoutSection({
   return (
     <Card className="shadow-card border-2 border-primary/30 bg-primary/5">
       <CardHeader className="pb-3">
-        <div className="flex items-center gap-2">
-          <Wallet className="h-5 w-5 text-primary" />
-          <CardTitle className="font-luxury">Deposit Order</CardTitle>
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex items-center gap-2">
+            <Wallet className="h-5 w-5 text-primary" />
+            <CardTitle className="font-luxury">Deposit Order</CardTitle>
+          </div>
+          {onSwitchToSale && (
+            <ToggleGroup
+              type="single"
+              value="deposit"
+              onValueChange={(value) => {
+                if (value === 'sale') onSwitchToSale();
+              }}
+              className="bg-muted/50 p-1 rounded-lg"
+            >
+              <ToggleGroupItem 
+                value="sale" 
+                aria-label="Complete sale now"
+                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
+              >
+                <ShoppingBag className="h-4 w-4" />
+                <span className="text-sm">Complete Sale</span>
+              </ToggleGroupItem>
+              <ToggleGroupItem 
+                value="deposit" 
+                aria-label="Create deposit order"
+                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
+              >
+                <Wallet className="h-4 w-4" />
+                <span className="text-sm">Deposit Order</span>
+              </ToggleGroupItem>
+            </ToggleGroup>
+          )}
         </div>
         <p className="text-sm text-muted-foreground">
           Reserve items with a partial payment. Customer pays balance on collection.
