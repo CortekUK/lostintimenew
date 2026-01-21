@@ -23,6 +23,7 @@ import Customers from "./pages/Customers";
 import CustomerDetail from "./pages/CustomerDetail";
 import EnhancedSales from "./pages/EnhancedSales";
 import MySales from "./pages/MySales";
+import MyCommission from "./pages/MyCommission";
 import Transactions from "./pages/Transactions";
 import SaleDetail from "./pages/SaleDetail";
 import SoldItemsReport from "./pages/SoldItemsReport";
@@ -78,6 +79,7 @@ function AppInner() {
           <Route path="/consignments" element={<ProtectedRoute module="consignments"><Consignments /></ProtectedRoute>} />
           <Route path="/sales" element={<ProtectedRoute module="sales"><EnhancedSales /></ProtectedRoute>} />
           <Route path="/sales/my-sales" element={<ProtectedRoute module="sales"><MySales /></ProtectedRoute>} />
+          <Route path="/sales/my-commission" element={<ProtectedRoute module="sales"><MyCommission /></ProtectedRoute>} />
           <Route path="/sales/transactions" element={<ProtectedRoute module="sales"><Transactions /></ProtectedRoute>} />
           <Route path="/sales/items" element={<ProtectedRoute module="sales"><SoldItemsReport /></ProtectedRoute>} />
           {/* Legacy redirects */}
