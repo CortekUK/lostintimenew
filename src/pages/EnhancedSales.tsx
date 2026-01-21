@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { ShoppingCartComponent } from '@/components/pos/ShoppingCart';
 import { CheckoutForm, DiscountType } from '@/components/pos/CheckoutForm';
+import { DepositCheckoutSection } from '@/components/pos/DepositCheckoutSection';
 import { PartExchangeModal } from '@/components/pos/PartExchangeModal';
 import { EditCartPartExchangeModal } from '@/components/pos/EditCartPartExchangeModal';
 import { SaleConfirmationModal } from '@/components/pos/SaleConfirmationModal';
@@ -17,6 +18,7 @@ import { useOwnerGuard, useManagerOrAboveGuard } from '@/hooks/useOwnerGuard';
 import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { matchOrCreateCustomer } from '@/hooks/useCustomerMatchOrCreate';
 import { useRecordCashMovement } from '@/hooks/useCashDrawer';
+import { useCreateDepositOrder, PaymentMethod as DepositPaymentMethod } from '@/hooks/useDepositOrders';
 import type { CartItem, Product, Sale, PartExchangeItem } from '@/types';
 
 export default function EnhancedSales() {
@@ -24,11 +26,13 @@ export default function EnhancedSales() {
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
   const isOwner = useOwnerGuard();
   const isManagerOrAbove = useManagerOrAboveGuard();
   const { canCreate } = usePermissions();
   const canCreateSales = canCreate(CRM_MODULES.SALES);
   const recordCashMovement = useRecordCashMovement();
+  const createDepositOrder = useCreateDepositOrder();
   const [searchParams, setSearchParams] = useSearchParams();
   
   const [cart, setCart] = useState<CartItem[]>([]);
@@ -50,6 +54,7 @@ export default function EnhancedSales() {
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [completedSale, setCompletedSale] = useState<{ sale: any; items: any[]; partExchanges: any[]; signature: string | null } | null>(null);
   const [locationId, setLocationId] = useState<number | null>(null);
+  const [depositMode, setDepositMode] = useState(false);
 
   // Fetch current user's profile for auto-fill
   const { data: userProfile } = useQuery({
@@ -500,6 +505,74 @@ export default function EnhancedSales() {
     }
   });
 
+  // Handle deposit order creation
+  const handleCreateDepositOrder = async (initialPayment: number, paymentMethod: DepositPaymentMethod) => {
+    try {
+      // Match or create customer if name provided
+      let customerId: number | null = selectedCustomerId;
+      
+      if (!customerId && customerName.trim()) {
+        const result = await matchOrCreateCustomer(
+          customerName.trim(),
+          customerEmail.trim() || null
+        );
+        customerId = result.customerId;
+      }
+
+      const order = await createDepositOrder.mutateAsync({
+        customer_id: customerId,
+        customer_name: customerName.trim() || 'Walk-in Customer',
+        notes: notes || undefined,
+        location_id: locationId,
+        items: cart.map(item => ({
+          product_id: item.product.id,
+          product_name: item.product.name,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          unit_cost: item.product.unit_cost,
+          is_custom_order: false,
+        })),
+        initial_payment: {
+          amount: initialPayment,
+          payment_method: paymentMethod,
+        },
+      });
+
+      // Record cash movement for cash deposits
+      if (paymentMethod === 'cash' && locationId && initialPayment > 0) {
+        await recordCashMovement.mutateAsync({
+          location_id: locationId,
+          movement_type: 'deposit',
+          amount: initialPayment,
+          notes: `Deposit Order #${order.id}`,
+        });
+      }
+
+      toast({
+        title: 'Deposit order created',
+        description: `Order #${order.id} created. Stock has been reserved.`,
+      });
+
+      // Reset form
+      setCart([]);
+      setPartExchanges([]);
+      setCustomerName('');
+      setCustomerEmail('');
+      setCustomerPhone('');
+      setSelectedCustomerId(null);
+      setDiscount(0);
+      setDiscountType('percentage');
+      setNotes('');
+      setSignature(null);
+      setDepositMode(false);
+
+      // Navigate to the deposit order detail
+      navigate(`/deposits/${order.id}`);
+    } catch (error) {
+      // Error toast is handled by the hook
+    }
+  };
+
   return (
     <AppLayout 
       title="Point of Sale"
@@ -519,55 +592,93 @@ export default function EnhancedSales() {
           <div className="xl:col-span-1">
             <ShoppingCartComponent
               items={cart}
-              partExchanges={partExchanges}
+              partExchanges={depositMode ? [] : partExchanges}
               onUpdateQuantity={updateQuantity}
               onRemoveItem={removeFromCart}
               onRemovePartExchange={removePartExchange}
               onEditPartExchange={editPartExchange}
-              onAddPartExchange={() => setShowPartExchangeModal(true)}
-              discount={discount}
+              onAddPartExchange={depositMode ? undefined : () => setShowPartExchangeModal(true)}
+              discount={depositMode ? 0 : discount}
               discountType={discountType}
             />
           </div>
           
-          {/* Right: Checkout */}
+          {/* Right: Checkout - Conditional based on deposit mode */}
           <div className="xl:col-span-1">
-            <CheckoutForm
-              items={cart}
-              partExchanges={partExchanges}
-              discount={discount}
-              discountType={discountType}
-              onDiscountChange={setDiscount}
-              onDiscountTypeChange={setDiscountType}
-              customerName={customerName}
-              onCustomerNameChange={setCustomerName}
-              customerEmail={customerEmail}
-              onCustomerEmailChange={setCustomerEmail}
-              customerPhone={customerPhone}
-              onCustomerPhoneChange={setCustomerPhone}
-              selectedCustomerId={selectedCustomerId}
-              onCustomerSelect={(id, name, email, phone) => {
-                setSelectedCustomerId(id);
-                setCustomerName(name);
-                setCustomerEmail(email);
-                setCustomerPhone(phone);
-              }}
-              customerNotes={notes}
-              onCustomerNotesChange={setNotes}
-              paymentMethod={paymentMethod}
-              onPaymentMethodChange={setPaymentMethod}
-              onCompleteSale={() => completeSaleMutation.mutate()}
-              isProcessing={completeSaleMutation.isPending}
-              requiresOwnerApproval={netTotal < 0 && !isManagerOrAbove}
-              signature={signature}
-              onSignatureChange={setSignature}
-              staffMember={staffMember}
-              onStaffMemberChange={setStaffMember}
-              locationId={locationId}
-              onLocationChange={setLocationId}
-              locationLocked={cart.length > 0}
-              disabled={!canCreateSales}
-            />
+            {depositMode ? (
+              <DepositCheckoutSection
+                items={cart}
+                customerName={customerName}
+                onCustomerNameChange={setCustomerName}
+                customerEmail={customerEmail}
+                onCustomerEmailChange={setCustomerEmail}
+                customerPhone={customerPhone}
+                onCustomerPhoneChange={setCustomerPhone}
+                selectedCustomerId={selectedCustomerId}
+                onCustomerSelect={(id, name, email, phone) => {
+                  setSelectedCustomerId(id);
+                  setCustomerName(name);
+                  setCustomerEmail(email);
+                  setCustomerPhone(phone);
+                }}
+                customerNotes={notes}
+                onCustomerNotesChange={setNotes}
+                staffMember={staffMember}
+                locationId={locationId}
+                onLocationChange={setLocationId}
+                locationLocked={cart.length > 0}
+                onCreateDepositOrder={handleCreateDepositOrder}
+                isProcessing={createDepositOrder.isPending}
+                disabled={!canCreateSales}
+              />
+            ) : (
+              <CheckoutForm
+                items={cart}
+                partExchanges={partExchanges}
+                discount={discount}
+                discountType={discountType}
+                onDiscountChange={setDiscount}
+                onDiscountTypeChange={setDiscountType}
+                customerName={customerName}
+                onCustomerNameChange={setCustomerName}
+                customerEmail={customerEmail}
+                onCustomerEmailChange={setCustomerEmail}
+                customerPhone={customerPhone}
+                onCustomerPhoneChange={setCustomerPhone}
+                selectedCustomerId={selectedCustomerId}
+                onCustomerSelect={(id, name, email, phone) => {
+                  setSelectedCustomerId(id);
+                  setCustomerName(name);
+                  setCustomerEmail(email);
+                  setCustomerPhone(phone);
+                }}
+                customerNotes={notes}
+                onCustomerNotesChange={setNotes}
+                paymentMethod={paymentMethod}
+                onPaymentMethodChange={setPaymentMethod}
+                onCompleteSale={() => completeSaleMutation.mutate()}
+                isProcessing={completeSaleMutation.isPending}
+                requiresOwnerApproval={netTotal < 0 && !isManagerOrAbove}
+                signature={signature}
+                onSignatureChange={setSignature}
+                staffMember={staffMember}
+                onStaffMemberChange={setStaffMember}
+                locationId={locationId}
+                onLocationChange={setLocationId}
+                locationLocked={cart.length > 0}
+                disabled={!canCreateSales}
+                depositMode={depositMode}
+                onDepositModeChange={(enabled) => {
+                  setDepositMode(enabled);
+                  // Clear part exchanges when switching to deposit mode
+                  if (enabled) {
+                    setPartExchanges([]);
+                    setDiscount(0);
+                  }
+                }}
+                showDepositToggle={cart.length > 0}
+              />
+            )}
           </div>
         </div>
 

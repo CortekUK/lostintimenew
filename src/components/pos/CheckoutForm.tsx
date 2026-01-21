@@ -10,13 +10,14 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { formatCurrency, calculateCartTotals } from '@/lib/utils';
 import type { CartItem, PaymentMethod, PartExchangeItem } from '@/types';
-import { CreditCard, Banknote, Smartphone, Building, Loader2, PenTool, ChevronDown } from 'lucide-react';
+import { CreditCard, Banknote, Smartphone, Building, Loader2, PenTool, ChevronDown, Wallet, ShoppingBag } from 'lucide-react';
 import { SignaturePad, SignaturePadRef } from './SignaturePad';
 import { CustomerSearchInput } from './CustomerSearchInput';
 import { LocationSelector } from '@/components/cash-drawer/LocationSelector';
 import { Badge } from '@/components/ui/badge';
 import { MapPin } from 'lucide-react';
 import { useLocation } from '@/hooks/useLocations';
+import { Switch } from '@/components/ui/switch';
 
 export type DiscountType = 'percentage' | 'fixed';
 
@@ -50,7 +51,12 @@ interface CheckoutFormProps {
   onLocationChange: (locationId: number | null) => void;
   locationLocked?: boolean;
   disabled?: boolean;
+  // Deposit mode props
+  depositMode?: boolean;
+  onDepositModeChange?: (enabled: boolean) => void;
+  showDepositToggle?: boolean;
 }
+
 const paymentMethods = [{
   value: 'cash' as PaymentMethod,
   label: 'Cash',
@@ -97,7 +103,10 @@ export function CheckoutForm({
   locationId,
   onLocationChange,
   locationLocked,
-  disabled
+  disabled,
+  depositMode,
+  onDepositModeChange,
+  showDepositToggle = false,
 }: CheckoutFormProps) {
   const [discountInput, setDiscountInput] = useState(discount.toString());
   const signaturePadRef = useRef<SignaturePadRef>(null);
@@ -133,8 +142,23 @@ export function CheckoutForm({
   };
   const canCompleteSale = (items.length > 0 || partExchanges.length > 0) && paymentMethod && staffMember && locationId && customerName.trim() && !isProcessing && (!requiresOwnerApproval || netTotal >= 0) && !disabled;
   return <Card className="shadow-card">
-      <CardHeader>
-        <CardTitle className="font-luxury">Checkout</CardTitle>
+      <CardHeader className="pb-3">
+        <div className="flex items-center justify-between">
+          <CardTitle className="font-luxury">Checkout</CardTitle>
+          {showDepositToggle && onDepositModeChange && (
+            <div className="flex items-center gap-2">
+              <Label htmlFor="deposit-mode" className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
+                {depositMode ? <Wallet className="h-4 w-4 text-primary" /> : <ShoppingBag className="h-4 w-4" />}
+                {depositMode ? 'Deposit' : 'Regular Sale'}
+              </Label>
+              <Switch
+                id="deposit-mode"
+                checked={depositMode}
+                onCheckedChange={onDepositModeChange}
+              />
+            </div>
+          )}
+        </div>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Staff Member Display - Auto-filled from logged-in user */}
