@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Repeat, Users, User, ReceiptPoundSterling, Coins, KeyRound, ChevronUp, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Repeat, Users, User, ReceiptPoundSterling, Coins, KeyRound, ChevronUp, Wallet, type LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from 'next-themes';
@@ -64,6 +64,12 @@ const coreOperationsItems: NavigationItem[] = [
     url: '/consignments',
     icon: Handshake,
     module: CRM_MODULES.CONSIGNMENTS
+  },
+  {
+    title: 'Deposits',
+    url: '/deposits',
+    icon: Wallet,
+    module: CRM_MODULES.SALES
   }
 ];
 
