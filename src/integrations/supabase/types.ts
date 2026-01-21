@@ -447,6 +447,230 @@ export type Database = {
         }
         Relationships: []
       }
+      deposit_order_items: {
+        Row: {
+          deposit_order_id: number
+          id: number
+          is_custom_order: boolean
+          product_id: number | null
+          product_name: string
+          quantity: number
+          reserved_at: string | null
+          unit_cost: number
+          unit_price: number
+        }
+        Insert: {
+          deposit_order_id: number
+          id?: number
+          is_custom_order?: boolean
+          product_id?: number | null
+          product_name: string
+          quantity?: number
+          reserved_at?: string | null
+          unit_cost?: number
+          unit_price?: number
+        }
+        Update: {
+          deposit_order_id?: number
+          id?: number
+          is_custom_order?: boolean
+          product_id?: number | null
+          product_name?: string
+          quantity?: number
+          reserved_at?: string | null
+          unit_cost?: number
+          unit_price?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposit_order_items_deposit_order_id_fkey"
+            columns: ["deposit_order_id"]
+            isOneToOne: false
+            referencedRelation: "deposit_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_order_items_deposit_order_id_fkey"
+            columns: ["deposit_order_id"]
+            isOneToOne: false
+            referencedRelation: "v_deposit_order_summary"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "products"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_inventory_value"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "deposit_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock_on_hand"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "deposit_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_stock_status"
+            referencedColumns: ["product_id"]
+          },
+          {
+            foreignKeyName: "deposit_order_items_product_id_fkey"
+            columns: ["product_id"]
+            isOneToOne: false
+            referencedRelation: "v_weighted_cost"
+            referencedColumns: ["product_id"]
+          },
+        ]
+      }
+      deposit_orders: {
+        Row: {
+          amount_paid: number
+          balance_due: number | null
+          completed_at: string | null
+          completed_by: string | null
+          created_at: string
+          customer_id: number
+          customer_name: string
+          demo_session_id: string | null
+          expected_date: string | null
+          id: number
+          location_id: number | null
+          notes: string | null
+          sale_id: number | null
+          staff_id: string | null
+          status: string
+          total_amount: number
+        }
+        Insert: {
+          amount_paid?: number
+          balance_due?: number | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          customer_id: number
+          customer_name: string
+          demo_session_id?: string | null
+          expected_date?: string | null
+          id?: number
+          location_id?: number | null
+          notes?: string | null
+          sale_id?: number | null
+          staff_id?: string | null
+          status?: string
+          total_amount?: number
+        }
+        Update: {
+          amount_paid?: number
+          balance_due?: number | null
+          completed_at?: string | null
+          completed_by?: string | null
+          created_at?: string
+          customer_id?: number
+          customer_name?: string
+          demo_session_id?: string | null
+          expected_date?: string | null
+          id?: number
+          location_id?: number | null
+          notes?: string | null
+          sale_id?: number | null
+          staff_id?: string | null
+          status?: string
+          total_amount?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposit_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "v_customer_summary"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "deposit_orders_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_orders_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "v_cash_drawer_balance"
+            referencedColumns: ["location_id"]
+          },
+          {
+            foreignKeyName: "deposit_orders_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      deposit_payments: {
+        Row: {
+          amount: number
+          deposit_order_id: number
+          id: number
+          notes: string | null
+          payment_method: Database["public"]["Enums"]["payment_method"]
+          received_at: string
+          received_by: string | null
+        }
+        Insert: {
+          amount: number
+          deposit_order_id: number
+          id?: number
+          notes?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          received_at?: string
+          received_by?: string | null
+        }
+        Update: {
+          amount?: number
+          deposit_order_id?: number
+          id?: number
+          notes?: string | null
+          payment_method?: Database["public"]["Enums"]["payment_method"]
+          received_at?: string
+          received_by?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposit_payments_deposit_order_id_fkey"
+            columns: ["deposit_order_id"]
+            isOneToOne: false
+            referencedRelation: "deposit_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_payments_deposit_order_id_fkey"
+            columns: ["deposit_order_id"]
+            isOneToOne: false
+            referencedRelation: "v_deposit_order_summary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       expense_receipts: {
         Row: {
           expense_id: number
@@ -1791,6 +2015,67 @@ export type Database = {
         }
         Relationships: []
       }
+      v_deposit_order_summary: {
+        Row: {
+          amount_paid: number | null
+          balance_due: number | null
+          completed_at: string | null
+          created_at: string | null
+          customer_id: number | null
+          customer_name: string | null
+          expected_date: string | null
+          id: number | null
+          item_count: number | null
+          item_names: string | null
+          last_payment_at: string | null
+          location_id: number | null
+          location_name: string | null
+          notes: string | null
+          payment_count: number | null
+          sale_id: number | null
+          staff_id: string | null
+          staff_name: string | null
+          status: string | null
+          total_amount: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposit_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_orders_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "v_customer_summary"
+            referencedColumns: ["customer_id"]
+          },
+          {
+            foreignKeyName: "deposit_orders_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "locations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_orders_location_id_fkey"
+            columns: ["location_id"]
+            isOneToOne: false
+            referencedRelation: "v_cash_drawer_balance"
+            referencedColumns: ["location_id"]
+          },
+          {
+            foreignKeyName: "deposit_orders_sale_id_fkey"
+            columns: ["sale_id"]
+            isOneToOne: false
+            referencedRelation: "sales"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       v_inventory_value: {
         Row: {
           avg_cost: number | null
@@ -2118,6 +2403,8 @@ export type Database = {
         | "adjustment"
         | "return_in"
         | "return_out"
+        | "reserve"
+        | "release"
       user_role: "owner" | "staff" | "manager"
     }
     CompositeTypes: {
@@ -2274,6 +2561,8 @@ export const Constants = {
         "adjustment",
         "return_in",
         "return_out",
+        "reserve",
+        "release",
       ],
       user_role: ["owner", "staff", "manager"],
     },
