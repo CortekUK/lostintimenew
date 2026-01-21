@@ -142,8 +142,9 @@ serve(async (req) => {
   }
 });
 
+// deno-lint-ignore no-explicit-any
 async function fetchAndConvertDocument(
-  supabase: ReturnType<typeof createClient>,
+  supabase: any,
   sourceTable: string,
   sourceId: string
 ): Promise<{ content: string; metadata: Record<string, unknown> } | null> {
@@ -169,8 +170,9 @@ async function fetchAndConvertDocument(
         .eq("product_id", sourceId)
         .single();
 
-      const productWithStock = { ...product, stock_qty: stock?.qty_on_hand || 0 };
-      return productToDocument(productWithStock);
+      const stockData = stock as { qty_on_hand: number } | null;
+      const productWithStock = { ...product, stock_qty: stockData?.qty_on_hand || 0 };
+      return productToDocument(productWithStock as Parameters<typeof productToDocument>[0]);
     }
 
     case "customers": {
