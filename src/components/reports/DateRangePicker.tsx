@@ -32,7 +32,8 @@ export function DateRangePicker({ dateRange, onDateRangeChange }: DateRangePicke
 
   const handlePresetChange = (preset: string) => {
     if (preset === 'custom') {
-      setIsOpen(true);
+      // Use setTimeout to open popover after Select dropdown fully closes
+      setTimeout(() => setIsOpen(true), 100);
       return;
     }
     
