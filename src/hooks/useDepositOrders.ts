@@ -196,13 +196,13 @@ export function useCreateDepositOrder() {
         if (item.product_id) {
           const { error: stockError } = await supabase
             .from('stock_movements')
-            .insert({
-              product_id: item.product_id,
-              quantity: -item.quantity,
-              movement_type: 'reserve',
-              reference: `Deposit Order #${order.id}`,
-              staff_id: user.id,
-            });
+          .insert({
+            product_id: item.product_id,
+            quantity: -item.quantity,
+            movement_type: 'reserve',
+            note: `Deposit Order #${order.id}`,
+            created_by: user.id,
+          });
           if (stockError) throw stockError;
         }
       }
@@ -535,13 +535,13 @@ export function useCancelDepositOrder() {
         if (item.product_id) {
           const { error: stockError } = await supabase
             .from('stock_movements')
-            .insert({
-              product_id: item.product_id,
-              quantity: item.quantity,
-              movement_type: 'release',
-              reference: `Deposit Order #${order.id} cancelled`,
-              staff_id: user.id,
-            });
+          .insert({
+            product_id: item.product_id,
+            quantity: item.quantity,
+            movement_type: 'release',
+            note: `Deposit Order #${order.id} cancelled`,
+            created_by: user.id,
+          });
           if (stockError) throw stockError;
         }
       }
