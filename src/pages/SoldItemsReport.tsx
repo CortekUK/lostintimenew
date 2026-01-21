@@ -36,6 +36,7 @@ import { ProductDetailModal } from '@/components/modals/ProductDetailModal';
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { ConsignmentBadge } from '@/components/ui/consignment-badge';
 import { TradeInBadge } from '@/components/ui/trade-in-badge';
+import { MonthPicker } from '@/components/reports/MonthPicker';
 import type { DateRange } from '@/types';
 
 interface SoldItemsFilters {
@@ -744,6 +745,16 @@ export default function SoldItemsReport() {
                   {filters.flags.registered && <X className="ml-1 h-3 w-3" />}
                 </Button>
               </div>
+            </div>
+            
+            {/* Month Picker Chips */}
+            <div className="mt-4">
+              <Label className="mb-2 block">Quick Month Select</Label>
+              <MonthPicker
+                dateRange={filters.dateRange}
+                onMonthSelect={(range) => setFilters(prev => ({ ...prev, dateRange: range }))}
+                monthsToShow={6}
+              />
             </div>
             
             <div className="flex gap-2 mt-4">
