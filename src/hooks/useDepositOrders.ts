@@ -3,6 +3,35 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { Database } from '@/integrations/supabase/types';
 
+// Pickup date utility functions
+export function isPickupApproaching(expectedDate: string | null): boolean {
+  if (!expectedDate) return false;
+  const expected = new Date(expectedDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  expected.setHours(0, 0, 0, 0);
+  const diffDays = Math.ceil((expected.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+  return diffDays >= 0 && diffDays <= 7;
+}
+
+export function isPickupOverdue(expectedDate: string | null): boolean {
+  if (!expectedDate) return false;
+  const expected = new Date(expectedDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  expected.setHours(0, 0, 0, 0);
+  return expected < today;
+}
+
+export function getDaysUntilPickup(expectedDate: string | null): number | null {
+  if (!expectedDate) return null;
+  const expected = new Date(expectedDate);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  expected.setHours(0, 0, 0, 0);
+  return Math.ceil((expected.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+}
+
 // Types from Supabase
 type DepositOrder = Database['public']['Tables']['deposit_orders']['Row'];
 type DepositOrderUpdate = Database['public']['Tables']['deposit_orders']['Update'];
@@ -619,7 +648,7 @@ export function useDepositOrderStats() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('deposit_orders')
-        .select('status, total_amount, amount_paid, balance_due');
+        .select('status, total_amount, amount_paid, balance_due, expected_date');
 
       if (error) throw error;
 
@@ -627,6 +656,8 @@ export function useDepositOrderStats() {
         pending: { count: 0, totalValue: 0, totalPaid: 0, balanceDue: 0 },
         completed: { count: 0, totalValue: 0 },
         cancelled: { count: 0 },
+        approaching: 0,
+        overdue: 0,
       };
 
       for (const order of data || []) {
@@ -635,6 +666,15 @@ export function useDepositOrderStats() {
           stats.pending.totalValue += order.total_amount || 0;
           stats.pending.totalPaid += order.amount_paid || 0;
           stats.pending.balanceDue += order.balance_due || 0;
+          
+          // Check pickup date status for active orders
+          if (order.expected_date) {
+            if (isPickupOverdue(order.expected_date)) {
+              stats.overdue++;
+            } else if (isPickupApproaching(order.expected_date)) {
+              stats.approaching++;
+            }
+          }
         } else if (order.status === 'completed') {
           stats.completed.count++;
           stats.completed.totalValue += order.total_amount || 0;

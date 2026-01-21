@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { 
   AlertDialog,
   AlertDialogAction,
@@ -35,13 +36,18 @@ import {
   Repeat,
   TrendingUp,
   CreditCard,
-  Pencil
+  Pencil,
+  CalendarClock,
+  AlertCircle
 } from 'lucide-react';
 import { 
   useDepositOrderDetails, 
   useCompleteDepositOrder, 
   useCancelDepositOrder,
-  DepositOrderStatus 
+  DepositOrderStatus,
+  isPickupApproaching,
+  isPickupOverdue,
+  getDaysUntilPickup
 } from '@/hooks/useDepositOrders';
 import { RecordPaymentModal } from '@/components/deposits/RecordPaymentModal';
 import { EditDepositOrderModal } from '@/components/deposits/EditDepositOrderModal';
@@ -157,9 +163,23 @@ export default function DepositOrderDetail() {
     }
   };
 
+  const pickupOverdue = isActive && isPickupOverdue(order.expected_date);
+  const pickupApproaching = isActive && isPickupApproaching(order.expected_date) && !pickupOverdue;
+  const daysUntilPickup = getDaysUntilPickup(order.expected_date);
+
   return (
     <AppLayout>
       <div className="space-y-6">
+        {/* Overdue Alert Banner */}
+        {pickupOverdue && (
+          <Alert variant="destructive">
+            <AlertCircle className="h-4 w-4" />
+            <AlertTitle>Pickup Overdue</AlertTitle>
+            <AlertDescription>
+              This order was expected for pickup on {format(new Date(order.expected_date!), 'PPP')} ({Math.abs(daysUntilPickup || 0)} days ago). Consider contacting the customer.
+            </AlertDescription>
+          </Alert>
+        )}
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -469,12 +489,34 @@ export default function DepositOrderDetail() {
                   <p className="text-sm text-muted-foreground">Created</p>
                   <p className="text-sm">{format(new Date(order.created_at), 'dd MMM yyyy, HH:mm')}</p>
                 </div>
-                {order.expected_date && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Expected Pickup</p>
-                    <p className="text-sm">{format(new Date(order.expected_date), 'dd MMM yyyy')}</p>
-                  </div>
-                )}
+                <div>
+                  <p className="text-sm text-muted-foreground">Expected Pickup</p>
+                  {order.expected_date ? (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <p className="text-sm font-medium">{format(new Date(order.expected_date), 'PPP')}</p>
+                      {pickupOverdue && (
+                        <Badge variant="destructive" className="text-xs">
+                          {Math.abs(daysUntilPickup || 0)}d overdue
+                        </Badge>
+                      )}
+                      {pickupApproaching && (
+                        <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200 text-xs">
+                          {daysUntilPickup === 0 ? 'Today' : `${daysUntilPickup}d left`}
+                        </Badge>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <p className="text-sm text-muted-foreground italic">Not set</p>
+                      {isActive && (
+                        <Button variant="ghost" size="sm" className="h-6 px-2 text-xs" onClick={() => setShowEditModal(true)}>
+                          <Plus className="h-3 w-3 mr-1" />
+                          Add
+                        </Button>
+                      )}
+                    </div>
+                  )}
+                </div>
                 {order.completed_at && (
                   <div>
                     <p className="text-sm text-muted-foreground">Completed</p>

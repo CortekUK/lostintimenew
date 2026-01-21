@@ -23,9 +23,18 @@ import {
   ChevronRight,
   RefreshCw,
   LayoutList,
-  LayoutGrid
+  LayoutGrid,
+  CalendarClock,
+  AlertCircle
 } from 'lucide-react';
-import { useDepositOrders, useDepositOrderStats, DepositOrderStatus } from '@/hooks/useDepositOrders';
+import { 
+  useDepositOrders, 
+  useDepositOrderStats, 
+  DepositOrderStatus,
+  isPickupApproaching,
+  isPickupOverdue,
+  getDaysUntilPickup
+} from '@/hooks/useDepositOrders';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
@@ -69,6 +78,9 @@ function DepositOrderCard({ order, onClick }: { order: any; onClick: () => void 
   const progressPercent = order.total_amount > 0 
     ? Math.round((order.amount_paid / order.total_amount) * 100) 
     : 0;
+  const isOverdue = order.status === 'active' && isPickupOverdue(order.expected_date);
+  const isApproaching = order.status === 'active' && isPickupApproaching(order.expected_date) && !isOverdue;
+  const daysUntil = getDaysUntilPickup(order.expected_date);
 
   return (
     <Card 
@@ -78,7 +90,7 @@ function DepositOrderCard({ order, onClick }: { order: any; onClick: () => void 
       <CardContent className="p-4">
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 flex-wrap">
               <h3 className="font-semibold truncate">
                 {order.customer_name || 'Walk-in Customer'}
               </h3>
@@ -86,6 +98,18 @@ function DepositOrderCard({ order, onClick }: { order: any; onClick: () => void 
                 <StatusIcon className="h-3 w-3" />
                 {config.label}
               </Badge>
+              {isOverdue && (
+                <Badge variant="destructive" className="text-xs shrink-0">
+                  <AlertCircle className="h-3 w-3 mr-1" />
+                  {Math.abs(daysUntil || 0)}d overdue
+                </Badge>
+              )}
+              {isApproaching && (
+                <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200 text-xs shrink-0">
+                  <CalendarClock className="h-3 w-3 mr-1" />
+                  {daysUntil === 0 ? 'Today' : `${daysUntil}d left`}
+                </Badge>
+              )}
             </div>
             <p className="text-sm text-muted-foreground mt-0.5">
               Order #{order.id}
@@ -125,6 +149,12 @@ function DepositOrderCard({ order, onClick }: { order: any; onClick: () => void 
             <Calendar className="h-3 w-3" />
             {format(new Date(order.created_at), 'dd MMM yyyy')}
           </div>
+          {order.expected_date && (
+            <div className="flex items-center gap-1">
+              <CalendarClock className="h-3 w-3" />
+              {format(new Date(order.expected_date), 'dd MMM')}
+            </div>
+          )}
           {order.staff_name && (
             <div className="flex items-center gap-1">
               <User className="h-3 w-3" />
@@ -153,6 +183,7 @@ function DepositOrderTable({ orders, onRowClick }: { orders: any[]; onRowClick: 
             <TableHead>Order #</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Items</TableHead>
+            <TableHead>Expected Pickup</TableHead>
             <TableHead className="text-right">Total</TableHead>
             <TableHead className="text-right">Paid</TableHead>
             <TableHead className="text-right">Balance Due</TableHead>
@@ -163,6 +194,9 @@ function DepositOrderTable({ orders, onRowClick }: { orders: any[]; onRowClick: 
           {orders.map((order) => {
             const config = STATUS_CONFIG[order.status as DepositOrderStatus];
             const StatusIcon = config.icon;
+            const isOverdue = order.status === 'active' && isPickupOverdue(order.expected_date);
+            const isApproaching = order.status === 'active' && isPickupApproaching(order.expected_date) && !isOverdue;
+            const daysUntil = getDaysUntilPickup(order.expected_date);
             
             return (
               <TableRow 
@@ -184,6 +218,25 @@ function DepositOrderTable({ orders, onRowClick }: { orders: any[]; onRowClick: 
                 </TableCell>
                 <TableCell className="max-w-[200px] truncate text-muted-foreground">
                   {order.item_names || 'No items'}
+                </TableCell>
+                <TableCell>
+                  {order.expected_date ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm">{format(new Date(order.expected_date), 'dd MMM yyyy')}</span>
+                      {isOverdue && (
+                        <Badge variant="destructive" className="text-xs">
+                          {Math.abs(daysUntil || 0)}d overdue
+                        </Badge>
+                      )}
+                      {isApproaching && (
+                        <Badge className="bg-amber-100 text-amber-800 dark:bg-amber-900/50 dark:text-amber-200 text-xs">
+                          {daysUntil === 0 ? 'Today' : `${daysUntil}d`}
+                        </Badge>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-muted-foreground text-sm">Not set</span>
+                  )}
                 </TableCell>
                 <TableCell className="text-right font-medium font-luxury">
                   {formatCurrency(order.total_amount || 0)}
@@ -250,10 +303,10 @@ export default function DepositOrders() {
               icon={Clock}
             />
             <StatCard
-              title="Deposits Collected"
-              value={formatCurrency(stats?.pending.totalPaid || 0)}
-              subtitle="From active orders"
-              icon={PoundSterling}
+              title="Upcoming Pickups"
+              value={stats?.approaching || 0}
+              subtitle={stats?.overdue ? `${stats.overdue} overdue` : 'Next 7 days'}
+              icon={CalendarClock}
             />
             <StatCard
               title="Balance Due"
