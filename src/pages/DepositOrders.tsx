@@ -26,9 +26,10 @@ import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
 const STATUS_CONFIG: Record<DepositOrderStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: typeof Clock }> = {
-  pending: { label: 'Pending', variant: 'default', icon: Clock },
+  active: { label: 'Active', variant: 'default', icon: Clock },
   completed: { label: 'Completed', variant: 'secondary', icon: CheckCircle2 },
   cancelled: { label: 'Cancelled', variant: 'destructive', icon: XCircle },
+  expired: { label: 'Expired', variant: 'destructive', icon: XCircle },
 };
 
 // Format currency helper
@@ -114,7 +115,7 @@ function DepositOrderCard({ order, onClick }: { order: any; onClick: () => void 
             <span className="font-medium">{formatCurrency(order.total_amount || 0)}</span>
           </div>
           
-          {order.status === 'pending' && (
+          {order.status === 'active' && (
             <>
               <Progress value={progressPercent} className="h-2" />
               <div className="flex items-center justify-between text-sm">
@@ -155,7 +156,7 @@ function DepositOrderCard({ order, onClick }: { order: any; onClick: () => void 
 
 export default function DepositOrders() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState<'all' | DepositOrderStatus>('pending');
+  const [activeTab, setActiveTab] = useState<'all' | DepositOrderStatus>('active');
   const [searchQuery, setSearchQuery] = useState('');
   
   const { data: orders, isLoading: ordersLoading, refetch } = useDepositOrders(activeTab === 'all' ? undefined : activeTab);
@@ -240,9 +241,9 @@ export default function DepositOrders() {
       {/* Tabs and Content */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
         <TabsList className="mb-4">
-          <TabsTrigger value="pending" className="flex items-center gap-1.5">
+          <TabsTrigger value="active" className="flex items-center gap-1.5">
             <Clock className="h-4 w-4" />
-            Pending
+            Active
             {stats?.pending.count ? (
               <Badge variant="secondary" className="ml-1">{stats.pending.count}</Badge>
             ) : null}
@@ -275,12 +276,12 @@ export default function DepositOrders() {
                 <p className="text-sm text-muted-foreground text-center max-w-sm">
                   {searchQuery 
                     ? 'Try adjusting your search terms'
-                    : activeTab === 'pending'
+                    : activeTab === 'active'
                     ? 'Create a new deposit order to get started'
                     : `No ${activeTab} orders to display`
                   }
                 </p>
-                {!searchQuery && activeTab === 'pending' && (
+                {!searchQuery && activeTab === 'active' && (
                   <Button className="mt-4" onClick={() => navigate('/sales?mode=deposit')}>
                     <Plus className="h-4 w-4 mr-2" />
                     Create Deposit Order

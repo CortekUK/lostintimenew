@@ -45,9 +45,10 @@ import { format } from 'date-fns';
 import { usePermissions } from '@/hooks/usePermissions';
 
 const STATUS_CONFIG: Record<DepositOrderStatus, { label: string; variant: 'default' | 'secondary' | 'destructive'; icon: typeof Clock }> = {
-  pending: { label: 'Pending', variant: 'default', icon: Clock },
+  active: { label: 'Active', variant: 'default', icon: Clock },
   completed: { label: 'Completed', variant: 'secondary', icon: CheckCircle2 },
   cancelled: { label: 'Cancelled', variant: 'destructive', icon: XCircle },
+  expired: { label: 'Expired', variant: 'destructive', icon: XCircle },
 };
 
 const PAYMENT_METHOD_LABELS: Record<string, string> = {
