@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Repeat, Users, User, ReceiptPoundSterling, Coins, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Repeat, Users, User, ReceiptPoundSterling, Coins, KeyRound, ChevronUp, type LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from 'next-themes';
@@ -10,7 +10,10 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { FlyoutSubmenu } from './FlyoutSubmenu';
+import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { useState } from 'react';
 interface SubNavigationItem {
   title: string;
@@ -130,6 +133,7 @@ export function AppSidebar() {
   const currentPath = location.pathname;
   const [salesExpanded, setSalesExpanded] = useState(currentPath.startsWith('/sales'));
   const [productsExpanded, setProductsExpanded] = useState(currentPath.startsWith('/products'));
+  const [showChangePassword, setShowChangePassword] = useState(false);
   const isActive = (path: string) => currentPath === path;
   const getNavClass = ({
     isActive
@@ -243,65 +247,64 @@ export function AppSidebar() {
         </SidebarContent>
 
         <SidebarFooter className="border-t border-[hsl(var(--sidebar-border))] p-3">
-          <div className="space-y-3">
-            {!isCollapsed ? <div className="flex items-center gap-3">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className={`w-full flex items-center gap-3 p-2 rounded-lg transition-all duration-[160ms] hover:bg-[hsl(var(--sidebar-accent))] focus-visible:shadow-[0_0_0_2px_hsl(var(--sidebar-ring))] outline-none ${isCollapsed ? "justify-center" : ""}`}>
                 <Avatar className="h-8 w-8">
                   <AvatarImage src={user?.user_metadata?.avatar_url} />
                   <AvatarFallback className="bg-[hsl(var(--sidebar-primary))] text-[hsl(var(--sidebar-background))] text-xs font-medium">
                     {user?.email ? getUserInitials(user.email) : 'LI'}
                   </AvatarFallback>
                 </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-xs font-medium text-sidebar-foreground truncate">
-                    {user?.email}
-                  </p>
-                  <Badge variant={ROLE_BADGE_VARIANTS[role]} className={role === 'owner' ? 'text-xs mt-0.5 bg-[hsl(var(--sidebar-primary))] text-[hsl(var(--sidebar-background))]' : 'text-xs mt-0.5'}>
+                {!isCollapsed && (
+                  <>
+                    <div className="flex-1 min-w-0 text-left">
+                      <p className="text-xs font-medium text-sidebar-foreground truncate">
+                        {user?.email}
+                      </p>
+                      <Badge variant={ROLE_BADGE_VARIANTS[role]} className={role === 'owner' ? 'text-xs mt-0.5 bg-[hsl(var(--sidebar-primary))] text-[hsl(var(--sidebar-background))]' : 'text-xs mt-0.5'}>
+                        {ROLE_LABELS[role]}
+                      </Badge>
+                    </div>
+                    <ChevronUp className="h-4 w-4 text-muted-foreground" />
+                  </>
+                )}
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent 
+              side={isCollapsed ? "right" : "top"} 
+              align={isCollapsed ? "start" : "center"}
+              className="w-56 mb-2 bg-popover"
+            >
+              <DropdownMenuLabel className="font-normal">
+                <div className="flex flex-col space-y-1">
+                  <p className="text-sm font-medium leading-none">{user?.email}</p>
+                  <p className="text-xs leading-none text-muted-foreground">
                     {ROLE_LABELS[role]}
-                  </Badge>
+                  </p>
                 </div>
-              </div> : <Tooltip>
-                <TooltipTrigger asChild>
-                  <div className="flex justify-center">
-                    <Avatar className="h-8 w-8 cursor-pointer">
-                      <AvatarImage src={user?.user_metadata?.avatar_url} />
-                      <AvatarFallback className="bg-[hsl(var(--sidebar-primary))] text-[hsl(var(--sidebar-background))] text-xs font-medium">
-                        {user?.email ? getUserInitials(user.email) : 'LI'}
-                      </AvatarFallback>
-                    </Avatar>
-                  </div>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p className="font-medium">{user?.email}</p>
-                  <p className="text-xs text-muted-foreground">{ROLE_LABELS[role]}</p>
-                </TooltipContent>
-              </Tooltip>}
-            
-            <div className={isCollapsed ? "flex flex-col gap-1 items-center" : "flex gap-1"}>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')} className={`transition-all duration-[160ms] hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-accent-foreground))] focus-visible:shadow-[0_0_0_2px_hsl(var(--sidebar-ring))] outline-none ${isCollapsed ? "w-11 h-11 p-0" : "flex-1"}`} aria-label="Toggle theme">
-                    {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-                    {!isCollapsed && <span className="ml-2">Theme</span>}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p>Toggle theme</p>
-                </TooltipContent>
-              </Tooltip>
-              
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <Button variant="ghost" size="sm" onClick={signOut} className={`transition-all duration-[160ms] hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-accent-foreground))] focus-visible:shadow-[0_0_0_2px_hsl(var(--sidebar-ring))] outline-none ${isCollapsed ? "w-11 h-11 p-0" : "flex-1"}`} aria-label="Sign out">
-                    <LogOut className="h-4 w-4" />
-                    {!isCollapsed && <span className="ml-2">Sign Out</span>}
-                  </Button>
-                </TooltipTrigger>
-                <TooltipContent side="right">
-                  <p>Sign out</p>
-                </TooltipContent>
-              </Tooltip>
-            </div>
-          </div>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}>
+                {theme === 'dark' ? <Sun className="mr-2 h-4 w-4" /> : <Moon className="mr-2 h-4 w-4" />}
+                <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setShowChangePassword(true)}>
+                <KeyRound className="mr-2 h-4 w-4" />
+                <span>Change Password</span>
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={signOut} className="text-destructive focus:text-destructive">
+                <LogOut className="mr-2 h-4 w-4" />
+                <span>Sign Out</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <ChangePasswordModal 
+            open={showChangePassword} 
+            onOpenChange={setShowChangePassword} 
+          />
         </SidebarFooter>
       </Sidebar>
     </TooltipProvider>;
