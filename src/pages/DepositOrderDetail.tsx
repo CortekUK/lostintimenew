@@ -34,7 +34,8 @@ import {
   ExternalLink,
   Repeat,
   TrendingUp,
-  CreditCard
+  CreditCard,
+  Pencil
 } from 'lucide-react';
 import { 
   useDepositOrderDetails, 
@@ -43,6 +44,7 @@ import {
   DepositOrderStatus 
 } from '@/hooks/useDepositOrders';
 import { RecordPaymentModal } from '@/components/deposits/RecordPaymentModal';
+import { EditDepositOrderModal } from '@/components/deposits/EditDepositOrderModal';
 import { format } from 'date-fns';
 import { usePermissions } from '@/hooks/usePermissions';
 
@@ -74,6 +76,7 @@ export default function DepositOrderDetail() {
   const orderId = id ? parseInt(id, 10) : null;
   
   const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState('');
@@ -177,6 +180,10 @@ export default function DepositOrderDetail() {
           <div className="flex items-center gap-2 ml-11 sm:ml-0">
             {isActive && (
               <>
+                <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}>
+                  <Pencil className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
                 <Button variant="outline" size="sm" onClick={() => setShowPaymentModal(true)}>
                   <Plus className="h-4 w-4 mr-2" />
                   Record Payment
@@ -547,6 +554,13 @@ export default function DepositOrderDetail() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Edit Modal */}
+      <EditDepositOrderModal
+        open={showEditModal}
+        onOpenChange={setShowEditModal}
+        order={order}
+      />
     </AppLayout>
   );
 }
