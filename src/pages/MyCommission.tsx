@@ -105,14 +105,14 @@ export default function MyCommission() {
         
         if (paid >= owed && owed > 0) {
           return (
-            <Badge variant="default" className="bg-green-500/10 text-green-600 border-green-500/20">
+            <Badge variant="default" className="bg-success/10 text-success border-success/20">
               <CheckCircle className="h-3 w-3 mr-1" />
               Paid (£{paid.toFixed(2)})
             </Badge>
           );
         } else if (paid > 0) {
           return (
-            <Badge variant="secondary" className="bg-yellow-500/10 text-yellow-600 border-yellow-500/20">
+            <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
               <AlertCircle className="h-3 w-3 mr-1" />
               Partial (£{paid.toFixed(2)}/£{owed.toFixed(2)})
             </Badge>
@@ -168,14 +168,14 @@ export default function MyCommission() {
     >
       <div className="space-y-6">
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">This Month</CardTitle>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 auto-rows-fr">
+          <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[3.5rem]">
+              <CardTitle className="text-sm font-medium text-muted-foreground">This Month</CardTitle>
               <Calendar className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-primary">
+              <div className="text-2xl font-bold text-[hsl(var(--gold))] tracking-tight">
                 £{(myCurrentMonthData?.commissionOwed || 0).toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -184,13 +184,13 @@ export default function MyCommission() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Outstanding</CardTitle>
-              <AlertCircle className="h-4 w-4 text-yellow-500" />
+          <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[3.5rem]">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Outstanding</CardTitle>
+              <AlertCircle className="h-4 w-4 text-warning" />
             </CardHeader>
             <CardContent>
-              <div className={`text-2xl font-bold ${grandTotals.outstanding > 0 ? 'text-yellow-600' : 'text-muted-foreground'}`}>
+              <div className={`text-2xl font-bold tracking-tight ${grandTotals.outstanding > 0 ? 'text-warning' : 'text-muted-foreground'}`}>
                 £{grandTotals.outstanding.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -199,13 +199,13 @@ export default function MyCommission() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Received</CardTitle>
-              <CheckCircle className="h-4 w-4 text-green-500" />
+          <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[3.5rem]">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Total Received</CardTitle>
+              <CheckCircle className="h-4 w-4 text-success" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-success tracking-tight">
                 £{grandTotals.paid.toFixed(2)}
               </div>
               <p className="text-xs text-muted-foreground">
@@ -214,13 +214,13 @@ export default function MyCommission() {
             </CardContent>
           </Card>
 
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Commission Rate</CardTitle>
+          <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 min-h-[3.5rem]">
+              <CardTitle className="text-sm font-medium text-muted-foreground">Commission Rate</CardTitle>
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold tracking-tight">
                 {commissionRate}%
               </div>
               <p className="text-xs text-muted-foreground">
