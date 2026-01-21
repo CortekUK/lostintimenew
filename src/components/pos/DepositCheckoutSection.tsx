@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { formatCurrency, calculateCartTotals } from '@/lib/utils';
-import type { CartItem, PaymentMethod } from '@/types';
+import type { CartItem, PaymentMethod, PartExchangeItem } from '@/types';
 import { CreditCard, Banknote, Smartphone, Building, Loader2, Wallet } from 'lucide-react';
 import { CustomerSearchInput } from './CustomerSearchInput';
 import { LocationSelector } from '@/components/cash-drawer/LocationSelector';
@@ -17,6 +17,7 @@ import { Textarea } from '@/components/ui/textarea';
 
 interface DepositCheckoutSectionProps {
   items: CartItem[];
+  partExchanges: PartExchangeItem[];
   customerName: string;
   onCustomerNameChange: (name: string) => void;
   customerEmail: string;
@@ -45,6 +46,7 @@ const paymentMethods = [
 
 export function DepositCheckoutSection({
   items,
+  partExchanges,
   customerName,
   onCustomerNameChange,
   customerEmail,
@@ -70,7 +72,7 @@ export function DepositCheckoutSection({
   const { data: locationData } = useLocation(locationLocked && locationId ? locationId : 0);
   const resolvedLocationName = locationData?.name || `Location #${locationId}`;
 
-  // Calculate totals
+  // Calculate totals including part exchanges
   const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
   const totals = calculateCartTotals(
     items.map((item) => ({
@@ -81,9 +83,12 @@ export function DepositCheckoutSection({
     }))
   );
 
+  const partExchangeTotal = partExchanges.reduce((sum, px) => sum + px.allowance, 0);
+  const netOrderTotal = totals.total - partExchangeTotal;
+
   const initialPaymentAmount = parseFloat(initialPayment) || 0;
-  const balanceAfterDeposit = totals.total - initialPaymentAmount;
-  const depositPercentage = totals.total > 0 ? (initialPaymentAmount / totals.total) * 100 : 0;
+  const balanceAfterDeposit = netOrderTotal - initialPaymentAmount;
+  const depositPercentage = netOrderTotal > 0 ? (initialPaymentAmount / netOrderTotal) * 100 : 0;
 
   const canCreate =
     items.length > 0 &&
@@ -91,7 +96,7 @@ export function DepositCheckoutSection({
     staffMember &&
     locationId &&
     initialPaymentAmount > 0 &&
-    initialPaymentAmount <= totals.total &&
+    initialPaymentAmount <= netOrderTotal &&
     !isProcessing &&
     !disabled;
 
@@ -167,10 +172,20 @@ export function DepositCheckoutSection({
 
         {/* Order Summary */}
         <div className="space-y-3 pt-4 border-t">
-          <h4 className="font-semibold text-base">Order Total</h4>
+          <h4 className="font-semibold text-base">Order Summary</h4>
+          <div className="flex justify-between text-sm">
+            <span className="text-muted-foreground">Items Total:</span>
+            <span>{formatCurrency(totals.total)}</span>
+          </div>
+          {partExchangeTotal > 0 && (
+            <div className="flex justify-between text-sm">
+              <span className="text-muted-foreground">Trade-In ({partExchanges.length} item{partExchanges.length !== 1 ? 's' : ''}):</span>
+              <span className="text-green-600">-{formatCurrency(partExchangeTotal)}</span>
+            </div>
+          )}
           <div className="flex justify-between text-lg font-bold">
-            <span>Total Value:</span>
-            <span className="text-primary">{formatCurrency(totals.total)}</span>
+            <span>Net Order Total:</span>
+            <span className="text-primary">{formatCurrency(netOrderTotal)}</span>
           </div>
         </div>
 
@@ -276,9 +291,9 @@ export function DepositCheckoutSection({
           </p>
         )}
 
-        {initialPaymentAmount > totals.total && (
+        {initialPaymentAmount > netOrderTotal && (
           <p className="text-center text-sm text-destructive">
-            Deposit cannot exceed total order value
+            Deposit cannot exceed net order value
           </p>
         )}
       </CardContent>

@@ -167,7 +167,6 @@ export default function DepositOrders() {
     const search = searchQuery.toLowerCase();
     return (
       order.customer_name?.toLowerCase().includes(search) ||
-      order.item_names?.toLowerCase().includes(search) ||
       order.id?.toString().includes(search)
     );
   }) || [];

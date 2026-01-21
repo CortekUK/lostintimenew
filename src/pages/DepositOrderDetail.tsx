@@ -31,7 +31,8 @@ import {
   Plus,
   Trash2,
   Receipt,
-  ExternalLink
+  ExternalLink,
+  Repeat
 } from 'lucide-react';
 import { 
   useDepositOrderDetails, 
@@ -114,8 +115,10 @@ export default function DepositOrderDetail() {
 
   const config = STATUS_CONFIG[order.status as DepositOrderStatus];
   const StatusIcon = config.icon;
-  const progressPercent = order.total_amount > 0 
-    ? Math.round((order.amount_paid / order.total_amount) * 100) 
+  const partExchangeTotal = order.part_exchange_total || 0;
+  const netOrderTotal = order.total_amount - partExchangeTotal;
+  const progressPercent = netOrderTotal > 0 
+    ? Math.round((order.amount_paid / netOrderTotal) * 100) 
     : 0;
   const canManage = role === 'owner' || role === 'manager';
   const isPending = order.status === 'pending';
@@ -231,12 +234,53 @@ export default function DepositOrderDetail() {
 
               <Separator className="my-4" />
 
+              {/* Trade-In Items */}
+              {order.deposit_order_part_exchanges && order.deposit_order_part_exchanges.length > 0 && (
+                <>
+                  <div className="mb-4">
+                    <h4 className="font-semibold flex items-center gap-2 mb-3">
+                      <Repeat className="h-4 w-4" />
+                      Trade-In Items
+                    </h4>
+                    <div className="space-y-2">
+                      {order.deposit_order_part_exchanges.map((px) => (
+                        <div key={px.id} className="flex items-center justify-between py-2 px-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                          <div>
+                            <p className="font-medium text-amber-900 dark:text-amber-200">{px.product_name}</p>
+                            {px.category && (
+                              <p className="text-sm text-amber-700 dark:text-amber-400">{px.category}</p>
+                            )}
+                            {px.serial && (
+                              <p className="text-xs text-muted-foreground">S/N: {px.serial}</p>
+                            )}
+                          </div>
+                          <span className="font-medium text-green-600">-{formatCurrency(px.allowance)}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  <Separator className="my-4" />
+                </>
+              )}
+
               {/* Financial Summary */}
               <div className="space-y-2">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal</span>
+                  <span className="text-muted-foreground">Items Total</span>
                   <span>{formatCurrency(order.total_amount)}</span>
                 </div>
+                {partExchangeTotal > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">Trade-In Allowance</span>
+                    <span className="text-green-600">-{formatCurrency(partExchangeTotal)}</span>
+                  </div>
+                )}
+                {partExchangeTotal > 0 && (
+                  <div className="flex justify-between text-sm font-medium">
+                    <span>Net Order Total</span>
+                    <span>{formatCurrency(netOrderTotal)}</span>
+                  </div>
+                )}
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Amount Paid</span>
                   <span className="text-green-600">{formatCurrency(order.amount_paid)}</span>

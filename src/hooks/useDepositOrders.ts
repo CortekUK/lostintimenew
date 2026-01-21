@@ -14,9 +14,21 @@ export type DepositOrderStatus = 'pending' | 'completed' | 'cancelled';
 export type PaymentMethod = Database['public']['Enums']['payment_method'];
 
 // Extended types with relations
+export interface DepositOrderPartExchange {
+  id: number;
+  deposit_order_id: number;
+  product_name: string;
+  category?: string | null;
+  serial?: string | null;
+  allowance: number;
+  notes?: string | null;
+  created_at: string;
+}
+
 export interface DepositOrderWithDetails extends DepositOrder {
   deposit_order_items?: (DepositOrderItem & { product?: { name: string; sku: string } | null })[];
   deposit_payments?: DepositPayment[];
+  deposit_order_part_exchanges?: DepositOrderPartExchange[];
   customer?: { name: string; email?: string; phone?: string } | null;
 }
 
@@ -32,6 +44,13 @@ export interface CreateDepositOrderParams {
     unit_price: number;
     unit_cost?: number;
     is_custom_order?: boolean;
+  }[];
+  part_exchanges?: {
+    product_name: string;
+    category?: string;
+    serial?: string;
+    allowance: number;
+    notes?: string;
   }[];
   initial_payment?: {
     amount: number;
@@ -83,6 +102,7 @@ export function useDepositOrderDetails(orderId: number | null) {
             product:products (name, sku)
           ),
           deposit_payments (*),
+          deposit_order_part_exchanges (*),
           customer:customers (name, email, phone)
         `)
         .eq('id', orderId)
@@ -105,11 +125,17 @@ export function useCreateDepositOrder() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Calculate total amount
+      // Calculate total amount from items
       const totalAmount = params.items.reduce(
         (sum, item) => sum + item.unit_price * item.quantity,
         0
       );
+
+      // Calculate part exchange total
+      const partExchangeTotal = params.part_exchanges?.reduce(
+        (sum, px) => sum + px.allowance,
+        0
+      ) || 0;
 
       // Create the deposit order
       const { data: order, error: orderError } = await supabase
@@ -119,6 +145,7 @@ export function useCreateDepositOrder() {
           customer_name: params.customer_name || 'Walk-in Customer',
           total_amount: totalAmount,
           amount_paid: 0,
+          part_exchange_total: partExchangeTotal,
           status: 'pending',
           notes: params.notes,
           location_id: params.location_id,
@@ -145,6 +172,24 @@ export function useCreateDepositOrder() {
         .insert(itemsToInsert);
 
       if (itemsError) throw itemsError;
+
+      // Create part exchange records if provided
+      if (params.part_exchanges && params.part_exchanges.length > 0) {
+        const pxToInsert = params.part_exchanges.map((px) => ({
+          deposit_order_id: order.id,
+          product_name: px.product_name,
+          category: px.category || null,
+          serial: px.serial || null,
+          allowance: px.allowance,
+          notes: px.notes || null,
+        }));
+
+        const { error: pxError } = await supabase
+          .from('deposit_order_part_exchanges')
+          .insert(pxToInsert);
+
+        if (pxError) throw pxError;
+      }
 
       // Reserve stock for products
       for (const item of params.items) {
@@ -268,13 +313,14 @@ export function useCompleteDepositOrder() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Get the order with items
+      // Get the order with items and part exchanges
       const { data: order, error: orderError } = await supabase
         .from('deposit_orders')
         .select(`
           *,
           deposit_order_items (*),
-          deposit_payments (*)
+          deposit_payments (*),
+          deposit_order_part_exchanges (*)
         `)
         .eq('id', orderId)
         .single();
@@ -305,19 +351,33 @@ export function useCompleteDepositOrder() {
         }
       }
 
+      // Get "Customer Trade-In" supplier for PX items
+      let tradeInSupplierId: number | null = null;
+      if (order.deposit_order_part_exchanges && order.deposit_order_part_exchanges.length > 0) {
+        const { data: supplier } = await supabase
+          .from('suppliers')
+          .select('id')
+          .eq('name', 'Customer Trade-In')
+          .single();
+        tradeInSupplierId = supplier?.id || null;
+      }
+
       // Create a sale from this deposit order
+      const partExchangeTotal = order.part_exchange_total || 0;
+      const netTotal = order.total_amount - partExchangeTotal;
+      
       const { data: sale, error: saleError } = await supabase
         .from('sales')
         .insert({
           customer_id: order.customer_id,
           customer_name: customerName,
           customer_email: customerEmail,
-          customer_phone: customerPhone,
           subtotal: order.total_amount,
-          discount: 0,
-          tax: 0,
+          discount_total: 0,
+          tax_total: 0,
           total: order.total_amount,
-          payment_method: 'other',
+          part_exchange_total: partExchangeTotal,
+          payment: 'other',
           notes: `Converted from Deposit Order #${order.id}`,
           staff_id: user.id,
           location_id: order.location_id,
@@ -349,18 +409,68 @@ export function useCompleteDepositOrder() {
             product_id: item.product_id,
             quantity: item.quantity,
             movement_type: 'release',
-            reference: `Deposit Order #${order.id} completed`,
-            staff_id: user.id,
+            note: `Deposit Order #${order.id} completed`,
+            created_by: user.id,
           });
 
           // Record the sale movement
           await supabase.from('stock_movements').insert({
             product_id: item.product_id,
-            quantity: -item.quantity,
+            quantity: item.quantity,
             movement_type: 'sale',
-            reference: `Sale #${sale.id}`,
-            staff_id: user.id,
+            related_sale_id: sale.id,
+            note: `Sale #${sale.id}`,
+            created_by: user.id,
           });
+        }
+      }
+
+      // Create part exchange records and products
+      const pxItems = order.deposit_order_part_exchanges as DepositOrderPartExchange[] | undefined;
+      if (pxItems && pxItems.length > 0) {
+        for (const px of pxItems) {
+          // Create product for the trade-in item
+          // Note: internal_sku is auto-generated by database trigger
+          const { data: newProduct, error: productError } = await supabase
+            .from('products')
+            .insert({
+              name: px.product_name,
+              category: px.category || null,
+              unit_price: 0,
+              unit_cost: px.allowance,
+              supplier_id: tradeInSupplierId,
+              is_trade_in: true,
+              track_stock: true,
+              location_id: order.location_id,
+              internal_sku: '', // Will be auto-generated by trigger
+            } as any)
+            .select()
+            .single();
+
+          if (productError) throw productError;
+
+          // Create stock movement for receiving the trade-in
+          await supabase.from('stock_movements').insert([{
+            product_id: newProduct.id,
+            quantity: 1,
+            movement_type: 'purchase' as const,
+            unit_cost: px.allowance,
+            note: `Trade-in from Sale #${sale.id}`,
+            created_by: user.id,
+          }]);
+
+          // Create part_exchanges record linked to sale
+          await supabase.from('part_exchanges').insert([{
+            sale_id: sale.id,
+            product_id: newProduct.id,
+            title: px.product_name,
+            category: px.category,
+            serial: px.serial,
+            allowance: px.allowance,
+            notes: px.notes,
+            customer_name: customerName,
+            status: 'pending',
+          }]);
         }
       }
 
@@ -382,6 +492,7 @@ export function useCompleteDepositOrder() {
       queryClient.invalidateQueries({ queryKey: ['deposit-orders'] });
       queryClient.invalidateQueries({ queryKey: ['sales'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
+      queryClient.invalidateQueries({ queryKey: ['part-exchanges'] });
       toast({
         title: 'Order completed',
         description: 'The deposit order has been converted to a sale.',
