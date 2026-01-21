@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { AppLayout } from '@/components/layout/AppLayout';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Progress } from '@/components/ui/progress';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { 
   Plus, 
   Search, 
@@ -19,7 +21,9 @@ import {
   User,
   Calendar,
   ChevronRight,
-  RefreshCw
+  RefreshCw,
+  LayoutList,
+  LayoutGrid
 } from 'lucide-react';
 import { useDepositOrders, useDepositOrderStats, DepositOrderStatus } from '@/hooks/useDepositOrders';
 import { format } from 'date-fns';
@@ -32,7 +36,6 @@ const STATUS_CONFIG: Record<DepositOrderStatus, { label: string; variant: 'defau
   expired: { label: 'Expired', variant: 'destructive', icon: XCircle },
 };
 
-// Format currency helper
 const formatCurrency = (value: number) => {
   return new Intl.NumberFormat('en-GB', {
     style: 'currency',
@@ -40,32 +43,21 @@ const formatCurrency = (value: number) => {
   }).format(value);
 };
 
-function StatCard({ title, value, subtitle, icon: Icon, variant = 'default' }: { 
+function StatCard({ title, value, subtitle, icon: Icon }: { 
   title: string; 
   value: string | number; 
   subtitle?: string;
   icon: typeof Wallet;
-  variant?: 'default' | 'success' | 'warning';
 }) {
-  const bgClass = variant === 'success' 
-    ? 'bg-green-500/10 text-green-600 dark:text-green-400' 
-    : variant === 'warning'
-    ? 'bg-amber-500/10 text-amber-600 dark:text-amber-400'
-    : 'bg-primary/10 text-primary';
-
   return (
-    <Card>
-      <CardContent className="p-4">
-        <div className="flex items-start justify-between">
-          <div>
-            <p className="text-sm text-muted-foreground">{title}</p>
-            <p className="text-2xl font-bold mt-1">{value}</p>
-            {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
-          </div>
-          <div className={`p-2 rounded-lg ${bgClass}`}>
-            <Icon className="h-5 w-5" />
-          </div>
-        </div>
+    <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 min-h-[3.5rem]">
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
+      </CardHeader>
+      <CardContent>
+        <p className="text-2xl font-bold font-luxury">{value}</p>
+        {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
       </CardContent>
     </Card>
   );
@@ -80,7 +72,7 @@ function DepositOrderCard({ order, onClick }: { order: any; onClick: () => void 
 
   return (
     <Card 
-      className="cursor-pointer hover:shadow-md transition-shadow group"
+      className="cursor-pointer shadow-card hover:shadow-elegant transition-all duration-300 group"
       onClick={onClick}
     >
       <CardContent className="p-4">
@@ -102,17 +94,15 @@ function DepositOrderCard({ order, onClick }: { order: any; onClick: () => void 
           <ChevronRight className="h-5 w-5 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity shrink-0" />
         </div>
 
-        {/* Items summary */}
         <div className="flex items-center gap-2 text-sm text-muted-foreground mb-3">
           <Package className="h-4 w-4" />
           <span className="truncate">{order.item_names || 'No items'}</span>
         </div>
 
-        {/* Financial summary */}
         <div className="space-y-2">
           <div className="flex items-center justify-between text-sm">
             <span className="text-muted-foreground">Total</span>
-            <span className="font-medium">{formatCurrency(order.total_amount || 0)}</span>
+            <span className="font-medium font-luxury">{formatCurrency(order.total_amount || 0)}</span>
           </div>
           
           {order.status === 'active' && (
@@ -122,7 +112,7 @@ function DepositOrderCard({ order, onClick }: { order: any; onClick: () => void 
                 <span className="text-muted-foreground">
                   Paid: {formatCurrency(order.amount_paid || 0)}
                 </span>
-                <span className="font-medium text-primary">
+                <span className="font-medium text-primary font-luxury">
                   Due: {formatCurrency(order.balance_due || 0)}
                 </span>
               </div>
@@ -130,7 +120,6 @@ function DepositOrderCard({ order, onClick }: { order: any; onClick: () => void 
           )}
         </div>
 
-        {/* Footer */}
         <div className="flex items-center justify-between mt-3 pt-3 border-t text-xs text-muted-foreground">
           <div className="flex items-center gap-1">
             <Calendar className="h-3 w-3" />
@@ -154,15 +143,80 @@ function DepositOrderCard({ order, onClick }: { order: any; onClick: () => void 
   );
 }
 
+function DepositOrderTable({ orders, onRowClick }: { orders: any[]; onRowClick: (id: number) => void }) {
+  return (
+    <div className="rounded-md border">
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Customer</TableHead>
+            <TableHead>Order #</TableHead>
+            <TableHead>Status</TableHead>
+            <TableHead>Items</TableHead>
+            <TableHead className="text-right">Total</TableHead>
+            <TableHead className="text-right">Paid</TableHead>
+            <TableHead className="text-right">Balance Due</TableHead>
+            <TableHead>Created</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {orders.map((order) => {
+            const config = STATUS_CONFIG[order.status as DepositOrderStatus];
+            const StatusIcon = config.icon;
+            
+            return (
+              <TableRow 
+                key={order.id} 
+                className="cursor-pointer hover:bg-muted/50"
+                onClick={() => onRowClick(order.id)}
+              >
+                <TableCell className="font-medium">
+                  {order.customer_name || 'Walk-in Customer'}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  #{order.id}
+                </TableCell>
+                <TableCell>
+                  <Badge variant={config.variant} className="flex items-center gap-1 w-fit">
+                    <StatusIcon className="h-3 w-3" />
+                    {config.label}
+                  </Badge>
+                </TableCell>
+                <TableCell className="max-w-[200px] truncate text-muted-foreground">
+                  {order.item_names || 'No items'}
+                </TableCell>
+                <TableCell className="text-right font-medium font-luxury">
+                  {formatCurrency(order.total_amount || 0)}
+                </TableCell>
+                <TableCell className="text-right text-muted-foreground">
+                  {formatCurrency(order.amount_paid || 0)}
+                </TableCell>
+                <TableCell className="text-right">
+                  <span className={order.balance_due > 0 ? 'text-primary font-medium font-luxury' : 'text-green-600'}>
+                    {formatCurrency(order.balance_due || 0)}
+                  </span>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {format(new Date(order.created_at), 'dd MMM yyyy')}
+                </TableCell>
+              </TableRow>
+            );
+          })}
+        </TableBody>
+      </Table>
+    </div>
+  );
+}
+
 export default function DepositOrders() {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState<'all' | DepositOrderStatus>('active');
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
   
   const { data: orders, isLoading: ordersLoading, refetch } = useDepositOrders(activeTab === 'all' ? undefined : activeTab);
   const { data: stats, isLoading: statsLoading } = useDepositOrderStats();
 
-  // Filter orders by search query
   const filteredOrders = orders?.filter(order => {
     if (!searchQuery) return true;
     const search = searchQuery.toLowerCase();
@@ -171,6 +225,10 @@ export default function DepositOrders() {
       order.id?.toString().includes(search)
     );
   }) || [];
+
+  const handleRowClick = (id: number) => {
+    navigate(`/deposits/${id}`);
+  };
 
   return (
     <AppLayout title="Deposit Orders" subtitle="Manage layaway and deposit-based orders">
@@ -196,21 +254,18 @@ export default function DepositOrders() {
               value={formatCurrency(stats?.pending.totalPaid || 0)}
               subtitle="From active orders"
               icon={PoundSterling}
-              variant="success"
             />
             <StatCard
               title="Balance Due"
               value={formatCurrency(stats?.pending.balanceDue || 0)}
               subtitle="Outstanding from active orders"
               icon={Wallet}
-              variant="warning"
             />
             <StatCard
               title="Completed"
               value={stats?.completed.count || 0}
               subtitle={`${formatCurrency(stats?.completed.totalValue || 0)} converted to sales`}
               icon={CheckCircle2}
-              variant="success"
             />
           </>
         )}
@@ -221,13 +276,21 @@ export default function DepositOrders() {
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search by customer, order ID, or items..."
+            placeholder="Search by customer or order ID..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
           />
         </div>
         <div className="flex gap-2">
+          <ToggleGroup type="single" value={viewMode} onValueChange={(v) => v && setViewMode(v as 'list' | 'grid')}>
+            <ToggleGroupItem value="list" aria-label="List view">
+              <LayoutList className="h-4 w-4" />
+            </ToggleGroupItem>
+            <ToggleGroupItem value="grid" aria-label="Grid view">
+              <LayoutGrid className="h-4 w-4" />
+            </ToggleGroupItem>
+          </ToggleGroup>
           <Button variant="outline" size="icon" onClick={() => refetch()}>
             <RefreshCw className="h-4 w-4" />
           </Button>
@@ -261,13 +324,21 @@ export default function DepositOrders() {
 
         <TabsContent value={activeTab} className="mt-0">
           {ordersLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {[...Array(6)].map((_, i) => (
-                <Skeleton key={i} className="h-48" />
-              ))}
-            </div>
+            viewMode === 'list' ? (
+              <div className="space-y-2">
+                {[...Array(5)].map((_, i) => (
+                  <Skeleton key={i} className="h-14 w-full" />
+                ))}
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {[...Array(6)].map((_, i) => (
+                  <Skeleton key={i} className="h-48" />
+                ))}
+              </div>
+            )
           ) : filteredOrders.length === 0 ? (
-            <Card>
+            <Card className="shadow-card">
               <CardContent className="flex flex-col items-center justify-center py-12">
                 <div className="rounded-full bg-muted p-3 mb-4">
                   <Wallet className="h-6 w-6 text-muted-foreground" />
@@ -289,6 +360,8 @@ export default function DepositOrders() {
                 )}
               </CardContent>
             </Card>
+          ) : viewMode === 'list' ? (
+            <DepositOrderTable orders={filteredOrders} onRowClick={handleRowClick} />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredOrders.map((order) => (
