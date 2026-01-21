@@ -17,7 +17,7 @@ import { LocationSelector } from '@/components/cash-drawer/LocationSelector';
 import { Badge } from '@/components/ui/badge';
 import { MapPin } from 'lucide-react';
 import { useLocation } from '@/hooks/useLocations';
-import { Switch } from '@/components/ui/switch';
+
 
 export type DiscountType = 'percentage' | 'fixed';
 
@@ -143,20 +143,34 @@ export function CheckoutForm({
   const canCompleteSale = (items.length > 0 || partExchanges.length > 0) && paymentMethod && staffMember && locationId && customerName.trim() && !isProcessing && (!requiresOwnerApproval || netTotal >= 0) && !disabled;
   return <Card className="shadow-card">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-4">
           <CardTitle className="font-luxury">Checkout</CardTitle>
           {showDepositToggle && onDepositModeChange && (
-            <div className="flex items-center gap-2">
-              <Label htmlFor="deposit-mode" className="text-sm font-medium cursor-pointer flex items-center gap-1.5">
-                {depositMode ? <Wallet className="h-4 w-4 text-primary" /> : <ShoppingBag className="h-4 w-4" />}
-                {depositMode ? 'Deposit' : 'Regular Sale'}
-              </Label>
-              <Switch
-                id="deposit-mode"
-                checked={depositMode}
-                onCheckedChange={onDepositModeChange}
-              />
-            </div>
+            <ToggleGroup
+              type="single"
+              value={depositMode ? 'deposit' : 'sale'}
+              onValueChange={(value) => {
+                if (value) onDepositModeChange(value === 'deposit');
+              }}
+              className="bg-muted/50 p-1 rounded-lg"
+            >
+              <ToggleGroupItem 
+                value="sale" 
+                aria-label="Complete sale now"
+                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
+              >
+                <ShoppingBag className="h-4 w-4" />
+                <span className="text-sm">Complete Sale</span>
+              </ToggleGroupItem>
+              <ToggleGroupItem 
+                value="deposit" 
+                aria-label="Create deposit order"
+                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
+              >
+                <Wallet className="h-4 w-4" />
+                <span className="text-sm">Deposit Order</span>
+              </ToggleGroupItem>
+            </ToggleGroup>
           )}
         </div>
       </CardHeader>
