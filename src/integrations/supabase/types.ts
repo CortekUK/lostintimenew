@@ -130,6 +130,36 @@ export type Database = {
           },
         ]
       }
+      chat_messages: {
+        Row: {
+          content: string
+          conversation_id: string | null
+          created_at: string | null
+          id: number
+          role: string
+          sources: Json | null
+          user_id: string | null
+        }
+        Insert: {
+          content: string
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: number
+          role: string
+          sources?: Json | null
+          user_id?: string | null
+        }
+        Update: {
+          content?: string
+          conversation_id?: string | null
+          created_at?: string | null
+          id?: number
+          role?: string
+          sources?: Json | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       commission_payments: {
         Row: {
           commission_amount: number
@@ -1093,6 +1123,69 @@ export type Database = {
         }
         Relationships: []
       }
+      rag_documents: {
+        Row: {
+          content: string
+          created_at: string | null
+          embedding: string | null
+          id: number
+          metadata: Json | null
+          source_id: string
+          source_table: string
+          updated_at: string | null
+        }
+        Insert: {
+          content: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: number
+          metadata?: Json | null
+          source_id: string
+          source_table: string
+          updated_at?: string | null
+        }
+        Update: {
+          content?: string
+          created_at?: string | null
+          embedding?: string | null
+          id?: number
+          metadata?: Json | null
+          source_id?: string
+          source_table?: string
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
+      rag_sync_queue: {
+        Row: {
+          action: string
+          created_at: string | null
+          error_message: string | null
+          id: number
+          processed_at: string | null
+          source_id: string
+          source_table: string
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: number
+          processed_at?: string | null
+          source_id: string
+          source_table: string
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          error_message?: string | null
+          id?: number
+          processed_at?: string | null
+          source_id?: string
+          source_table?: string
+        }
+        Relationships: []
+      }
       sale_items: {
         Row: {
           discount: number
@@ -1964,6 +2057,22 @@ export type Database = {
       is_owner: { Args: { uid: string }; Returns: boolean }
       is_owner_or_manager: { Args: { uid: string }; Returns: boolean }
       is_staff: { Args: { uid: string }; Returns: boolean }
+      match_documents: {
+        Args: {
+          filter_tables?: string[]
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          content: string
+          id: number
+          metadata: Json
+          similarity: number
+          source_id: string
+          source_table: string
+        }[]
+      }
       search_everything: {
         Args: { lim?: number; q: string; scope?: string }
         Returns: {

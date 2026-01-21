@@ -71,17 +71,17 @@ export function CommissionPaymentHistory({ staffId }: CommissionPaymentHistoryPr
       key: 'paid_at',
       title: 'Date',
       sortable: true,
-      render: (payment) => format(new Date(payment.paid_at), 'dd MMM yyyy'),
+      render: (value) => format(new Date(value as string), 'dd MMM yyyy'),
     },
     {
       key: 'staff',
       title: 'Staff Member',
-      render: (payment) => payment.staff?.full_name || payment.staff?.email || 'Unknown',
+      render: (_, payment) => payment.staff?.full_name || payment.staff?.email || 'Unknown',
     },
     {
       key: 'period',
       title: 'Period',
-      render: (payment) => (
+      render: (_, payment) => (
         <span className="text-sm text-muted-foreground">
           {format(new Date(payment.period_start), 'dd MMM')} – {format(new Date(payment.period_end), 'dd MMM yyyy')}
         </span>
@@ -92,27 +92,27 @@ export function CommissionPaymentHistory({ staffId }: CommissionPaymentHistoryPr
       title: 'Amount',
       sortable: true,
       align: 'right',
-      render: (payment) => (
-        <span className="font-medium text-green-600">£{Number(payment.commission_amount).toFixed(2)}</span>
+      render: (value) => (
+        <span className="font-medium text-green-600">£{Number(value).toFixed(2)}</span>
       ),
     },
     {
       key: 'payment_method',
       title: 'Method',
-      render: (payment) => (
-        <span>{formatPaymentMethod(payment.payment_method)}</span>
+      render: (value) => (
+        <span>{formatPaymentMethod(value as string)}</span>
       ),
     },
     {
       key: 'paid_by_profile',
       title: 'Paid By',
-      render: (payment) => payment.paid_by_profile?.full_name || 'Unknown',
+      render: (_, payment) => payment.paid_by_profile?.full_name || 'Unknown',
     },
     {
       key: 'actions',
       title: '',
       align: 'right',
-      render: (payment) => (
+      render: (_, payment) => (
         <Button
           variant="ghost"
           size="sm"

@@ -101,6 +101,7 @@ Important rules:
 
   } catch (error) {
     console.error('Product AI suggestions error:', error);
-    return errorResponse(error.message || 'Failed to get AI suggestions', 500);
+    const message = error instanceof Error ? error.message : 'Failed to get AI suggestions';
+    return errorResponse(message, 500);
   }
 });

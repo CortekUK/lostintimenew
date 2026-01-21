@@ -233,7 +233,8 @@ serve(async (req) => {
   }
 });
 
-async function fetchAggregateData(supabase: ReturnType<typeof createClient>): Promise<string> {
+// deno-lint-ignore no-explicit-any
+async function fetchAggregateData(supabase: any): Promise<string> {
   const parts: string[] = [];
 
   try {
@@ -251,7 +252,7 @@ async function fetchAggregateData(supabase: ReturnType<typeof createClient>): Pr
       .eq("is_voided", false);
 
     if (todaySales) {
-      const todayTotal = todaySales.reduce((sum, s) => sum + (s.total || 0), 0);
+      const todayTotal = (todaySales as Array<{ total: number }>).reduce((sum, s) => sum + (s.total || 0), 0);
       parts.push(`Today's sales: £${todayTotal.toFixed(2)} from ${todaySales.length} transactions`);
     }
 
@@ -261,7 +262,7 @@ async function fetchAggregateData(supabase: ReturnType<typeof createClient>): Pr
       .select("inventory_value");
 
     if (inventoryValue) {
-      const totalValue = inventoryValue.reduce((sum, i) => sum + (i.inventory_value || 0), 0);
+      const totalValue = (inventoryValue as Array<{ inventory_value: number }>).reduce((sum, i) => sum + (i.inventory_value || 0), 0);
       parts.push(`Total inventory value: £${totalValue.toFixed(2)}`);
     }
 
@@ -313,7 +314,7 @@ async function fetchAggregateData(supabase: ReturnType<typeof createClient>): Pr
       .eq("is_voided", false);
 
     if (weeklySales) {
-      const weeklyTotal = weeklySales.reduce((sum, s) => sum + (s.total || 0), 0);
+      const weeklyTotal = (weeklySales as Array<{ total: number }>).reduce((sum, s) => sum + (s.total || 0), 0);
       parts.push(`This week's sales: £${weeklyTotal.toFixed(2)} from ${weeklySales.length} transactions`);
     }
 
@@ -328,8 +329,9 @@ async function fetchAggregateData(supabase: ReturnType<typeof createClient>): Pr
       .gte("incurred_at", startOfMonth.toISOString());
 
     if (monthlyExpenses && monthlyExpenses.length > 0) {
-      const expenseTotal = monthlyExpenses.reduce((sum, e) => sum + (e.amount || 0), 0);
-      const byCategory = monthlyExpenses.reduce((acc, e) => {
+      const expenses = monthlyExpenses as Array<{ amount: number; category: string }>;
+      const expenseTotal = expenses.reduce((sum, e) => sum + (e.amount || 0), 0);
+      const byCategory = expenses.reduce((acc, e) => {
         acc[e.category] = (acc[e.category] || 0) + (e.amount || 0);
         return acc;
       }, {} as Record<string, number>);
