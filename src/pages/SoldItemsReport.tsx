@@ -839,15 +839,22 @@ export default function SoldItemsReport() {
             {/* Totals Bar */}
             {filteredItems.length > 0 && (
               <div className="mt-6 p-4 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-lg border border-primary/20">
-                <div className="flex justify-between items-center">
-                  <span className="font-semibold text-primary">Current Filter Totals:</span>
-                  <div className="flex gap-8 text-sm font-medium">
-                    <span className="text-success">Revenue: <strong className="text-lg">£{totals.revenue.toFixed(2)}</strong></span>
-                    <span>COGS: <strong className="text-lg">£{totals.cogs.toFixed(2)}</strong></span>
-                    <span className={totals.profit >= 0 ? 'text-primary' : 'text-destructive'}>
-                      GP: <strong className="text-lg">£{totals.profit.toFixed(2)}</strong> 
-                      <span className="ml-1 text-xs">({totals.revenue > 0 ? `${((totals.profit / totals.revenue) * 100).toFixed(1)}%` : '0%'})</span>
-                    </span>
+                <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
+                  <span className="font-semibold text-primary text-sm sm:text-base">Current Filter Totals:</span>
+                  <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-6 text-xs sm:text-sm font-medium">
+                    <div className="text-success">
+                      <span className="block sm:inline text-muted-foreground text-xs">Revenue</span>
+                      <strong className="text-base sm:text-lg block sm:inline sm:ml-1">£{totals.revenue.toFixed(2)}</strong>
+                    </div>
+                    <div>
+                      <span className="block sm:inline text-muted-foreground text-xs">COGS</span>
+                      <strong className="text-base sm:text-lg block sm:inline sm:ml-1">£{totals.cogs.toFixed(2)}</strong>
+                    </div>
+                    <div className={totals.profit >= 0 ? 'text-primary' : 'text-destructive'}>
+                      <span className="block sm:inline text-muted-foreground text-xs">GP</span>
+                      <strong className="text-base sm:text-lg block sm:inline sm:ml-1">£{totals.profit.toFixed(2)}</strong>
+                      <span className="text-xs ml-1 hidden sm:inline">({totals.revenue > 0 ? `${((totals.profit / totals.revenue) * 100).toFixed(1)}%` : '0%'})</span>
+                    </div>
                   </div>
                 </div>
               </div>
