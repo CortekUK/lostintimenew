@@ -533,6 +533,54 @@ export type Database = {
           },
         ]
       }
+      deposit_order_part_exchanges: {
+        Row: {
+          allowance: number
+          category: string | null
+          created_at: string
+          deposit_order_id: number
+          id: number
+          notes: string | null
+          product_name: string
+          serial: string | null
+        }
+        Insert: {
+          allowance?: number
+          category?: string | null
+          created_at?: string
+          deposit_order_id: number
+          id?: number
+          notes?: string | null
+          product_name: string
+          serial?: string | null
+        }
+        Update: {
+          allowance?: number
+          category?: string | null
+          created_at?: string
+          deposit_order_id?: number
+          id?: number
+          notes?: string | null
+          product_name?: string
+          serial?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "deposit_order_part_exchanges_deposit_order_id_fkey"
+            columns: ["deposit_order_id"]
+            isOneToOne: false
+            referencedRelation: "deposit_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "deposit_order_part_exchanges_deposit_order_id_fkey"
+            columns: ["deposit_order_id"]
+            isOneToOne: false
+            referencedRelation: "v_deposit_order_summary"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       deposit_orders: {
         Row: {
           amount_paid: number
@@ -547,6 +595,7 @@ export type Database = {
           id: number
           location_id: number | null
           notes: string | null
+          part_exchange_total: number
           sale_id: number | null
           staff_id: string | null
           status: string
@@ -565,6 +614,7 @@ export type Database = {
           id?: number
           location_id?: number | null
           notes?: string | null
+          part_exchange_total?: number
           sale_id?: number | null
           staff_id?: string | null
           status?: string
@@ -583,6 +633,7 @@ export type Database = {
           id?: number
           location_id?: number | null
           notes?: string | null
+          part_exchange_total?: number
           sale_id?: number | null
           staff_id?: string | null
           status?: string
@@ -2021,16 +2072,18 @@ export type Database = {
           balance_due: number | null
           completed_at: string | null
           created_at: string | null
+          customer_email: string | null
           customer_id: number | null
           customer_name: string | null
+          customer_phone: string | null
           expected_date: string | null
           id: number | null
           item_count: number | null
-          item_names: string | null
-          last_payment_at: string | null
           location_id: number | null
           location_name: string | null
           notes: string | null
+          part_exchange_count: number | null
+          part_exchange_total: number | null
           payment_count: number | null
           sale_id: number | null
           staff_id: string | null

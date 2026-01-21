@@ -532,6 +532,13 @@ export default function EnhancedSales() {
           unit_cost: item.product.unit_cost,
           is_custom_order: false,
         })),
+        part_exchanges: partExchanges.map(px => ({
+          product_name: px.product_name,
+          category: px.category,
+          serial: px.serial,
+          allowance: px.allowance,
+          notes: px.notes,
+        })),
         initial_payment: {
           amount: initialPayment,
           payment_method: paymentMethod,
@@ -592,12 +599,12 @@ export default function EnhancedSales() {
           <div className="xl:col-span-1">
             <ShoppingCartComponent
               items={cart}
-              partExchanges={depositMode ? [] : partExchanges}
+              partExchanges={partExchanges}
               onUpdateQuantity={updateQuantity}
               onRemoveItem={removeFromCart}
               onRemovePartExchange={removePartExchange}
               onEditPartExchange={editPartExchange}
-              onAddPartExchange={depositMode ? undefined : () => setShowPartExchangeModal(true)}
+              onAddPartExchange={() => setShowPartExchangeModal(true)}
               discount={depositMode ? 0 : discount}
               discountType={discountType}
             />
@@ -608,6 +615,7 @@ export default function EnhancedSales() {
             {depositMode ? (
               <DepositCheckoutSection
                 items={cart}
+                partExchanges={partExchanges}
                 customerName={customerName}
                 onCustomerNameChange={setCustomerName}
                 customerEmail={customerEmail}
@@ -670,9 +678,8 @@ export default function EnhancedSales() {
                 depositMode={depositMode}
                 onDepositModeChange={(enabled) => {
                   setDepositMode(enabled);
-                  // Clear part exchanges when switching to deposit mode
+                  // Clear discount when switching to deposit mode (no discounts on deposits)
                   if (enabled) {
-                    setPartExchanges([]);
                     setDiscount(0);
                   }
                 }}
