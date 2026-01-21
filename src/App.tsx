@@ -35,6 +35,7 @@ import EnhancedAnalytics from "./pages/EnhancedAnalytics";
 import Consignments from "./pages/Consignments";
 import PartExchangeIntake from "./pages/PartExchangeIntake";
 import DepositOrders from "./pages/DepositOrders";
+import DepositOrderDetail from "./pages/DepositOrderDetail";
 import Settings from "./pages/Settings";
 import Auth from "./pages/Auth";
 import Receipt from "./pages/Receipt";
@@ -79,6 +80,7 @@ function AppInner() {
           <Route path="/customers/:id" element={<ProtectedRoute module="customers"><CustomerDetail /></ProtectedRoute>} />
           <Route path="/consignments" element={<ProtectedRoute module="consignments"><Consignments /></ProtectedRoute>} />
           <Route path="/deposits" element={<ProtectedRoute module="sales"><DepositOrders /></ProtectedRoute>} />
+          <Route path="/deposits/:id" element={<ProtectedRoute module="sales"><DepositOrderDetail /></ProtectedRoute>} />
           <Route path="/sales" element={<ProtectedRoute module="sales"><EnhancedSales /></ProtectedRoute>} />
           <Route path="/sales/my-sales" element={<ProtectedRoute module="sales"><MySales /></ProtectedRoute>} />
           <Route path="/sales/my-commission" element={<ProtectedRoute module="sales"><MyCommission /></ProtectedRoute>} />
