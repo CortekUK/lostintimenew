@@ -114,7 +114,7 @@ export function RecordPaymentModal({
                 className="h-auto p-0 text-xs"
                 onClick={() => setAmount(balanceDue.toString())}
               >
-                Pay full balance
+                Pay Full Balance
               </Button>
             </div>
             <div className="relative">
