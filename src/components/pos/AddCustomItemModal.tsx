@@ -6,7 +6,9 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CurrencyInput } from '@/components/ui/currency-input';
+import { Separator } from '@/components/ui/separator';
 import { Sparkles, Plus, Minus } from 'lucide-react';
+import { useAllProductCategories } from '@/hooks/useProductCategories';
 
 export interface CustomItemData {
   id: string;
@@ -26,18 +28,6 @@ interface AddCustomItemModalProps {
   onAdd: (item: CustomItemData) => void;
 }
 
-const CATEGORIES = [
-  'Ring',
-  'Necklace',
-  'Bracelet',
-  'Earrings',
-  'Watch',
-  'Pendant',
-  'Brooch',
-  'Cufflinks',
-  'Other',
-];
-
 export function AddCustomItemModal({ open, onOpenChange, onAdd }: AddCustomItemModalProps) {
   const [productName, setProductName] = useState('');
   const [category, setCategory] = useState('');
@@ -45,6 +35,8 @@ export function AddCustomItemModal({ open, onOpenChange, onAdd }: AddCustomItemM
   const [unitPrice, setUnitPrice] = useState('');
   const [unitCost, setUnitCost] = useState('');
   const [quantity, setQuantity] = useState(1);
+
+  const { all: categories } = useAllProductCategories();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -62,7 +54,7 @@ export function AddCustomItemModal({ open, onOpenChange, onAdd }: AddCustomItemM
       quantity,
       unit_price: price,
       unit_cost: cost,
-      tax_rate: 0, // Custom items typically don't have tax pre-configured
+      tax_rate: 0,
       is_custom: true,
     };
 
@@ -90,9 +82,9 @@ export function AddCustomItemModal({ open, onOpenChange, onAdd }: AddCustomItemM
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
+      <DialogContent className="sm:max-w-md p-0">
+        <DialogHeader className="px-6 pt-6 pb-4">
+          <DialogTitle className="font-luxury text-2xl flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-purple-500" />
             Add Custom Item
           </DialogTitle>
@@ -101,97 +93,129 @@ export function AddCustomItemModal({ open, onOpenChange, onAdd }: AddCustomItemM
           </DialogDescription>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Item Name */}
-          <div className="space-y-2">
-            <Label htmlFor="item-name">Item Name *</Label>
-            <Input
-              id="item-name"
-              placeholder="e.g., Custom 18K Gold Ring with Sapphire"
-              value={productName}
-              onChange={(e) => setProductName(e.target.value)}
-              autoFocus
-            />
-          </div>
+        <Separator />
 
-          {/* Category */}
-          <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <Select value={category} onValueChange={setCategory}>
-              <SelectTrigger>
-                <SelectValue placeholder="Select category (optional)" />
-              </SelectTrigger>
-              <SelectContent>
-                {CATEGORIES.map((cat) => (
-                  <SelectItem key={cat} value={cat}>
-                    {cat}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-4 space-y-5">
+          {/* Item Details Section */}
+          <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
+            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Item Details
+            </h4>
 
-          {/* Description */}
-          <div className="space-y-2">
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              placeholder="Detailed specifications, materials, etc."
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
-              rows={2}
-            />
-          </div>
-
-          {/* Price and Cost */}
-          <div className="grid grid-cols-2 gap-4">
+            {/* Item Name */}
             <div className="space-y-2">
-              <Label>Selling Price *</Label>
+              <Label htmlFor="item-name">
+                Item Name <span className="text-destructive">*</span>
+              </Label>
+              <Input
+                id="item-name"
+                placeholder="e.g., Custom 18K Gold Ring with Sapphire"
+                value={productName}
+                onChange={(e) => setProductName(e.target.value)}
+                autoFocus
+              />
+            </div>
+
+            {/* Category */}
+            <div className="space-y-2">
+              <Label htmlFor="category" className="flex items-center gap-1">
+                Category
+                <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+              </Label>
+              <Select value={category} onValueChange={setCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {categories.map((cat) => (
+                    <SelectItem key={cat} value={cat}>
+                      {cat}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description" className="flex items-center gap-1">
+                Description
+                <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+              </Label>
+              <Textarea
+                id="description"
+                placeholder="Detailed specifications, materials, etc."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={2}
+              />
+            </div>
+          </div>
+
+          {/* Pricing Section */}
+          <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
+            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Pricing
+            </h4>
+
+            {/* Selling Price */}
+            <div className="space-y-2">
+              <Label>
+                Selling Price <span className="text-destructive">*</span>
+              </Label>
               <CurrencyInput
                 value={unitPrice}
                 onValueChange={setUnitPrice}
                 placeholder="0.00"
               />
             </div>
+
+            {/* Estimated Cost */}
             <div className="space-y-2">
-              <Label>Estimated Cost</Label>
+              <Label className="flex items-center gap-1">
+                Estimated Cost
+                <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+              </Label>
               <CurrencyInput
                 value={unitCost}
                 onValueChange={setUnitCost}
                 placeholder="0.00"
               />
+              <p className="text-xs text-muted-foreground">
+                For margin calculation. Can be updated later.
+              </p>
             </div>
-          </div>
 
-          {/* Quantity */}
-          <div className="space-y-2">
-            <Label>Quantity</Label>
-            <div className="flex items-center gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                className="h-9 w-9 p-0"
-              >
-                <Minus className="h-4 w-4" />
-              </Button>
-              <Input
-                type="number"
-                min="1"
-                value={quantity}
-                onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-20 text-center"
-              />
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                onClick={() => setQuantity(quantity + 1)}
-                className="h-9 w-9 p-0"
-              >
-                <Plus className="h-4 w-4" />
-              </Button>
+            {/* Quantity */}
+            <div className="space-y-2">
+              <Label>Quantity</Label>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                  className="h-9 w-9 p-0"
+                >
+                  <Minus className="h-4 w-4" />
+                </Button>
+                <Input
+                  type="number"
+                  min="1"
+                  value={quantity}
+                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-20 text-center"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setQuantity(quantity + 1)}
+                  className="h-9 w-9 p-0"
+                >
+                  <Plus className="h-4 w-4" />
+                </Button>
+              </div>
             </div>
           </div>
 
