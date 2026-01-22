@@ -37,10 +37,10 @@ import {
   isPickupApproaching,
   isPickupOverdue,
   getDaysUntilPickup,
-  useVoidDepositOrder
 } from '@/hooks/useDepositOrders';
 import { RecordPaymentModal } from '@/components/deposits/RecordPaymentModal';
 import { EditDepositOrderModal } from '@/components/deposits/EditDepositOrderModal';
+import { VoidDepositOrderModal } from '@/components/deposits/VoidDepositOrderModal';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
@@ -336,11 +336,12 @@ export default function DepositOrders() {
   const [selectedOrder, setSelectedOrder] = useState<any>(null);
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
+  const [showVoidModal, setShowVoidModal] = useState(false);
+  const [orderToVoid, setOrderToVoid] = useState<any>(null);
   
   const { data: orders, isLoading: ordersLoading, refetch } = useDepositOrders(activeTab === 'all' ? undefined : activeTab);
   const { data: stats, isLoading: statsLoading } = useDepositOrderStats();
   const completeOrder = useCompleteDepositOrder();
-  const voidOrder = useVoidDepositOrder();
 
   const filteredOrders = orders?.filter(order => {
     if (!searchQuery) return true;
@@ -381,15 +382,9 @@ export default function DepositOrders() {
     }
   };
 
-  const handleVoidClick = async (order: any) => {
-    if (window.confirm(`Are you sure you want to void deposit order #${order.id}? This will release any reserved items.`)) {
-      try {
-        await voidOrder.mutateAsync(order.id);
-        toast.success('Deposit order voided');
-      } catch (error) {
-        // Error handled by hook
-      }
-    }
+  const handleVoidClick = (order: any) => {
+    setOrderToVoid(order);
+    setShowVoidModal(true);
   };
 
   return (
@@ -558,6 +553,15 @@ export default function DepositOrders() {
             open={showEditModal}
             onOpenChange={setShowEditModal}
             order={selectedOrder}
+          />
+          <VoidDepositOrderModal
+            open={showVoidModal}
+            onOpenChange={setShowVoidModal}
+            order={orderToVoid}
+            onSuccess={() => {
+              toast.success('Deposit order voided');
+              refetch();
+            }}
           />
         </>
       )}
