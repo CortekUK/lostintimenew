@@ -82,6 +82,56 @@ const QuickActionsBar = () => {
     if (count <= 5) return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-5';
     return 'grid-cols-2 sm:grid-cols-3 md:grid-cols-6';
   };
+
+  // Staff has exactly 3 actions - special mobile layout
+  const isStaffLayout = actions.length === 3;
+  
+  if (isStaffLayout) {
+    const FirstIcon = actions[0].icon;
+    
+    return (
+      <div className="mb-6 md:mb-8">
+        {/* Mobile: New Sale full width, others in row below */}
+        <div className="flex flex-col gap-3 sm:hidden">
+          <Button
+            variant="outline"
+            className="h-auto py-5 flex flex-col items-center gap-2 hover:border-primary/50 hover:bg-muted/50 transition-all w-full"
+            onClick={() => navigate(actions[0].route)}
+          >
+            <FirstIcon className="h-6 w-6 text-muted-foreground" />
+            <span className="text-sm font-medium">{actions[0].label}</span>
+          </Button>
+          <div className="grid grid-cols-2 gap-3">
+            {actions.slice(1).map((action) => (
+              <Button
+                key={action.label}
+                variant="outline"
+                className="h-auto py-3 flex flex-col items-center gap-2 hover:border-primary/50 hover:bg-muted/50 transition-all"
+                onClick={() => navigate(action.route)}
+              >
+                <action.icon className="h-5 w-5 text-muted-foreground" />
+                <span className="text-xs font-medium">{action.label}</span>
+              </Button>
+            ))}
+          </div>
+        </div>
+        {/* Desktop: 3 columns */}
+        <div className="hidden sm:grid sm:grid-cols-3 gap-3">
+          {actions.map((action) => (
+            <Button
+              key={action.label}
+              variant="outline"
+              className="h-auto py-3 flex flex-col items-center gap-2 hover:border-primary/50 hover:bg-muted/50 transition-all"
+              onClick={() => navigate(action.route)}
+            >
+              <action.icon className="h-5 w-5 text-muted-foreground" />
+              <span className="text-xs font-medium">{action.label}</span>
+            </Button>
+          ))}
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className={`grid ${getGridCols()} gap-3 mb-6 md:mb-8`}>
