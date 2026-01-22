@@ -56,7 +56,14 @@ export interface ProductWithStock extends Product {
   stock_on_hand?: StockOnHand | null;
   inventory_value?: InventoryValue | null;
   qty_on_hand?: number;
+  qty_available?: number;
+  qty_reserved?: number;
   avg_cost?: number;
+  margin?: number;
+  is_reserved?: boolean;
+  is_fully_reserved?: boolean;
+  is_partially_reserved?: boolean;
+  reserved_orders?: Array<{ deposit_order_id: number; customer_name: string; quantity: number }>;
 }
 
 // Enhanced Sale with Items and Staff

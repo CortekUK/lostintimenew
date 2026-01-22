@@ -76,27 +76,51 @@ const ProductCard = ({
   const daysInInventory = Math.floor((new Date().getTime() - new Date(product.created_at).getTime()) / (1000 * 60 * 60 * 24));
   
   // Professional stock status with gold for in stock, neutral grey for out of stock
-  const getStockStatusBadge = () => {
-    // Check if product is reserved (has active deposit order)
-    if (product.is_reserved) {
-      return { variant: 'outline' as const, text: 'Reserved', className: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700' };
+  const getStockStatusDisplay = () => {
+    const qtyOnHand = product.qty_on_hand || 0;
+    const qtyAvailable = product.qty_available ?? qtyOnHand;
+    const qtyReserved = product.qty_reserved || 0;
+
+    // Fully reserved - all stock is held
+    if (product.is_fully_reserved) {
+      return { 
+        primary: { variant: 'outline' as const, text: 'Reserved', className: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700' },
+        secondary: null
+      };
+    }
+
+    // Partially reserved - some stock available, some reserved
+    if (product.is_partially_reserved) {
+      return {
+        primary: { variant: 'outline' as const, text: `${qtyAvailable} available`, className: 'bg-primary/10 border-primary text-primary' },
+        secondary: { variant: 'outline' as const, text: `${qtyReserved} reserved`, className: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700' }
+      };
     }
     
+    // No reservations - normal stock status
     if (stockStatus) {
       if (stockStatus.text.includes('Out of stock')) {
-        return { variant: 'secondary' as const, text: 'Out of Stock', className: 'bg-muted text-muted-foreground' };
+        return { primary: { variant: 'secondary' as const, text: 'Out of Stock', className: 'bg-muted text-muted-foreground' }, secondary: null };
       } else if (stockStatus.text.includes('In Stock')) {
-        return { variant: 'outline' as const, text: 'In Stock', className: 'bg-primary/10 border-primary text-primary' };
+        return { primary: { variant: 'outline' as const, text: 'In Stock', className: 'bg-primary/10 border-primary text-primary' }, secondary: null };
       } else if (stockStatus.text.includes('At Risk')) {
-        return { variant: 'secondary' as const, text: `Low Stock • ${stock}`, className: 'bg-amber-50 text-amber-700 border-amber-200' };
+        return { primary: { variant: 'secondary' as const, text: `Low Stock • ${stock}`, className: 'bg-amber-50 text-amber-700 border-amber-200' }, secondary: null };
       }
     }
     return stock === 0 
-      ? { variant: 'secondary' as const, text: 'Out of Stock', className: 'bg-muted text-muted-foreground' }
-      : { variant: 'outline' as const, text: 'In Stock', className: 'bg-primary/10 border-primary text-primary' };
+      ? { primary: { variant: 'secondary' as const, text: 'Out of Stock', className: 'bg-muted text-muted-foreground' }, secondary: null }
+      : { primary: { variant: 'outline' as const, text: 'In Stock', className: 'bg-primary/10 border-primary text-primary' }, secondary: null };
   };
 
-  const finalStockStatus = getStockStatusBadge();
+  const getReservationTooltip = () => {
+    if (!product.reserved_orders || product.reserved_orders.length === 0) return null;
+    return product.reserved_orders.map((order: any) => 
+      `${order.customer_name} (Order #${order.deposit_order_id})${order.quantity > 1 ? ` × ${order.quantity}` : ''}`
+    ).join('\n');
+  };
+
+  const stockDisplay = getStockStatusDisplay();
+  const reservationTooltip = getReservationTooltip();
   
   return (
     <Card className="shadow-card hover:shadow-elegant transition-all duration-300 h-full flex flex-col">
@@ -160,19 +184,40 @@ const ProductCard = ({
               <Tooltip>
                 <TooltipTrigger asChild>
                   <Badge 
-                    variant={finalStockStatus.variant} 
-                    className={`whitespace-nowrap text-xs ${finalStockStatus.className}`}
+                    variant={stockDisplay.primary.variant} 
+                    className={`whitespace-nowrap text-xs ${stockDisplay.primary.className}`}
                   >
-                    {finalStockStatus.text}
+                    {stockDisplay.primary.text}
                   </Badge>
                 </TooltipTrigger>
-                {product.is_reserved && product.reserved_customer_name && (
-                  <TooltipContent>
-                    Reserved for: {product.reserved_customer_name}
+                {reservationTooltip && (
+                  <TooltipContent className="whitespace-pre-line">
+                    {reservationTooltip}
                   </TooltipContent>
                 )}
               </Tooltip>
             </TooltipProvider>
+            
+            {/* Reserved count badge (for partial reservations) */}
+            {stockDisplay.secondary && (
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Badge 
+                      variant={stockDisplay.secondary.variant} 
+                      className={`whitespace-nowrap text-xs ${stockDisplay.secondary.className}`}
+                    >
+                      {stockDisplay.secondary.text}
+                    </Badge>
+                  </TooltipTrigger>
+                  {reservationTooltip && (
+                    <TooltipContent className="whitespace-pre-line">
+                      {reservationTooltip}
+                    </TooltipContent>
+                  )}
+                </Tooltip>
+              </TooltipProvider>
+            )}
             
             {/* Smaller tags below stock badge */}
             <div className="flex flex-col gap-1">

@@ -24,7 +24,7 @@ interface FilterState {
   marginRange: { min: number; max: number };
   isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
   inventoryAge?: 'all' | '30' | '60' | '90';
-  reservationStatus?: 'all' | 'reserved_only' | 'available_only';
+  reservationStatus?: 'all' | 'reserved_only' | 'available_only' | 'fully_reserved';
 }
 
 interface EnhancedProductFiltersProps {
@@ -381,7 +381,7 @@ export function EnhancedProductFilters({
                   <Label className="text-sm font-medium">Stock Availability</Label>
                   <Select 
                     value={draftFilters.reservationStatus || 'all'} 
-                    onValueChange={(value: 'all' | 'reserved_only' | 'available_only') => 
+                    onValueChange={(value: 'all' | 'reserved_only' | 'available_only' | 'fully_reserved') => 
                       setDraftFilters({...draftFilters, reservationStatus: value})
                     }
                   >
@@ -391,7 +391,8 @@ export function EnhancedProductFilters({
                     <SelectContent>
                       <SelectItem value="all">All Stock</SelectItem>
                       <SelectItem value="available_only">Available Only</SelectItem>
-                      <SelectItem value="reserved_only">Reserved Only</SelectItem>
+                      <SelectItem value="reserved_only">Has Reservations</SelectItem>
+                      <SelectItem value="fully_reserved">Fully Reserved</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
