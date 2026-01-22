@@ -1,12 +1,11 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CurrencyInput } from '@/components/ui/currency-input';
-import { Separator } from '@/components/ui/separator';
 import { Plus, Minus } from 'lucide-react';
 import { useAllProductCategories } from '@/hooks/useProductCategories';
 
@@ -82,16 +81,15 @@ export function AddCustomItemModal({ open, onOpenChange, onAdd }: AddCustomItemM
 
   return (
     <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-md p-0">
-        <DialogHeader className="px-6 pt-5 pb-3">
-          <DialogTitle className="font-luxury text-xl">
-            Add Custom Item
-          </DialogTitle>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle>Add Custom Item</DialogTitle>
+          <DialogDescription>
+            Add a one-off item that isn't in your inventory.
+          </DialogDescription>
         </DialogHeader>
 
-        <Separator />
-
-        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-4 space-y-4 max-h-[60vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="space-y-4 max-h-[60vh] overflow-y-auto">
           {/* Item Details Section */}
           <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
             <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
