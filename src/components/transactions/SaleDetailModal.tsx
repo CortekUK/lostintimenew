@@ -340,10 +340,14 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
               <h3 className="font-semibold text-base">Items Sold</h3>
               {calculatedItems.map((item) => {
                 const product = item.products;
-                if (!product) return null;
+                const isCustomOrder = (item as any).is_custom_order;
+                const displayName = product?.name || (item as any).product_name || 'Unknown Product';
+                
+                // Skip only if no product AND no product_name (truly empty item)
+                if (!product && !displayName) return null;
                 
                 const isFocused = focusLineItemId === item.id;
-                const isConsignment = product.is_consignment;
+                const isConsignment = product?.is_consignment;
                 const isSettled = settlements.some(s => s.product_id === item.product_id);
                 
                 // Find serial number from part exchanges
@@ -367,10 +371,13 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                   >
                     <div className="flex-1 space-y-1">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <span className="font-medium">{product.name}</span>
-                        {product.is_trade_in && <TradeInBadge />}
-                        {product.is_consignment && <ConsignmentBadge />}
-                        {product.is_registered && (
+                        <span className="font-medium">{displayName}</span>
+                        {isCustomOrder && (
+                          <Badge variant="secondary" className="text-xs">Custom Order</Badge>
+                        )}
+                        {product?.is_trade_in && <TradeInBadge />}
+                        {product?.is_consignment && <ConsignmentBadge />}
+                        {product?.is_registered && (
                           <Badge variant="outline" className="border-purple-500/50 text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30">
                             Registered
                           </Badge>
@@ -382,29 +389,31 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                         )}
                       </div>
                       
-                      <div className="text-xs text-muted-foreground space-x-2">
-                        {product.sku && <span>SKU: {product.sku}</span>}
-                        {product.sku && <span>•</span>}
-                        <span>INT: {product.internal_sku}</span>
-                        {serial && (
-                          <>
-                            <span>•</span>
-                            <span className="font-mono">SKU: {serial}</span>
-                          </>
-                        )}
-                        {product.category && (
-                          <>
-                            <span>•</span>
-                            <span>{product.category}</span>
-                          </>
-                        )}
-                        {product.metal && (
-                          <>
-                            <span>•</span>
-                            <span>{product.metal}</span>
-                          </>
-                        )}
-                      </div>
+                      {product && (
+                        <div className="text-xs text-muted-foreground space-x-2">
+                          {product.sku && <span>SKU: {product.sku}</span>}
+                          {product.sku && <span>•</span>}
+                          <span>INT: {product.internal_sku}</span>
+                          {serial && (
+                            <>
+                              <span>•</span>
+                              <span className="font-mono">SKU: {serial}</span>
+                            </>
+                          )}
+                          {product.category && (
+                            <>
+                              <span>•</span>
+                              <span>{product.category}</span>
+                            </>
+                          )}
+                          {product.metal && (
+                            <>
+                              <span>•</span>
+                              <span>{product.metal}</span>
+                            </>
+                          )}
+                        </div>
+                      )}
                       
                       <div className="text-xs text-muted-foreground">
                         {item.quantity} × £{item.unit_price.toFixed(2)}
@@ -423,16 +432,18 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                       )}
                       
                       <div className="flex gap-2 flex-wrap mt-2">
-                        <Button
-                          variant="link"
-                          size="sm"
-                          className="h-auto p-0 text-xs"
-                          onClick={() => handleViewProduct(product)}
-                          aria-label={`View ${product.name} product details`}
-                        >
-                          <Eye className="h-3 w-3 mr-1" />
-                          View Product
-                        </Button>
+                        {product && (
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-xs"
+                            onClick={() => handleViewProduct(product)}
+                            aria-label={`View ${displayName} product details`}
+                          >
+                            <Eye className="h-3 w-3 mr-1" />
+                            View Product
+                          </Button>
+                        )}
                         
                         {isConsignment && !isSettled && userRole === 'owner' && (
                           <Button
