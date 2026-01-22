@@ -630,35 +630,37 @@ export default function EnhancedSales() {
       subtitle="Process sales transactions with part exchange support"
     >
       <div className="space-y-6">
-        {/* Page-level mode switcher */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
-          <Tabs 
-            value={depositMode ? 'deposit' : 'sale'} 
-            onValueChange={(v) => {
-              const isDeposit = v === 'deposit';
-              setDepositMode(isDeposit);
-              if (isDeposit) {
-                setDiscount(0); // Clear discount when switching to deposit mode
-              }
-            }}
-            className="w-full sm:w-auto"
-          >
-            <TabsList className="grid w-full sm:w-auto grid-cols-2">
-              <TabsTrigger value="sale" className="gap-1.5 px-3 sm:px-4 text-xs sm:text-sm">
-                <ShoppingBag className="h-4 w-4 shrink-0" />
-                <span className="truncate">Complete Sale</span>
-              </TabsTrigger>
-              <TabsTrigger value="deposit" className="gap-1.5 px-3 sm:px-4 text-xs sm:text-sm">
-                <Wallet className="h-4 w-4 shrink-0" />
-                <span className="truncate">Deposit Order</span>
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
-          {depositMode && (
-            <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-right">
-              Customer pays partial now, balance on collection
-            </p>
-          )}
+        {/* Page-level mode switcher - sticky on mobile */}
+        <div className="sticky top-0 z-10 -mx-4 px-4 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b sm:static sm:mx-0 sm:px-0 sm:py-0 sm:bg-transparent sm:backdrop-blur-none sm:border-0">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
+            <Tabs 
+              value={depositMode ? 'deposit' : 'sale'} 
+              onValueChange={(v) => {
+                const isDeposit = v === 'deposit';
+                setDepositMode(isDeposit);
+                if (isDeposit) {
+                  setDiscount(0); // Clear discount when switching to deposit mode
+                }
+              }}
+              className="w-full sm:w-auto"
+            >
+              <TabsList className="grid w-full sm:w-auto grid-cols-2">
+                <TabsTrigger value="sale" className="gap-1.5 px-3 sm:px-4 text-xs sm:text-sm">
+                  <ShoppingBag className="h-4 w-4 shrink-0" />
+                  <span className="truncate">Complete Sale</span>
+                </TabsTrigger>
+                <TabsTrigger value="deposit" className="gap-1.5 px-3 sm:px-4 text-xs sm:text-sm">
+                  <Wallet className="h-4 w-4 shrink-0" />
+                  <span className="truncate">Deposit Order</span>
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            {depositMode && (
+              <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-right">
+                Customer pays partial now, balance on collection
+              </p>
+            )}
+          </div>
         </div>
 
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
