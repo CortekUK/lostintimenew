@@ -988,8 +988,8 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
                     <Input 
                       id="cost"
                       type="number"
-                      step="0.01" min="0"
-                      placeholder="0.00" 
+                      step="1" min="0"
+                      placeholder="0" 
                       value={formData.unit_cost}
                       onChange={(e) => setFormData({...formData, unit_cost: e.target.value})}
                       required
@@ -1002,8 +1002,8 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
                     <Input 
                       id="price"
                       type="number"
-                      step="0.01" min="0"
-                      placeholder="0.00" 
+                      step="1" min="0"
+                      placeholder="0" 
                       value={formData.unit_price}
                       onChange={(e) => setFormData({...formData, unit_price: e.target.value})}
                       required
