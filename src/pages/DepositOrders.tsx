@@ -36,7 +36,8 @@ import {
   DepositOrderStatus,
   isPickupApproaching,
   isPickupOverdue,
-  getDaysUntilPickup
+  getDaysUntilPickup,
+  useVoidDepositOrder
 } from '@/hooks/useDepositOrders';
 import { RecordPaymentModal } from '@/components/deposits/RecordPaymentModal';
 import { EditDepositOrderModal } from '@/components/deposits/EditDepositOrderModal';
@@ -185,13 +186,15 @@ function DepositOrderTable({
   onRowClick,
   onEdit,
   onPay,
-  onComplete
+  onComplete,
+  onVoid
 }: { 
   orders: any[]; 
   onRowClick: (id: number) => void;
   onEdit: (order: any) => void;
   onPay: (order: any) => void;
   onComplete: (order: any) => void;
+  onVoid: (order: any) => void;
 }) {
   return (
     <div className="rounded-md border">
@@ -303,6 +306,17 @@ function DepositOrderTable({
                         <CheckCircle2 className="h-4 w-4" />
                       </Button>
                     )}
+                    {order.status === 'active' && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={(e) => { e.stopPropagation(); onVoid(order); }}
+                        title="Void Order"
+                      >
+                        <Ban className="h-4 w-4" />
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -326,6 +340,7 @@ export default function DepositOrders() {
   const { data: orders, isLoading: ordersLoading, refetch } = useDepositOrders(activeTab === 'all' ? undefined : activeTab);
   const { data: stats, isLoading: statsLoading } = useDepositOrderStats();
   const completeOrder = useCompleteDepositOrder();
+  const voidOrder = useVoidDepositOrder();
 
   const filteredOrders = orders?.filter(order => {
     if (!searchQuery) return true;
@@ -363,6 +378,17 @@ export default function DepositOrders() {
       }
     } catch (error) {
       // Error handled by hook
+    }
+  };
+
+  const handleVoidClick = async (order: any) => {
+    if (window.confirm(`Are you sure you want to void deposit order #${order.id}? This will release any reserved items.`)) {
+      try {
+        await voidOrder.mutateAsync(order.id);
+        toast.success('Deposit order voided');
+      } catch (error) {
+        // Error handled by hook
+      }
     }
   };
 
@@ -503,6 +529,7 @@ export default function DepositOrders() {
               onEdit={handleEditClick}
               onPay={handlePayClick}
               onComplete={handleCompleteClick}
+              onVoid={handleVoidClick}
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
