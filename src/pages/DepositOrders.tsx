@@ -357,7 +357,7 @@ export default function DepositOrders() {
       const result = await completeOrder.mutateAsync(order.id);
       if (result?.sale?.id) {
         toast.success('Order completed! Redirecting to sale...');
-        navigate(`/transactions/${result.sale.id}`);
+        navigate(`/sales/${result.sale.id}`);
       }
     } catch (error) {
       // Error handled by hook
