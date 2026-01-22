@@ -118,8 +118,8 @@ export function DepositCheckoutSection({
 
   return (
     <Card className="shadow-card border-2 border-primary/30 bg-primary/5">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-4">
+      <CardHeader className="pb-3 space-y-3">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
           <CardTitle className="font-luxury">Deposit Order</CardTitle>
           {onSwitchToSale && (
             <ToggleGroup
@@ -128,23 +128,23 @@ export function DepositCheckoutSection({
               onValueChange={(value) => {
                 if (value === 'sale') onSwitchToSale();
               }}
-              className="bg-muted/50 p-1 rounded-lg"
+              className="bg-muted/50 p-1 rounded-lg w-full sm:w-auto"
             >
               <ToggleGroupItem 
                 value="sale" 
                 aria-label="Complete sale now"
-                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
+                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-2 sm:px-3 flex-1 sm:flex-initial"
               >
-                <ShoppingBag className="h-4 w-4" />
-                <span className="text-sm">Complete Sale</span>
+                <ShoppingBag className="h-4 w-4 shrink-0" />
+                <span className="text-xs sm:text-sm">Complete Sale</span>
               </ToggleGroupItem>
               <ToggleGroupItem 
                 value="deposit" 
                 aria-label="Create deposit order"
-                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
+                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-2 sm:px-3 flex-1 sm:flex-initial"
               >
-                <Wallet className="h-4 w-4" />
-                <span className="text-sm">Deposit Order</span>
+                <Wallet className="h-4 w-4 shrink-0" />
+                <span className="text-xs sm:text-sm">Deposit Order</span>
               </ToggleGroupItem>
             </ToggleGroup>
           )}
@@ -298,8 +298,8 @@ export function DepositCheckoutSection({
             </>
           ) : (
             <>
-              <Wallet className="h-5 w-5 mr-2" />
-              Create Deposit Order — {formatCurrency(initialPaymentAmount)}
+              <Wallet className="h-5 w-5 mr-2 shrink-0" />
+              <span className="truncate">Create Deposit Order — {formatCurrency(initialPaymentAmount)}</span>
             </>
           )}
         </Button>
