@@ -55,7 +55,7 @@ export interface DepositOrderPartExchange {
 }
 
 export interface DepositOrderWithDetails extends DepositOrder {
-  deposit_order_items?: (DepositOrderItem & { product?: { name: string; sku: string } | null })[];
+  deposit_order_items?: (DepositOrderItem & { product?: { name: string; sku: string; internal_sku: string } | null })[];
   deposit_payments?: DepositPayment[];
   deposit_order_part_exchanges?: DepositOrderPartExchange[];
   customer?: { name: string; email?: string; phone?: string } | null;
@@ -128,7 +128,7 @@ export function useDepositOrderDetails(orderId: number | null) {
           *,
           deposit_order_items (
             *,
-            product:products (name, sku)
+            product:products (name, sku, internal_sku)
           ),
           deposit_payments (*),
           deposit_order_part_exchanges (*),
