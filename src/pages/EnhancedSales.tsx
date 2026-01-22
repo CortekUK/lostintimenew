@@ -500,6 +500,8 @@ export default function EnhancedSales() {
       queryClient.invalidateQueries({ queryKey: ['dashboard'] });
       queryClient.invalidateQueries({ queryKey: ['today-stats'] });
       queryClient.invalidateQueries({ queryKey: ['sold-items'] });
+      queryClient.invalidateQueries({ queryKey: ['sold-items-report'] });
+      queryClient.invalidateQueries({ queryKey: ['commission-payments'] });
       // Store completed sale data for modal
       setCompletedSale({ 
         sale, 
