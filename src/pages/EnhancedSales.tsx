@@ -631,7 +631,7 @@ export default function EnhancedSales() {
     >
       <div className="space-y-6">
         {/* Page-level mode switcher */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
           <Tabs 
             value={depositMode ? 'deposit' : 'sale'} 
             onValueChange={(v) => {
@@ -641,21 +641,21 @@ export default function EnhancedSales() {
                 setDiscount(0); // Clear discount when switching to deposit mode
               }
             }}
-            className="w-auto"
+            className="w-full sm:w-auto"
           >
-            <TabsList className="grid w-auto grid-cols-2">
-              <TabsTrigger value="sale" className="gap-2 px-4">
-                <ShoppingBag className="h-4 w-4" />
-                Complete Sale
+            <TabsList className="grid w-full sm:w-auto grid-cols-2">
+              <TabsTrigger value="sale" className="gap-1.5 px-3 sm:px-4 text-xs sm:text-sm">
+                <ShoppingBag className="h-4 w-4 shrink-0" />
+                <span className="truncate">Complete Sale</span>
               </TabsTrigger>
-              <TabsTrigger value="deposit" className="gap-2 px-4">
-                <Wallet className="h-4 w-4" />
-                Deposit Order
+              <TabsTrigger value="deposit" className="gap-1.5 px-3 sm:px-4 text-xs sm:text-sm">
+                <Wallet className="h-4 w-4 shrink-0" />
+                <span className="truncate">Deposit Order</span>
               </TabsTrigger>
             </TabsList>
           </Tabs>
           {depositMode && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-right">
               Customer pays partial now, balance on collection
             </p>
           )}
