@@ -299,7 +299,8 @@ export function DepositCheckoutSection({
           ) : (
             <>
               <Wallet className="h-5 w-5 mr-2 shrink-0" />
-              <span className="truncate">Create Deposit Order — {formatCurrency(initialPaymentAmount)}</span>
+              <span className="sm:hidden">Deposit — {formatCurrency(initialPaymentAmount)}</span>
+              <span className="hidden sm:inline">Create Deposit Order — {formatCurrency(initialPaymentAmount)}</span>
             </>
           )}
         </Button>
