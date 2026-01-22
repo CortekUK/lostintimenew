@@ -759,6 +759,10 @@ export default function EnhancedSales() {
                 onLocationChange={setLocationId}
                 locationLocked={cart.length > 0}
                 disabled={!canCreateSales}
+                onSwitchToDeposit={() => {
+                  setDepositMode(true);
+                  setDiscount(0);
+                }}
               />
             )}
           </div>

@@ -120,10 +120,7 @@ export function DepositCheckoutSection({
     <Card className="shadow-card border-2 border-primary/30 bg-primary/5">
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <Wallet className="h-5 w-5 text-primary" />
-            <CardTitle className="font-luxury">Deposit Order</CardTitle>
-          </div>
+          <CardTitle className="font-luxury">Deposit Order</CardTitle>
           {onSwitchToSale && (
             <div className="flex flex-col items-end gap-1">
               <ToggleGroup
