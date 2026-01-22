@@ -454,23 +454,32 @@ export const useTransactionDetails = (saleId?: number) => {
     queryFn: async () => {
       if (!saleId) return null;
       
+      // Fetch sale directly to handle cases with 0 items
+      const { data: saleData, error: saleError } = await supabase
+        .from('sales')
+        .select(`
+          id, sold_at, staff_id, payment, customer_name, customer_email, signature_data, notes,
+          subtotal, discount_total, tax_total, total, part_exchange_total,
+          is_voided, voided_at, voided_by, void_reason, edited_at, edited_by, edit_reason,
+          location_id, commission_override, commission_override_reason, staff_member_name,
+          profiles!fk_sales_staff_id ( full_name ),
+          locations!sales_location_id_fkey ( id, name )
+        `)
+        .eq('id', saleId)
+        .single();
+      
+      if (saleError) throw saleError;
+      
       // Fetch sale items with enhanced data including serial numbers and consignment info
       const { data: saleItems, error: itemsError } = await supabase
         .from('sale_items')
         .select(`
           id, quantity, unit_price, discount, tax_rate, unit_cost, product_id, sale_id,
+          product_name, is_custom_order,
           products:product_id ( 
             id, name, internal_sku, sku, category, metal, is_trade_in, is_consignment, is_registered,
             consignment_supplier_id,
             consignment_supplier:suppliers!products_consignment_supplier_id_fkey ( id, name )
-          ),
-          sales:sale_id (
-            id, sold_at, staff_id, payment, customer_name, customer_email, signature_data, notes,
-            subtotal, discount_total, tax_total, total, part_exchange_total,
-            is_voided, voided_at, voided_by, void_reason, edited_at, edited_by, edit_reason,
-            location_id,
-            profiles!fk_sales_staff_id ( full_name ),
-            locations!sales_location_id_fkey ( id, name )
           )
         `)
         .eq('sale_id', saleId);
@@ -486,7 +495,7 @@ export const useTransactionDetails = (saleId?: number) => {
       if (pxError) throw pxError;
       
       // Fetch consignment settlements for these items
-      const productIds = saleItems?.map(item => item.product_id) || [];
+      const productIds = saleItems?.filter(item => item.product_id).map(item => item.product_id) || [];
       let settlements: any[] = [];
       
       if (productIds.length > 0) {
@@ -500,6 +509,7 @@ export const useTransactionDetails = (saleId?: number) => {
       }
       
       return {
+        sale: saleData,
         items: saleItems || [],
         partExchanges: partExchanges || [],
         settlements
