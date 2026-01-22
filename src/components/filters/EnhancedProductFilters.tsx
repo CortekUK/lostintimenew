@@ -24,6 +24,7 @@ interface FilterState {
   marginRange: { min: number; max: number };
   isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
   inventoryAge?: 'all' | '30' | '60' | '90';
+  reservationStatus?: 'all' | 'reserved_only' | 'available_only';
 }
 
 interface EnhancedProductFiltersProps {
@@ -79,7 +80,8 @@ export function EnhancedProductFilters({
       priceRange: { min: filterOptions.priceRange.min, max: filterOptions.priceRange.max },
       marginRange: { min: 0, max: 100 },
       isTradeIn: 'all' as const,
-      inventoryAge: 'all' as const
+      inventoryAge: 'all' as const,
+      reservationStatus: 'all' as const
     };
     setDraftFilters(clearedFilters);
   };
@@ -126,7 +128,8 @@ export function EnhancedProductFilters({
       priceRange: { min: filterOptions.priceRange.min, max: filterOptions.priceRange.max },
       marginRange: { min: 0, max: 100 },
       isTradeIn: 'all' as const,
-      inventoryAge: 'all' as const
+      inventoryAge: 'all' as const,
+      reservationStatus: 'all' as const
     };
     onFiltersChange(clearedFilters);
     onSearchChange('');
@@ -146,6 +149,7 @@ export function EnhancedProductFilters({
     if (draftFilters.marginRange.min !== 0 || draftFilters.marginRange.max !== 100) count++;
     if (draftFilters.isTradeIn && draftFilters.isTradeIn !== 'all') count++;
     if (draftFilters.inventoryAge && draftFilters.inventoryAge !== 'all') count++;
+    if (draftFilters.reservationStatus && draftFilters.reservationStatus !== 'all') count++;
     return count;
   };
 
@@ -368,6 +372,26 @@ export function EnhancedProductFilters({
                       <SelectItem value="all">All Products</SelectItem>
                       <SelectItem value="trade_in_only">Part Exchanges Only</SelectItem>
                       <SelectItem value="non_trade_in">Standard Stock Only</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Stock Availability */}
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium">Stock Availability</Label>
+                  <Select 
+                    value={draftFilters.reservationStatus || 'all'} 
+                    onValueChange={(value: 'all' | 'reserved_only' | 'available_only') => 
+                      setDraftFilters({...draftFilters, reservationStatus: value})
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Stock" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Stock</SelectItem>
+                      <SelectItem value="available_only">Available Only</SelectItem>
+                      <SelectItem value="reserved_only">Reserved Only</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>

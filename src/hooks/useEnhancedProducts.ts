@@ -25,6 +25,7 @@ export interface EnhancedProductFilters {
   isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
   inventoryAge?: 'all' | '30' | '60' | '90';
   sortBy?: ProductSortOption;
+  reservationStatus?: 'all' | 'reserved_only' | 'available_only';
 }
 
 export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
@@ -109,18 +110,44 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
       
       if (productsError) throw productsError;
 
-      // Get stock data separately - filter for qty > 0 to exclude sold items
+      // Get stock data separately - fetch ALL stock data (including 0)
       const { data: stockData, error: stockError } = await supabase
         .from('v_stock_on_hand')
-        .select('product_id, qty_on_hand')
-        .gt('qty_on_hand', 0);
+        .select('product_id, qty_on_hand');
 
       if (stockError) throw stockError;
+
+      // Get active deposit reservations to identify reserved products
+      const { data: reservedData, error: reservedError } = await supabase
+        .from('deposit_order_items')
+        .select(`
+          product_id,
+          deposit_order:deposit_orders!inner(id, status, customer_name)
+        `)
+        .not('deposit_order.status', 'in', '(completed,cancelled)');
+
+      if (reservedError) throw reservedError;
+
+      // Create a map of reserved products with their deposit order info
+      const reservedMap = new Map<number, { deposit_order_id: number; customer_name: string }>();
+      reservedData?.forEach((item: any) => {
+        if (item.product_id && item.deposit_order) {
+          reservedMap.set(item.product_id, {
+            deposit_order_id: item.deposit_order.id,
+            customer_name: item.deposit_order.customer_name
+          });
+        }
+      });
+
+      // Create stock lookup map
+      const stockMap = new Map(stockData?.map(s => [s.product_id, s]) || []);
       
-      // Filter products to only include those with stock > 0
-      const productsWithStock = products.filter(p => 
-        stockData?.some(s => s.product_id === p.id)
-      );
+      // Filter products: show if qty > 0 OR is reserved
+      const productsWithStock = products.filter(p => {
+        const stock = stockMap.get(p.id)?.qty_on_hand || 0;
+        const isReserved = reservedMap.has(p.id);
+        return stock > 0 || isReserved;
+      });
 
       // Get inventory data separately
       const { data: inventoryData, error: inventoryError } = await supabase
@@ -129,14 +156,14 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
 
       if (inventoryError) throw inventoryError;
 
-      // Create lookup maps for performance
-      const stockMap = new Map(stockData?.map(s => [s.product_id, s]) || []);
+      // Create inventory lookup map
       const inventoryMap = new Map(inventoryData?.map(i => [i.product_id, i]) || []);
 
       // Process the data to match ProductWithStock interface
       const processedProducts = productsWithStock.map((product: any) => {
         const stockInfo = stockMap.get(product.id);
         const inventoryInfo = inventoryMap.get(product.id);
+        const reservationInfo = reservedMap.get(product.id);
         
         const qtyOnHand = stockInfo?.qty_on_hand || 0;
         const avgCost = inventoryInfo?.avg_cost || product.unit_cost;
@@ -153,6 +180,9 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
           inventory_value: inventoryValue,
           avg_cost: avgCost,
           margin: Math.round(margin * 100) / 100, // Round to 2 decimal places
+          is_reserved: !!reservationInfo,
+          reserved_deposit_order_id: reservationInfo?.deposit_order_id || null,
+          reserved_customer_name: reservationInfo?.customer_name || null,
         };
       });
 
@@ -181,6 +211,15 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
             product.margin >= filters.marginRange.min && 
             product.margin <= filters.marginRange.max
           );
+        }
+
+        // Reservation status filter
+        if (filters.reservationStatus && filters.reservationStatus !== 'all') {
+          if (filters.reservationStatus === 'reserved_only') {
+            filteredProducts = filteredProducts.filter(product => product.is_reserved);
+          } else if (filters.reservationStatus === 'available_only') {
+            filteredProducts = filteredProducts.filter(product => !product.is_reserved);
+          }
         }
       }
 

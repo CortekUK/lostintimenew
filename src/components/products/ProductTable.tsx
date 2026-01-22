@@ -131,6 +131,11 @@ export function ProductTable({
     const stockStatus = stockStatusMap?.get(product.id);
     const stock = product.qty_on_hand || 0;
 
+    // Check if product is reserved (has active deposit order)
+    if (product.is_reserved) {
+      return { text: 'Reserved', className: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700' };
+    }
+
     if (stockStatus) {
       if (stockStatus.is_out_of_stock) {
         return { text: 'Out of Stock', className: 'bg-muted text-muted-foreground' };
@@ -317,9 +322,18 @@ export function ProductTable({
 
                     {/* Stock Status */}
                     <TableCell className={cellPadding}>
-                      <Badge variant="outline" className={`text-xs whitespace-nowrap ${stockBadge.className}`}>
-                        {stockBadge.text}
-                      </Badge>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Badge variant="outline" className={`text-xs whitespace-nowrap ${stockBadge.className}`}>
+                            {stockBadge.text}
+                          </Badge>
+                        </TooltipTrigger>
+                        {product.is_reserved && product.reserved_customer_name && (
+                          <TooltipContent>
+                            Reserved for: {product.reserved_customer_name}
+                          </TooltipContent>
+                        )}
+                      </Tooltip>
                     </TableCell>
 
                     {/* Sell Price */}
@@ -386,7 +400,11 @@ export function ProductTable({
                                 </Button>
                               </TooltipTrigger>
                               <TooltipContent>
-                                {(product.qty_on_hand || 0) > 0 ? 'Sell Product' : 'Out of Stock'}
+                                {product.is_reserved 
+                                  ? 'Reserved for deposit order' 
+                                  : (product.qty_on_hand || 0) > 0 
+                                    ? 'Sell Product' 
+                                    : 'Out of Stock'}
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
