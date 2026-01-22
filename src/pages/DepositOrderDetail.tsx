@@ -197,36 +197,37 @@ export default function DepositOrderDetail() {
               <p className="text-muted-foreground">{order.customer_name || 'Walk-in Customer'}</p>
             </div>
           </div>
-          <div className="flex items-center gap-2 ml-11 sm:ml-0">
+          <div className="flex flex-wrap items-center gap-2 ml-11 sm:ml-0">
             {isActive && (
               <>
                 <Button variant="outline" size="sm" onClick={() => setShowEditModal(true)}>
-                  <Pencil className="h-4 w-4 mr-2" />
-                  Edit
+                  <Pencil className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Edit</span>
                 </Button>
                 <Button variant="outline" size="sm" onClick={() => setShowPaymentModal(true)}>
-                  <Plus className="h-4 w-4 mr-2" />
-                  Record Payment
+                  <Plus className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Record Payment</span>
+                  <span className="sm:hidden">Payment</span>
                 </Button>
                 {isFullyPaid && (
                   <Button size="sm" onClick={() => setShowCompleteDialog(true)}>
-                    <CheckCircle2 className="h-4 w-4 mr-2" />
-                    Complete
+                    <CheckCircle2 className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Complete</span>
                   </Button>
                 )}
                 {canManage && (
                   <Button variant="destructive" size="sm" onClick={() => setShowCancelDialog(true)}>
-                    <Trash2 className="h-4 w-4 mr-2" />
-                    Cancel
+                    <Trash2 className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Cancel</span>
                   </Button>
                 )}
               </>
             )}
             {order.sale_id && (
               <Button variant="outline" size="sm" onClick={() => navigate(`/sales/${order.sale_id}`)}>
-                <Receipt className="h-4 w-4 mr-2" />
-                View Sale
-                <ExternalLink className="h-3 w-3 ml-1" />
+                <Receipt className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">View Sale</span>
+                <ExternalLink className="h-3 w-3 ml-1 hidden sm:inline" />
               </Button>
             )}
           </div>
