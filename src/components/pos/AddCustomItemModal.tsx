@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -83,14 +83,11 @@ export function AddCustomItemModal({ open, onOpenChange, onAdd }: AddCustomItemM
   return (
     <Dialog open={open} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-md p-0">
-        <DialogHeader className="px-6 pt-6 pb-4">
+        <DialogHeader className="px-6 pt-5 pb-3">
           <DialogTitle className="font-luxury text-2xl flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-purple-500" />
             Add Custom Item
           </DialogTitle>
-          <DialogDescription>
-            Add a bespoke or made-to-order piece that isn't in inventory yet.
-          </DialogDescription>
         </DialogHeader>
 
         <Separator />
