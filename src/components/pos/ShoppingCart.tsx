@@ -108,9 +108,8 @@ export function ShoppingCartComponent({
             </p>
             {showCustomItemButton && onAddCustomItem && (
               <Button
-                variant="outline"
                 onClick={onAddCustomItem}
-                className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-950/20"
+                className="bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-700 dark:hover:bg-purple-600"
               >
                 <Sparkles className="h-4 w-4 mr-2" />
                 Add Custom Item
@@ -269,9 +268,8 @@ export function ShoppingCartComponent({
             {showCustomItemButton && onAddCustomItem && (
               <div className="pt-2">
                 <Button
-                  variant="outline"
                   onClick={onAddCustomItem}
-                  className="w-full border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-950/20"
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-700 dark:hover:bg-purple-600"
                 >
                   <Sparkles className="h-4 w-4 mr-2" />
                   Add Custom Item
