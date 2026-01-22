@@ -101,7 +101,21 @@ export function ShoppingCartComponent({
           <div className="text-center py-12">
             <ShoppingCart className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-40" />
             <p className="font-medium text-muted-foreground">Cart is empty</p>
-            <p className="text-sm text-muted-foreground">Add products to start a sale</p>
+            <p className="text-sm text-muted-foreground mb-4">
+              {showCustomItemButton 
+                ? 'Add products from stock or create a custom order'
+                : 'Add products to start a sale'}
+            </p>
+            {showCustomItemButton && onAddCustomItem && (
+              <Button
+                variant="outline"
+                onClick={onAddCustomItem}
+                className="border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-950/20"
+              >
+                <Sparkles className="h-4 w-4 mr-2" />
+                Add Custom Item
+              </Button>
+            )}
           </div>
         ) : (
           <div className="space-y-3">

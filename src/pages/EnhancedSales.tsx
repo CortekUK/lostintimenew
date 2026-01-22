@@ -9,6 +9,8 @@ import { EditCartPartExchangeModal } from '@/components/pos/EditCartPartExchange
 import { SaleConfirmationModal } from '@/components/pos/SaleConfirmationModal';
 import { ProductSearch } from '@/components/pos/ProductSearch';
 import { AddCustomItemModal, CustomItemData } from '@/components/pos/AddCustomItemModal';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { ShoppingBag, Wallet } from 'lucide-react';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -628,6 +630,37 @@ export default function EnhancedSales() {
       subtitle="Process sales transactions with part exchange support"
     >
       <div className="space-y-6">
+        {/* Page-level mode switcher */}
+        <div className="flex items-center justify-between">
+          <Tabs 
+            value={depositMode ? 'deposit' : 'sale'} 
+            onValueChange={(v) => {
+              const isDeposit = v === 'deposit';
+              setDepositMode(isDeposit);
+              if (isDeposit) {
+                setDiscount(0); // Clear discount when switching to deposit mode
+              }
+            }}
+            className="w-auto"
+          >
+            <TabsList className="grid w-auto grid-cols-2">
+              <TabsTrigger value="sale" className="gap-2 px-4">
+                <ShoppingBag className="h-4 w-4" />
+                Complete Sale
+              </TabsTrigger>
+              <TabsTrigger value="deposit" className="gap-2 px-4">
+                <Wallet className="h-4 w-4" />
+                Deposit Order
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+          {depositMode && (
+            <p className="text-sm text-muted-foreground">
+              Customer pays partial now, balance on collection
+            </p>
+          )}
+        </div>
+
         <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
           {/* Left: Product Search */}
           <div className="xl:col-span-1">
@@ -689,7 +722,7 @@ export default function EnhancedSales() {
                 onSwitchToSale={() => setDepositMode(false)}
               />
             ) : (
-              <CheckoutForm
+            <CheckoutForm
                 items={cart}
                 partExchanges={partExchanges}
                 discount={discount}
@@ -724,15 +757,6 @@ export default function EnhancedSales() {
                 onLocationChange={setLocationId}
                 locationLocked={cart.length > 0}
                 disabled={!canCreateSales}
-                depositMode={depositMode}
-                onDepositModeChange={(enabled) => {
-                  setDepositMode(enabled);
-                  // Clear discount when switching to deposit mode (no discounts on deposits)
-                  if (enabled) {
-                    setDiscount(0);
-                  }
-                }}
-                showDepositToggle={cart.length > 0}
               />
             )}
           </div>
