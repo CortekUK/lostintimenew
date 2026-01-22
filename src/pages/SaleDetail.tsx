@@ -350,11 +350,13 @@ export default function SaleDetail() {
                 const lineTotal = item.quantity * item.unit_price - (item.discount || 0);
                 const lineCost = item.quantity * item.unit_cost;
                 const lineProfit = lineTotal - lineCost;
+                const isCustomOrder = (item as any).is_custom_order;
+                const displayName = item.product?.name || (item as any).product_name || 'Unknown Product';
                 
                 return (
                   <div 
                     key={index} 
-                    className="border rounded-lg p-4 cursor-pointer hover:border-primary/50 hover:bg-accent/50 transition-colors"
+                    className={`border rounded-lg p-4 transition-colors ${item.product_id ? 'cursor-pointer hover:border-primary/50 hover:bg-accent/50' : ''}`}
                     onClick={() => {
                       if (item.product_id) {
                         setSelectedProductId(item.product_id);
@@ -364,7 +366,12 @@ export default function SaleDetail() {
                   >
                     <div className="flex items-start justify-between mb-3">
                       <div className="flex-1">
-                        <h4 className="font-semibold">{item.product?.name || 'Unknown Product'}</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-semibold">{displayName}</h4>
+                          {isCustomOrder && (
+                            <Badge variant="secondary" className="text-xs">Custom Order</Badge>
+                          )}
+                        </div>
                         {item.product?.sku && (
                           <p className="text-sm text-muted-foreground">
                             SKU: {item.product.sku}

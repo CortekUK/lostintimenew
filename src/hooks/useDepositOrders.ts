@@ -416,23 +416,26 @@ export function useCompleteDepositOrder() {
 
       if (saleError) throw saleError;
 
-      // Create sale items
+      // Create sale items - handle both regular and custom orders
       for (const item of order.deposit_order_items || []) {
+        const { error: itemError } = await supabase
+          .from('sale_items')
+          .insert({
+            sale_id: sale.id,
+            product_id: item.product_id || null,
+            product_name: item.product_name,
+            is_custom_order: item.is_custom_order || false,
+            quantity: item.quantity,
+            unit_price: item.unit_price,
+            unit_cost: item.unit_cost || 0,
+            tax_rate: 0,
+            discount: 0,
+          });
+
+        if (itemError) throw itemError;
+
+        // Only handle stock movements for items with a product_id
         if (item.product_id) {
-          const { error: itemError } = await supabase
-            .from('sale_items')
-            .insert({
-              sale_id: sale.id,
-              product_id: item.product_id,
-              quantity: item.quantity,
-              unit_price: item.unit_price,
-              unit_cost: item.unit_cost || 0,
-              tax_rate: 0,
-              discount: 0,
-            });
-
-          if (itemError) throw itemError;
-
           // Release the reserve
           await supabase.from('stock_movements').insert({
             product_id: item.product_id,

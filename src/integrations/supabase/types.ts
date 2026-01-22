@@ -1465,7 +1465,9 @@ export type Database = {
         Row: {
           discount: number
           id: number
+          is_custom_order: boolean
           product_id: number | null
+          product_name: string | null
           quantity: number
           sale_id: number
           tax_rate: number
@@ -1475,7 +1477,9 @@ export type Database = {
         Insert: {
           discount?: number
           id?: number
+          is_custom_order?: boolean
           product_id?: number | null
+          product_name?: string | null
           quantity: number
           sale_id: number
           tax_rate?: number
@@ -1485,7 +1489,9 @@ export type Database = {
         Update: {
           discount?: number
           id?: number
+          is_custom_order?: boolean
           product_id?: number | null
+          product_name?: string | null
           quantity?: number
           sale_id?: number
           tax_rate?: number
