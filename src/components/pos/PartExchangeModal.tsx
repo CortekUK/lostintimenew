@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { PartExchangeFileUpload } from './PartExchangeFileUpload';
 import { Search, Check } from 'lucide-react';
@@ -114,16 +113,15 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
 
   return (
     <Dialog open={isOpen} onOpenChange={handleClose}>
-      <DialogContent className="sm:max-w-lg p-0">
-        <DialogHeader className="px-6 pt-5 pb-3">
-          <DialogTitle className="font-luxury text-xl">
-            Add Trade-In
-          </DialogTitle>
+      <DialogContent className="sm:max-w-lg">
+        <DialogHeader>
+          <DialogTitle>Add Trade-In</DialogTitle>
+          <DialogDescription>
+            Record an item the customer is trading in against this sale.
+          </DialogDescription>
         </DialogHeader>
 
-        <Separator />
-
-        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-4 space-y-4 max-h-[65vh] overflow-y-auto">
+        <form onSubmit={handleSubmit} className="space-y-4 max-h-[65vh] overflow-y-auto">
           {/* Item Details Section */}
           <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
             <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
