@@ -63,7 +63,7 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
   const items = data?.items || [];
   const partExchanges = data?.partExchanges || [];
   const settlements = data?.settlements || [];
-  const sale = items[0]?.sales;
+  const sale = data?.sale;
   const staffId = sale?.staff_id;
   
   // Get staff override for commission calculation
