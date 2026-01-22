@@ -2079,6 +2079,7 @@ export type Database = {
           expected_date: string | null
           id: number | null
           item_count: number | null
+          item_names: string | null
           location_id: number | null
           location_name: string | null
           notes: string | null
