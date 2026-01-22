@@ -554,17 +554,17 @@ export default function DepositOrders() {
             onOpenChange={setShowEditModal}
             order={selectedOrder}
           />
-          <VoidDepositOrderModal
-            open={showVoidModal}
-            onOpenChange={setShowVoidModal}
-            order={orderToVoid}
-            onSuccess={() => {
-              toast.success('Deposit order voided');
-              refetch();
-            }}
-          />
         </>
       )}
+      <VoidDepositOrderModal
+        open={showVoidModal}
+        onOpenChange={setShowVoidModal}
+        order={orderToVoid}
+        onSuccess={() => {
+          toast.success('Deposit order voided');
+          refetch();
+        }}
+      />
     </AppLayout>
   );
 }
