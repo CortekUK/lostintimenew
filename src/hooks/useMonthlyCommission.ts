@@ -5,6 +5,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useCommissionPayments } from '@/hooks/useCommissionPayments';
 import { useStaffCommissionOverrides } from '@/hooks/useStaffCommissionOverrides';
+import { useAllStaffRateHistory, getRateForSaleDate } from '@/hooks/useStaffCommissionRateHistory';
 import { useSoldItemsReport } from '@/hooks/useDatabase';
 import { format, startOfMonth, endOfMonth, subMonths, parseISO } from 'date-fns';
 
@@ -51,6 +52,7 @@ export function useMonthlyCommission(options: UseMonthlyCommissionOptions = {}) 
     staffId: options.staffId
   });
   const { data: overrides = [] } = useStaffCommissionOverrides();
+  const { data: rateHistory = [] } = useAllStaffRateHistory();
 
   const commissionRate = settings.commissionSettings?.defaultRate ?? 5;
   const commissionBasis = settings.commissionSettings?.calculationBasis ?? 'revenue';
@@ -79,7 +81,7 @@ export function useMonthlyCommission(options: UseMonthlyCommissionOptions = {}) 
     return result;
   }, [monthsBack]);
 
-  // Get override for a specific staff member
+  // Get current override for a specific staff member (for display purposes)
   const getStaffOverride = (staffId: string) => {
     return overrides.find(o => o.staff_id === staffId);
   };
@@ -110,7 +112,7 @@ export function useMonthlyCommission(options: UseMonthlyCommissionOptions = {}) 
         return saleDate >= monthStart && saleDate <= monthEnd;
       });
 
-      // Aggregate by staff
+      // Aggregate by staff, storing items for per-sale commission calculation
       const byStaff = new Map<string, {
         staffId: string;
         staffName: string;
@@ -118,6 +120,7 @@ export function useMonthlyCommission(options: UseMonthlyCommissionOptions = {}) 
         saleIds: Set<number>;
         revenue: number;
         profit: number;
+        items: any[];
       }>();
 
       monthItems.forEach((item: any) => {
@@ -131,7 +134,8 @@ export function useMonthlyCommission(options: UseMonthlyCommissionOptions = {}) 
             salesCount: 0,
             saleIds: new Set(),
             revenue: 0,
-            profit: 0
+            profit: 0,
+            items: []
           });
         }
         
@@ -139,6 +143,7 @@ export function useMonthlyCommission(options: UseMonthlyCommissionOptions = {}) 
         entry.saleIds.add(item.sale_id);
         entry.revenue += item.line_revenue || 0;
         entry.profit += item.line_gross_profit || 0;
+        entry.items.push(item);
       });
 
       // Get payments for this month
@@ -147,16 +152,35 @@ export function useMonthlyCommission(options: UseMonthlyCommissionOptions = {}) 
       );
 
       // Calculate commission and payment status for each staff
+      // Commission is calculated per-sale using the rate that was active at sale time
       const staffData: StaffMonthlyData[] = Array.from(byStaff.values()).map(staff => {
-        const override = getStaffOverride(staff.staffId);
-        const effectiveRate = override?.commission_rate ?? commissionRate;
-        const effectiveBasis = (override?.commission_basis ?? commissionBasis) as 'revenue' | 'profit';
-        
-        const commissionOwed = commissionEnabled 
-          ? (effectiveBasis === 'profit' 
-              ? staff.profit * (effectiveRate / 100)
-              : staff.revenue * (effectiveRate / 100))
-          : 0;
+        // Calculate commission per item using historical rates
+        let commissionOwed = 0;
+        let effectiveRate = commissionRate;
+        let effectiveBasis: 'revenue' | 'profit' = commissionBasis as 'revenue' | 'profit';
+
+        if (commissionEnabled) {
+          staff.items.forEach(item => {
+            const saleDate = new Date(item.sold_at);
+            
+            // Look up the rate that was active at the time of sale
+            const historicalRate = getRateForSaleDate(rateHistory, staff.staffId, saleDate);
+            
+            const rate = historicalRate?.rate ?? commissionRate;
+            const basis = historicalRate?.basis ?? commissionBasis;
+            
+            const itemBase = basis === 'profit' 
+              ? (item.line_gross_profit || 0) 
+              : (item.line_revenue || 0);
+            
+            commissionOwed += itemBase * (rate / 100);
+          });
+
+          // Get current rate for display
+          const currentOverride = getStaffOverride(staff.staffId);
+          effectiveRate = currentOverride?.commission_rate ?? commissionRate;
+          effectiveBasis = (currentOverride?.commission_basis ?? commissionBasis) as 'revenue' | 'profit';
+        }
         
         // Sum payments for this staff in this month
         const staffPayments = monthPayments.filter(p => p.staff_id === staff.staffId);
@@ -204,7 +228,7 @@ export function useMonthlyCommission(options: UseMonthlyCommissionOptions = {}) 
         totals,
       };
     });
-  }, [soldItemsData, months, allPayments, commissionRate, commissionBasis, commissionEnabled, overrides, options.staffId]);
+  }, [soldItemsData, months, allPayments, commissionRate, commissionBasis, commissionEnabled, overrides, rateHistory, options.staffId]);
 
   // Calculate grand totals across all months
   const grandTotals = useMemo(() => {

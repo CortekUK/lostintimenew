@@ -1731,6 +1731,42 @@ export type Database = {
           },
         ]
       }
+      staff_commission_rate_history: {
+        Row: {
+          commission_basis: string
+          commission_rate: number
+          created_at: string
+          created_by: string | null
+          effective_from: string
+          effective_to: string | null
+          id: number
+          notes: string | null
+          staff_id: string
+        }
+        Insert: {
+          commission_basis: string
+          commission_rate: number
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: number
+          notes?: string | null
+          staff_id: string
+        }
+        Update: {
+          commission_basis?: string
+          commission_rate?: number
+          created_at?: string
+          created_by?: string | null
+          effective_from?: string
+          effective_to?: string | null
+          id?: number
+          notes?: string | null
+          staff_id?: string
+        }
+        Relationships: []
+      }
       stock_movements: {
         Row: {
           created_by: string | null

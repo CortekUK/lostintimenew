@@ -57,6 +57,29 @@ export function useUpsertStaffCommissionOverride() {
       commission_basis: 'revenue' | 'profit';
       notes?: string;
     }) => {
+      // First, close any currently active rate in history
+      const { error: historyUpdateError } = await supabase
+        .from('staff_commission_rate_history')
+        .update({ effective_to: new Date().toISOString() })
+        .eq('staff_id', data.staff_id)
+        .is('effective_to', null);
+
+      if (historyUpdateError) throw historyUpdateError;
+
+      // Insert new rate into history
+      const { error: historyInsertError } = await supabase
+        .from('staff_commission_rate_history')
+        .insert({
+          staff_id: data.staff_id,
+          commission_rate: data.commission_rate,
+          commission_basis: data.commission_basis,
+          effective_from: new Date().toISOString(),
+          notes: data.notes || null,
+        });
+
+      if (historyInsertError) throw historyInsertError;
+
+      // Update current override (for quick lookups of current rate)
       const { error } = await supabase
         .from('staff_commission_overrides')
         .upsert({
@@ -73,7 +96,9 @@ export function useUpsertStaffCommissionOverride() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['staff-commission-overrides'] });
       queryClient.invalidateQueries({ queryKey: ['staff-commission-override'] });
-      toast.success('Commission rate updated');
+      queryClient.invalidateQueries({ queryKey: ['staff-commission-rate-history'] });
+      queryClient.invalidateQueries({ queryKey: ['all-staff-commission-rate-history'] });
+      toast.success('Commission rate updated (applies to new sales)');
     },
     onError: (error) => {
       console.error('Error updating commission override:', error);
