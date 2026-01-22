@@ -2,7 +2,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { formatCurrency, calculateCartTotals } from '@/lib/utils';
-import type { CartItem, PartExchangeItem } from '@/types';
+import type { CartItem, PartExchangeItem, CustomCartItem } from '@/types';
 import { PartExchangeItem as PartExchangeItemComponent } from './PartExchangeItem';
 import { ConsignmentBadge } from '@/components/ui/consignment-badge';
 import { 
@@ -12,35 +12,46 @@ import {
   Trash2,
   Package,
   Hash,
-  Repeat
+  Repeat,
+  Sparkles
 } from 'lucide-react';
 
 export type DiscountType = 'percentage' | 'fixed';
 
 interface ShoppingCartProps {
   items: CartItem[];
+  customItems?: CustomCartItem[];
   partExchanges: PartExchangeItem[];
   onUpdateQuantity: (productId: number, quantity: number) => void;
   onRemoveItem: (productId: number) => void;
+  onUpdateCustomQuantity?: (id: string, quantity: number) => void;
+  onRemoveCustomItem?: (id: string) => void;
   onRemovePartExchange: (id: string) => void;
   onEditPartExchange: (id: string) => void;
   onAddPartExchange: () => void;
+  onAddCustomItem?: () => void;
   discount: number;
   discountType: DiscountType;
   onSerialAssignment?: (item: CartItem) => void;
+  showCustomItemButton?: boolean;
 }
 
 export function ShoppingCartComponent({ 
   items,
+  customItems = [],
   partExchanges,
   onUpdateQuantity, 
   onRemoveItem,
+  onUpdateCustomQuantity,
+  onRemoveCustomItem,
   onRemovePartExchange,
   onEditPartExchange,
   onAddPartExchange,
+  onAddCustomItem,
   discount,
   discountType,
-  onSerialAssignment 
+  onSerialAssignment,
+  showCustomItemButton = false
 }: ShoppingCartProps) {
   // Calculate discount based on type
   const calculateItemDiscount = (lineTotal: number) => {
@@ -53,7 +64,8 @@ export function ShoppingCartComponent({
     }
   };
 
-  const totals = calculateCartTotals(items.map(item => {
+  // Calculate totals for regular items
+  const regularTotals = calculateCartTotals(items.map(item => {
     const lineTotal = item.unit_price * item.quantity;
     return {
       quantity: item.quantity,
@@ -63,8 +75,21 @@ export function ShoppingCartComponent({
     };
   }));
 
+  // Calculate totals for custom items (no discount applied to custom items)
+  const customSubtotal = customItems.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+  const customTax = customItems.reduce((sum, item) => sum + (item.unit_price * item.quantity * (item.tax_rate / 100)), 0);
+
+  const totals = {
+    subtotal: regularTotals.subtotal + customSubtotal,
+    tax_total: regularTotals.tax_total + customTax,
+    discount_total: regularTotals.discount_total,
+    total: regularTotals.total + customSubtotal + customTax
+  };
+
   const partExchangeTotal = partExchanges.reduce((sum, px) => sum + px.allowance, 0);
   const netTotal = totals.total - partExchangeTotal;
+
+  const hasItems = items.length > 0 || customItems.length > 0 || partExchanges.length > 0;
 
   return (
     <Card className="shadow-card">
@@ -72,7 +97,7 @@ export function ShoppingCartComponent({
         <CardTitle className="font-luxury">Shopping Cart</CardTitle>
       </CardHeader>
       <CardContent>
-        {items.length === 0 && partExchanges.length === 0 ? (
+        {!hasItems ? (
           <div className="text-center py-12">
             <ShoppingCart className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-40" />
             <p className="font-medium text-muted-foreground">Cart is empty</p>
@@ -80,6 +105,7 @@ export function ShoppingCartComponent({
           </div>
         ) : (
           <div className="space-y-3">
+            {/* Regular inventory items */}
             {items.map(item => {
               const lineTotal = item.unit_price * item.quantity;
               const lineDiscount = calculateItemDiscount(lineTotal);
@@ -100,16 +126,16 @@ export function ShoppingCartComponent({
                         <p className="text-xs text-muted-foreground">SKU: {item.product.sku}</p>
                       )}
                       <p className="text-xs text-muted-foreground">
-                        <span className="text-[#D4AF37] font-medium">{formatCurrency(item.unit_price)}</span> each
+                        <span className="text-primary font-medium">{formatCurrency(item.unit_price)}</span> each
                         {item.tax_rate > 0 && (
                           <span className="ml-2">• {item.tax_rate}% tax</span>
                         )}
                       </p>
                     </div>
                     <div className="text-right">
-                      <p className="font-medium text-sm text-[#D4AF37]">{formatCurrency(lineFinal)}</p>
+                      <p className="font-medium text-sm text-primary">{formatCurrency(lineFinal)}</p>
                       {discount > 0 && (
-                        <p className="text-xs text-green-600">
+                        <p className="text-xs text-success">
                           -{formatCurrency(lineDiscount)} discount
                         </p>
                       )}
@@ -146,10 +172,98 @@ export function ShoppingCartComponent({
                       <Trash2 className="h-3 w-3" />
                     </Button>
                   </div>
-
                 </div>
               );
             })}
+
+            {/* Custom items section */}
+            {customItems.length > 0 && (
+              <div className="pt-3 border-t">
+                <div className="flex items-center gap-2 mb-3">
+                  <Badge className="bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800">
+                    <Sparkles className="h-3 w-3 mr-1" />
+                    Custom
+                  </Badge>
+                  <span className="text-sm text-muted-foreground">{customItems.length} item{customItems.length !== 1 ? 's' : ''}</span>
+                </div>
+                <div className="space-y-2">
+                  {customItems.map(item => {
+                    const lineTotal = item.unit_price * item.quantity;
+                    const lineTax = lineTotal * (item.tax_rate / 100);
+                    const lineFinal = lineTotal + lineTax;
+                    
+                    return (
+                      <div key={item.id} className="p-3 bg-purple-50 dark:bg-purple-950/30 rounded-lg border border-purple-200 dark:border-purple-800">
+                        <div className="flex items-start justify-between mb-2">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h4 className="font-medium text-sm truncate text-purple-900 dark:text-purple-200">{item.product_name}</h4>
+                            </div>
+                            {item.category && (
+                              <p className="text-xs text-purple-700 dark:text-purple-400">{item.category}</p>
+                            )}
+                            {item.description && (
+                              <p className="text-xs text-muted-foreground mt-1 line-clamp-2">{item.description}</p>
+                            )}
+                            <p className="text-xs text-muted-foreground mt-1">
+                              <span className="text-primary font-medium">{formatCurrency(item.unit_price)}</span> each
+                            </p>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-medium text-sm text-primary">{formatCurrency(lineFinal)}</p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => onUpdateCustomQuantity?.(item.id, item.quantity - 1)}
+                              className="h-7 w-7 p-0"
+                              disabled={item.quantity <= 1}
+                            >
+                              <Minus className="h-3 w-3" />
+                            </Button>
+                            <span className="w-8 text-center text-sm font-medium">{item.quantity}</span>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => onUpdateCustomQuantity?.(item.id, item.quantity + 1)}
+                              className="h-7 w-7 p-0"
+                            >
+                              <Plus className="h-3 w-3" />
+                            </Button>
+                          </div>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            onClick={() => onRemoveCustomItem?.(item.id)}
+                            className="h-7 w-7 p-0 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {/* Add Custom Item Button (only shown in deposit mode) */}
+            {showCustomItemButton && onAddCustomItem && (
+              <div className="pt-2">
+                <Button
+                  variant="outline"
+                  onClick={onAddCustomItem}
+                  className="w-full border-purple-200 text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-400 dark:hover:bg-purple-950/20"
+                >
+                  <Sparkles className="h-4 w-4 mr-2" />
+                  Add Custom Item
+                </Button>
+              </div>
+            )}
 
             {/* Part Exchange Section */}
             {partExchanges.length > 0 && (
@@ -190,29 +304,29 @@ export function ShoppingCartComponent({
               <h5 className="font-semibold text-sm mb-2">Summary</h5>
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Subtotal:</span>
-                <span className="text-[#D4AF37] font-medium">{formatCurrency(totals.subtotal)}</span>
+                <span className="text-primary font-medium">{formatCurrency(totals.subtotal)}</span>
               </div>
               {discount > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">
                     Discount ({discountType === 'percentage' ? `${discount}%` : formatCurrency(discount)}):
                   </span>
-                  <span className="text-green-600 font-medium">-{formatCurrency(totals.discount_total)}</span>
+                  <span className="text-success font-medium">-{formatCurrency(totals.discount_total)}</span>
                 </div>
               )}
               {totals.tax_total > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Tax:</span>
-                  <span className="text-[#D4AF37] font-medium">{formatCurrency(totals.tax_total)}</span>
+                  <span className="text-primary font-medium">{formatCurrency(totals.tax_total)}</span>
                 </div>
               )}
               {partExchangeTotal > 0 && (
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Trade-In Allowance:</span>
-                  <span className="text-green-600 font-medium">-{formatCurrency(partExchangeTotal)}</span>
+                  <span className="text-success font-medium">-{formatCurrency(partExchangeTotal)}</span>
                 </div>
               )}
-              <div className={`flex justify-between font-bold text-base pt-2 border-t ${netTotal < 0 ? 'text-red-600' : 'text-[#D4AF37]'}`}>
+              <div className={`flex justify-between font-bold text-base pt-2 border-t ${netTotal < 0 ? 'text-destructive' : 'text-primary'}`}>
                 <span>{netTotal < 0 ? 'Owed to Customer:' : 'Net Total:'}</span>
                 <span>{formatCurrency(Math.abs(netTotal))}</span>
               </div>

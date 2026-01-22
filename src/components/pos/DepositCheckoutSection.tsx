@@ -4,7 +4,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CurrencyInput } from '@/components/ui/currency-input';
 import { formatCurrency, calculateCartTotals } from '@/lib/utils';
-import type { CartItem, PaymentMethod, PartExchangeItem } from '@/types';
+import type { CartItem, PaymentMethod, PartExchangeItem, CustomCartItem } from '@/types';
 import { CreditCard, Banknote, Smartphone, Building, Loader2, Wallet, ShoppingBag } from 'lucide-react';
 import { CustomerSearchInput } from './CustomerSearchInput';
 import { LocationSelector } from '@/components/cash-drawer/LocationSelector';
@@ -18,6 +18,7 @@ import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 interface DepositCheckoutSectionProps {
   items: CartItem[];
+  customItems?: CustomCartItem[];
   partExchanges: PartExchangeItem[];
   customerName: string;
   onCustomerNameChange: (name: string) => void;
@@ -48,6 +49,7 @@ const paymentMethods = [
 
 export function DepositCheckoutSection({
   items,
+  customItems = [],
   partExchanges,
   customerName,
   onCustomerNameChange,
@@ -75,9 +77,11 @@ export function DepositCheckoutSection({
   const { data: locationData } = useLocation(locationLocked && locationId ? locationId : 0);
   const resolvedLocationName = locationData?.name || `Location #${locationId}`;
 
-  // Calculate totals including part exchanges
-  const subtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
-  const totals = calculateCartTotals(
+  // Calculate totals including part exchanges and custom items
+  const regularSubtotal = items.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+  const customSubtotal = customItems.reduce((sum, item) => sum + item.quantity * item.unit_price, 0);
+  
+  const regularTotals = calculateCartTotals(
     items.map((item) => ({
       quantity: item.quantity,
       unit_price: item.unit_price,
@@ -86,15 +90,20 @@ export function DepositCheckoutSection({
     }))
   );
 
+  const customTax = customItems.reduce((sum, item) => sum + (item.unit_price * item.quantity * (item.tax_rate / 100)), 0);
+  const totalAmount = regularTotals.total + customSubtotal + customTax;
+
   const partExchangeTotal = partExchanges.reduce((sum, px) => sum + px.allowance, 0);
-  const netOrderTotal = totals.total - partExchangeTotal;
+  const netOrderTotal = totalAmount - partExchangeTotal;
 
   const initialPaymentAmount = parseFloat(initialPayment) || 0;
   const balanceAfterDeposit = netOrderTotal - initialPaymentAmount;
   const depositPercentage = netOrderTotal > 0 ? (initialPaymentAmount / netOrderTotal) * 100 : 0;
 
+  const hasItems = items.length > 0 || customItems.length > 0;
+
   const canCreate =
-    items.length > 0 &&
+    hasItems &&
     customerName.trim() &&
     staffMember &&
     locationId &&
@@ -212,12 +221,12 @@ export function DepositCheckoutSection({
           <h4 className="font-semibold text-base">Order Summary</h4>
           <div className="flex justify-between text-sm">
             <span className="text-muted-foreground">Items Total:</span>
-            <span>{formatCurrency(totals.total)}</span>
+            <span>{formatCurrency(totalAmount)}</span>
           </div>
           {partExchangeTotal > 0 && (
             <div className="flex justify-between text-sm">
               <span className="text-muted-foreground">Trade-In ({partExchanges.length} item{partExchanges.length !== 1 ? 's' : ''}):</span>
-              <span className="text-green-600">-{formatCurrency(partExchangeTotal)}</span>
+              <span className="text-success">-{formatCurrency(partExchangeTotal)}</span>
             </div>
           )}
           <div className="flex justify-between text-lg font-bold">
@@ -237,7 +246,7 @@ export function DepositCheckoutSection({
               onValueChange={setInitialPayment}
               placeholder="Enter deposit amount"
             />
-            {initialPaymentAmount > 0 && totals.total > 0 && (
+            {initialPaymentAmount > 0 && totalAmount > 0 && (
               <div className="space-y-1">
                 <Progress value={depositPercentage} className="h-2" />
                 <p className="text-xs text-muted-foreground">
@@ -308,21 +317,21 @@ export function DepositCheckoutSection({
           <p className="text-center text-sm text-destructive">You don't have permission to create orders</p>
         )}
 
-        {!disabled && items.length === 0 && (
+        {!disabled && !hasItems && (
           <p className="text-center text-sm text-muted-foreground">Add items to cart to create a deposit order</p>
         )}
 
-        {items.length > 0 && !customerName.trim() && (
+        {hasItems && !customerName.trim() && (
           <p className="text-center text-sm text-muted-foreground">
             Customer name is required for deposit orders
           </p>
         )}
 
-        {items.length > 0 && customerName.trim() && !locationId && (
+        {hasItems && customerName.trim() && !locationId && (
           <p className="text-center text-sm text-muted-foreground">Select a shop location</p>
         )}
 
-        {items.length > 0 && customerName.trim() && locationId && initialPaymentAmount <= 0 && (
+        {hasItems && customerName.trim() && locationId && initialPaymentAmount <= 0 && (
           <p className="text-center text-sm text-muted-foreground">
             Enter an initial deposit amount to continue
           </p>

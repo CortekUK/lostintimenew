@@ -83,6 +83,19 @@ export interface CartItem {
   stock_on_hand?: number; // Available stock for validation
 }
 
+// Custom Item for Deposit Orders (bespoke/made-to-order pieces)
+export interface CustomCartItem {
+  id: string; // temporary UUID for cart management
+  product_name: string;
+  category?: string;
+  description?: string;
+  quantity: number;
+  unit_price: number;
+  unit_cost: number;
+  tax_rate: number;
+  is_custom: true; // discriminator
+}
+
 // Part Exchange Types for POS
 export interface PartExchangeItem {
   id: string; // temporary ID for cart management
