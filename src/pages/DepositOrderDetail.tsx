@@ -30,7 +30,7 @@ import {
   User,
   Calendar,
   Plus,
-  Trash2,
+  Ban,
   Receipt,
   ExternalLink,
   Repeat,
@@ -43,7 +43,7 @@ import {
 import { 
   useDepositOrderDetails, 
   useCompleteDepositOrder, 
-  useCancelDepositOrder,
+  useVoidDepositOrder,
   DepositOrderStatus,
   isPickupApproaching,
   isPickupOverdue,
@@ -58,6 +58,7 @@ const STATUS_CONFIG: Record<DepositOrderStatus, { label: string; variant: 'defau
   active: { label: 'Active', variant: 'default', icon: Clock },
   completed: { label: 'Completed', variant: 'secondary', icon: CheckCircle2 },
   cancelled: { label: 'Cancelled', variant: 'destructive', icon: XCircle },
+  voided: { label: 'Voided', variant: 'destructive', icon: Ban },
   expired: { label: 'Expired', variant: 'destructive', icon: XCircle },
 };
 
@@ -83,13 +84,13 @@ export default function DepositOrderDetail() {
   
   const [showPaymentModal, setShowPaymentModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
-  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showVoidDialog, setShowVoidDialog] = useState(false);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
+  const [voidReason, setVoidReason] = useState('');
   
   const { data: order, isLoading, error } = useDepositOrderDetails(orderId);
   const completeOrder = useCompleteDepositOrder();
-  const cancelOrder = useCancelDepositOrder();
+  const voidOrder = useVoidDepositOrder();
 
   if (isLoading) {
     return (
@@ -151,12 +152,12 @@ export default function DepositOrderDetail() {
     }
   };
 
-  const handleCancel = () => {
+  const handleVoid = () => {
     if (orderId) {
-      cancelOrder.mutate({ orderId, reason: cancelReason }, {
+      voidOrder.mutate({ orderId, reason: voidReason }, {
         onSuccess: () => {
-          setShowCancelDialog(false);
-          setCancelReason('');
+          setShowVoidDialog(false);
+          setVoidReason('');
           navigate('/deposits');
         },
       });
@@ -215,12 +216,10 @@ export default function DepositOrderDetail() {
                     <span className="hidden sm:inline">Complete</span>
                   </Button>
                 )}
-                {canManage && (
-                  <Button variant="destructive" size="sm" onClick={() => setShowCancelDialog(true)}>
-                    <Trash2 className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Cancel</span>
-                  </Button>
-                )}
+                <Button variant="destructive" size="sm" onClick={() => setShowVoidDialog(true)}>
+                  <Ban className="h-4 w-4 sm:mr-2" />
+                  <span className="hidden sm:inline">Void</span>
+                </Button>
               </>
             )}
             {order.sale_id && (
@@ -575,33 +574,50 @@ export default function DepositOrderDetail() {
         </AlertDialogContent>
       </AlertDialog>
 
-      {/* Cancel Order Dialog */}
-      <AlertDialog open={showCancelDialog} onOpenChange={setShowCancelDialog}>
+      {/* Void Order Dialog */}
+      <AlertDialog open={showVoidDialog} onOpenChange={setShowVoidDialog}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>Cancel Deposit Order</AlertDialogTitle>
+            <AlertDialogTitle>Void Deposit Order</AlertDialogTitle>
             <AlertDialogDescription>
-              This will cancel the deposit order and release any reserved stock. 
+              This will void the deposit order and release any reserved stock. 
               This action cannot be undone.
             </AlertDialogDescription>
           </AlertDialogHeader>
-          <div className="py-4">
-            <label className="text-sm font-medium">Cancellation Reason (optional)</label>
+          
+          {/* Show refund amount if payments have been made */}
+          {order.amount_paid > 0 && (
+            <div className="rounded-lg border border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950/30 p-4">
+              <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200 font-medium mb-1">
+                <Wallet className="h-4 w-4" />
+                Refund Required
+              </div>
+              <p className="text-2xl font-bold text-amber-900 dark:text-amber-100">
+                {formatCurrency(order.amount_paid)}
+              </p>
+              <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                {order.deposit_payments?.length || 0} payment{(order.deposit_payments?.length || 0) !== 1 ? 's' : ''} received
+              </p>
+            </div>
+          )}
+          
+          <div className="py-2">
+            <label className="text-sm font-medium">Void Reason (optional)</label>
             <Textarea
-              value={cancelReason}
-              onChange={(e) => setCancelReason(e.target.value)}
-              placeholder="Enter reason for cancellation..."
+              value={voidReason}
+              onChange={(e) => setVoidReason(e.target.value)}
+              placeholder="Enter reason for voiding this order..."
               className="mt-2"
             />
           </div>
           <AlertDialogFooter>
             <AlertDialogCancel>Keep Order</AlertDialogCancel>
             <AlertDialogAction 
-              onClick={handleCancel}
-              disabled={cancelOrder.isPending}
+              onClick={handleVoid}
+              disabled={voidOrder.isPending}
               className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             >
-              {cancelOrder.isPending ? 'Cancelling...' : 'Cancel Order'}
+              {voidOrder.isPending ? 'Voiding...' : 'Void Order'}
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
