@@ -395,6 +395,18 @@ export function useCompleteDepositOrder() {
       const partExchangeTotal = order.part_exchange_total || 0;
       const netTotal = order.total_amount - partExchangeTotal;
       
+      // Determine payment method from the deposit payments
+      // Use the most recent payment's method, or 'cash' as default
+      const payments = order.deposit_payments || [];
+      let paymentMethod: Database['public']['Enums']['payment_method'] = 'cash';
+      if (payments.length > 0) {
+        // Sort by received_at descending to get the most recent payment
+        const sortedPayments = [...payments].sort((a, b) => 
+          new Date(b.received_at).getTime() - new Date(a.received_at).getTime()
+        );
+        paymentMethod = sortedPayments[0].payment_method || 'cash';
+      }
+      
       const { data: sale, error: saleError } = await supabase
         .from('sales')
         .insert({
@@ -406,7 +418,7 @@ export function useCompleteDepositOrder() {
           tax_total: 0,
           total: order.total_amount,
           part_exchange_total: partExchangeTotal,
-          payment: 'other',
+          payment: paymentMethod,
           notes: `Converted from Deposit Order #${order.id}`,
           staff_id: user.id,
           location_id: order.location_id,
