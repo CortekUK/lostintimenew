@@ -8,6 +8,7 @@ import { PartExchangeModal } from '@/components/pos/PartExchangeModal';
 import { EditCartPartExchangeModal } from '@/components/pos/EditCartPartExchangeModal';
 import { SaleConfirmationModal } from '@/components/pos/SaleConfirmationModal';
 import { ProductSearch } from '@/components/pos/ProductSearch';
+import { AddCustomItemModal, CustomItemData } from '@/components/pos/AddCustomItemModal';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -19,7 +20,7 @@ import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { matchOrCreateCustomer } from '@/hooks/useCustomerMatchOrCreate';
 import { useRecordCashMovement } from '@/hooks/useCashDrawer';
 import { useCreateDepositOrder, PaymentMethod as DepositPaymentMethod } from '@/hooks/useDepositOrders';
-import type { CartItem, Product, Sale, PartExchangeItem } from '@/types';
+import type { CartItem, Product, Sale, PartExchangeItem, CustomCartItem } from '@/types';
 
 export default function EnhancedSales() {
   const { settings } = useSettings();
@@ -55,6 +56,8 @@ export default function EnhancedSales() {
   const [completedSale, setCompletedSale] = useState<{ sale: any; items: any[]; partExchanges: any[]; signature: string | null } | null>(null);
   const [locationId, setLocationId] = useState<number | null>(null);
   const [depositMode, setDepositMode] = useState(false);
+  const [customItems, setCustomItems] = useState<CustomCartItem[]>([]);
+  const [showCustomItemModal, setShowCustomItemModal] = useState(false);
 
   // Fetch current user's profile for auto-fill
   const { data: userProfile } = useQuery({
@@ -168,20 +171,23 @@ export default function EnhancedSales() {
     }
   });
 
-  // Calculate totals
-  const subtotal = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+  // Calculate totals (including custom items for deposit mode)
+  const regularSubtotal = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+  const customSubtotal = customItems.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
+  const subtotal = regularSubtotal + customSubtotal;
   const discountAmount = discountType === 'percentage' 
-    ? (subtotal * discount) / 100 
+    ? (regularSubtotal * discount) / 100  // Discount only on regular items
     : discount;
   const taxAmount = cart.reduce((sum, item) => {
     const itemSubtotal = item.unit_price * item.quantity;
     const itemDiscountRatio = discountType === 'percentage'
       ? discount / 100
-      : subtotal > 0 ? discountAmount / subtotal : 0;
+      : regularSubtotal > 0 ? discountAmount / regularSubtotal : 0;
     const itemAfterDiscount = itemSubtotal - (itemSubtotal * itemDiscountRatio);
     return sum + (itemAfterDiscount * (item.product.tax_rate / 100));
   }, 0);
-  const total = subtotal - discountAmount + taxAmount;
+  const customTaxAmount = customItems.reduce((sum, item) => sum + (item.unit_price * item.quantity * (item.tax_rate / 100)), 0);
+  const total = subtotal - discountAmount + taxAmount + customTaxAmount;
   const partExchangeTotal = partExchanges.reduce((sum, px) => sum + px.allowance, 0);
   const netTotal = total - partExchangeTotal;
 
@@ -309,6 +315,29 @@ export default function EnhancedSales() {
 
   const removeFromCart = (productId: number) => {
     setCart(cart.filter(item => item.product.id !== productId));
+  };
+
+  // Custom item handlers
+  const addCustomItem = (item: CustomItemData) => {
+    setCustomItems([...customItems, item as CustomCartItem]);
+    toast({
+      title: 'Custom item added',
+      description: item.product_name,
+    });
+  };
+
+  const updateCustomQuantity = (id: string, quantity: number) => {
+    if (quantity <= 0) {
+      setCustomItems(customItems.filter(item => item.id !== id));
+      return;
+    }
+    setCustomItems(customItems.map(item => 
+      item.id === id ? { ...item, quantity } : item
+    ));
+  };
+
+  const removeCustomItem = (id: string) => {
+    setCustomItems(customItems.filter(item => item.id !== id));
   };
 
   // Remove serial assignment functionality - simplified model
@@ -519,19 +548,31 @@ export default function EnhancedSales() {
         customerId = result.customerId;
       }
 
+      // Build items array from regular cart + custom items
+      const regularItems = cart.map(item => ({
+        product_id: item.product.id,
+        product_name: item.product.name,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        unit_cost: item.product.unit_cost,
+        is_custom_order: false,
+      }));
+
+      const customOrderItems = customItems.map(item => ({
+        product_id: null,
+        product_name: item.product_name,
+        quantity: item.quantity,
+        unit_price: item.unit_price,
+        unit_cost: item.unit_cost,
+        is_custom_order: true,
+      }));
+
       const order = await createDepositOrder.mutateAsync({
         customer_id: customerId,
         customer_name: customerName.trim() || 'Walk-in Customer',
         notes: notes || undefined,
         location_id: locationId,
-        items: cart.map(item => ({
-          product_id: item.product.id,
-          product_name: item.product.name,
-          quantity: item.quantity,
-          unit_price: item.unit_price,
-          unit_cost: item.product.unit_cost,
-          is_custom_order: false,
-        })),
+        items: [...regularItems, ...customOrderItems],
         part_exchanges: partExchanges.map(px => ({
           product_name: px.product_name,
           category: px.category,
@@ -562,6 +603,7 @@ export default function EnhancedSales() {
 
       // Reset form
       setCart([]);
+      setCustomItems([]);
       setPartExchanges([]);
       setCustomerName('');
       setCustomerEmail('');
@@ -599,14 +641,19 @@ export default function EnhancedSales() {
           <div className="xl:col-span-1">
             <ShoppingCartComponent
               items={cart}
+              customItems={depositMode ? customItems : []}
               partExchanges={partExchanges}
               onUpdateQuantity={updateQuantity}
               onRemoveItem={removeFromCart}
+              onUpdateCustomQuantity={updateCustomQuantity}
+              onRemoveCustomItem={removeCustomItem}
               onRemovePartExchange={removePartExchange}
               onEditPartExchange={editPartExchange}
               onAddPartExchange={() => setShowPartExchangeModal(true)}
+              onAddCustomItem={() => setShowCustomItemModal(true)}
               discount={depositMode ? 0 : discount}
               discountType={discountType}
+              showCustomItemButton={depositMode}
             />
           </div>
           
@@ -615,6 +662,7 @@ export default function EnhancedSales() {
             {depositMode ? (
               <DepositCheckoutSection
                 items={cart}
+                customItems={customItems}
                 partExchanges={partExchanges}
                 customerName={customerName}
                 onCustomerNameChange={setCustomerName}
@@ -702,6 +750,12 @@ export default function EnhancedSales() {
           onOpenChange={setShowEditPxModal}
           partExchange={editingPartExchange}
           onSave={updatePartExchange}
+        />
+
+        <AddCustomItemModal
+          open={showCustomItemModal}
+          onOpenChange={setShowCustomItemModal}
+          onAdd={addCustomItem}
         />
 
         {completedSale && (

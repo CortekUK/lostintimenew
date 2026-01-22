@@ -303,14 +303,18 @@ export default function DepositOrderDetail() {
                   {order.deposit_order_items?.map((item) => (
                     <div key={item.id} className="flex items-center justify-between py-3 border-b last:border-0">
                       <div>
-                        <p className="font-medium">
-                          {item.product?.name || item.product_name}
-                        </p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-medium">
+                            {item.product?.name || item.product_name}
+                          </p>
+                          {item.is_custom_order && (
+                            <Badge className="bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 text-xs">
+                              Custom
+                            </Badge>
+                          )}
+                        </div>
                         {item.product?.sku && (
                           <p className="text-sm text-muted-foreground">SKU: {item.product.sku}</p>
-                        )}
-                        {item.is_custom_order && (
-                          <Badge variant="outline" className="mt-1">Custom Order</Badge>
                         )}
                       </div>
                       <div className="text-right">
