@@ -39,7 +39,7 @@ type DepositOrderItem = Database['public']['Tables']['deposit_order_items']['Row
 type DepositPayment = Database['public']['Tables']['deposit_payments']['Row'];
 type DepositOrderSummary = Database['public']['Views']['v_deposit_order_summary']['Row'];
 
-export type DepositOrderStatus = 'active' | 'completed' | 'cancelled' | 'expired';
+export type DepositOrderStatus = 'active' | 'completed' | 'cancelled' | 'voided' | 'expired';
 export type PaymentMethod = Database['public']['Enums']['payment_method'];
 
 // Extended types with relations
@@ -552,8 +552,8 @@ export function useCompleteDepositOrder() {
   });
 }
 
-// Cancel a deposit order
-export function useCancelDepositOrder() {
+// Void a deposit order
+export function useVoidDepositOrder() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -571,7 +571,7 @@ export function useCancelDepositOrder() {
 
       if (orderError) throw orderError;
       if (order.status !== 'active') {
-        throw new Error('Only active orders can be cancelled');
+        throw new Error('Only active orders can be voided');
       }
 
       // Release reserved stock
@@ -583,7 +583,7 @@ export function useCancelDepositOrder() {
             product_id: item.product_id,
             quantity: item.quantity,
             movement_type: 'release',
-            note: `Deposit Order #${order.id} cancelled`,
+            note: `Deposit Order #${order.id} voided`,
             created_by: user.id,
           });
           if (stockError) throw stockError;
@@ -594,8 +594,8 @@ export function useCancelDepositOrder() {
       const { error: updateError } = await supabase
         .from('deposit_orders')
         .update({
-          status: 'cancelled',
-          notes: reason ? `${order.notes || ''}\n\nCancellation reason: ${reason}`.trim() : order.notes,
+          status: 'voided',
+          notes: reason ? `${order.notes || ''}\n\nVoid reason: ${reason}`.trim() : order.notes,
         })
         .eq('id', orderId);
 
@@ -607,13 +607,13 @@ export function useCancelDepositOrder() {
       queryClient.invalidateQueries({ queryKey: ['deposit-orders'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
       toast({
-        title: 'Order cancelled',
-        description: 'The deposit order has been cancelled and stock released.',
+        title: 'Order voided',
+        description: 'The deposit order has been voided and stock released.',
       });
     },
     onError: (error) => {
       toast({
-        title: 'Error cancelling order',
+        title: 'Error voiding order',
         description: error.message,
         variant: 'destructive',
       });

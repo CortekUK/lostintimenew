@@ -15,6 +15,7 @@ import {
   Clock, 
   CheckCircle2, 
   XCircle, 
+  Ban,
   Wallet,
   PoundSterling,
   Package,
@@ -47,6 +48,7 @@ const STATUS_CONFIG: Record<DepositOrderStatus, { label: string; variant: 'defau
   active: { label: 'Active', variant: 'default', icon: Clock },
   completed: { label: 'Completed', variant: 'secondary', icon: CheckCircle2 },
   cancelled: { label: 'Cancelled', variant: 'destructive', icon: XCircle },
+  voided: { label: 'Voided', variant: 'destructive', icon: Ban },
   expired: { label: 'Expired', variant: 'destructive', icon: XCircle },
 };
 
@@ -449,9 +451,9 @@ export default function DepositOrders() {
             <CheckCircle2 className="h-4 w-4" />
             Completed
           </TabsTrigger>
-          <TabsTrigger value="cancelled" className="flex-1 flex items-center justify-center gap-1.5">
-            <XCircle className="h-4 w-4" />
-            Cancelled
+          <TabsTrigger value="voided" className="flex-1 flex items-center justify-center gap-1.5">
+            <Ban className="h-4 w-4" />
+            Voided
           </TabsTrigger>
           <TabsTrigger value="all" className="flex-1">All Orders</TabsTrigger>
         </TabsList>
