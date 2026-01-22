@@ -292,13 +292,13 @@ function DepositOrderTable({
                     )}
                     {order.status === 'active' && (order.balance_due || 0) <= 0 && (
                       <Button
-                        variant="default"
-                        size="sm"
-                        className="h-8"
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8 text-green-600 hover:text-green-700 hover:bg-green-50 dark:hover:bg-green-900/20"
                         onClick={(e) => { e.stopPropagation(); onComplete(order); }}
+                        title="Complete Order"
                       >
-                        <CheckCircle2 className="h-4 w-4 mr-1" />
-                        Complete
+                        <CheckCircle2 className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
