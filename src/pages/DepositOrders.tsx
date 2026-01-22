@@ -25,7 +25,8 @@ import {
   LayoutList,
   LayoutGrid,
   CalendarClock,
-  AlertCircle
+  AlertCircle,
+  Pencil
 } from 'lucide-react';
 import { 
   useDepositOrders, 
@@ -35,6 +36,8 @@ import {
   isPickupOverdue,
   getDaysUntilPickup
 } from '@/hooks/useDepositOrders';
+import { RecordPaymentModal } from '@/components/deposits/RecordPaymentModal';
+import { EditDepositOrderModal } from '@/components/deposits/EditDepositOrderModal';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
 
@@ -173,7 +176,17 @@ function DepositOrderCard({ order, onClick }: { order: any; onClick: () => void 
   );
 }
 
-function DepositOrderTable({ orders, onRowClick }: { orders: any[]; onRowClick: (id: number) => void }) {
+function DepositOrderTable({ 
+  orders, 
+  onRowClick,
+  onEdit,
+  onPay 
+}: { 
+  orders: any[]; 
+  onRowClick: (id: number) => void;
+  onEdit: (order: any) => void;
+  onPay: (order: any) => void;
+}) {
   return (
     <div className="rounded-md border">
       <Table>
@@ -188,6 +201,7 @@ function DepositOrderTable({ orders, onRowClick }: { orders: any[]; onRowClick: 
             <TableHead className="text-right">Paid</TableHead>
             <TableHead className="text-right">Balance Due</TableHead>
             <TableHead>Created</TableHead>
+            <TableHead className="text-right">Actions</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -252,6 +266,28 @@ function DepositOrderTable({ orders, onRowClick }: { orders: any[]; onRowClick: 
                 <TableCell className="text-muted-foreground">
                   {format(new Date(order.created_at), 'dd MMM yyyy')}
                 </TableCell>
+                <TableCell className="text-right">
+                  <div className="flex items-center justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8"
+                      onClick={(e) => { e.stopPropagation(); onEdit(order); }}
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    {order.status === 'active' && order.balance_due > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        className="h-8 w-8"
+                        onClick={(e) => { e.stopPropagation(); onPay(order); }}
+                      >
+                        <PoundSterling className="h-4 w-4" />
+                      </Button>
+                    )}
+                  </div>
+                </TableCell>
               </TableRow>
             );
           })}
@@ -266,6 +302,9 @@ export default function DepositOrders() {
   const [activeTab, setActiveTab] = useState<'all' | DepositOrderStatus>('active');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'list' | 'grid'>('list');
+  const [selectedOrder, setSelectedOrder] = useState<any>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   
   const { data: orders, isLoading: ordersLoading, refetch } = useDepositOrders(activeTab === 'all' ? undefined : activeTab);
   const { data: stats, isLoading: statsLoading } = useDepositOrderStats();
@@ -281,6 +320,16 @@ export default function DepositOrders() {
 
   const handleRowClick = (id: number) => {
     navigate(`/deposits/${id}`);
+  };
+
+  const handleEditClick = (order: any) => {
+    setSelectedOrder(order);
+    setShowEditModal(true);
+  };
+
+  const handlePayClick = (order: any) => {
+    setSelectedOrder(order);
+    setShowPaymentModal(true);
   };
 
   return (
@@ -414,7 +463,12 @@ export default function DepositOrders() {
               </CardContent>
             </Card>
           ) : viewMode === 'list' ? (
-            <DepositOrderTable orders={filteredOrders} onRowClick={handleRowClick} />
+            <DepositOrderTable 
+              orders={filteredOrders} 
+              onRowClick={handleRowClick}
+              onEdit={handleEditClick}
+              onPay={handlePayClick}
+            />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredOrders.map((order) => (
@@ -428,6 +482,23 @@ export default function DepositOrders() {
           )}
         </TabsContent>
       </Tabs>
+
+      {/* Modals */}
+      {selectedOrder && (
+        <>
+          <RecordPaymentModal
+            open={showPaymentModal}
+            onOpenChange={setShowPaymentModal}
+            depositOrderId={selectedOrder.id}
+            balanceDue={selectedOrder.balance_due || 0}
+          />
+          <EditDepositOrderModal
+            open={showEditModal}
+            onOpenChange={setShowEditModal}
+            order={selectedOrder}
+          />
+        </>
+      )}
     </AppLayout>
   );
 }
