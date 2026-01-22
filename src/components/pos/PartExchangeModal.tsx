@@ -7,7 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { PartExchangeFileUpload } from './PartExchangeFileUpload';
-import { Repeat, Search, Check } from 'lucide-react';
+import { Search, Check } from 'lucide-react';
 import { PartExchangeItem } from '@/types';
 import { useFilterOptions } from '@/hooks/useFilterOptions';
 import { InlineSupplierAdd } from '@/components/forms/InlineSupplierAdd';
@@ -116,8 +116,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
     <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent className="sm:max-w-lg p-0">
         <DialogHeader className="px-6 pt-5 pb-3">
-          <DialogTitle className="font-luxury text-2xl flex items-center gap-2">
-            <Repeat className="h-5 w-5 text-primary" />
+          <DialogTitle className="font-luxury text-xl">
             Add Trade-In
           </DialogTitle>
         </DialogHeader>
@@ -374,8 +373,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
             <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
-            <Button type="submit" disabled={!isValid} className="gap-2">
-              <Repeat className="h-4 w-4" />
+            <Button type="submit" disabled={!isValid}>
               Add Trade-In
             </Button>
           </DialogFooter>
