@@ -655,11 +655,6 @@ export default function EnhancedSales() {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
-            {depositMode && (
-              <p className="text-xs sm:text-sm text-muted-foreground text-center sm:text-right">
-                Customer pays partial now, balance on collection
-              </p>
-            )}
           </div>
         </div>
 
