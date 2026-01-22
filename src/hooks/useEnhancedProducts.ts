@@ -25,7 +25,7 @@ export interface EnhancedProductFilters {
   isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
   inventoryAge?: 'all' | '30' | '60' | '90';
   sortBy?: ProductSortOption;
-  reservationStatus?: 'all' | 'reserved_only' | 'available_only';
+  reservationStatus?: 'all' | 'reserved_only' | 'available_only' | 'fully_reserved';
 }
 
 export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
@@ -117,36 +117,53 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
 
       if (stockError) throw stockError;
 
-      // Get active deposit reservations to identify reserved products
+      // Get active deposit reservations to count reserved quantities per product
       const { data: reservedData, error: reservedError } = await supabase
         .from('deposit_order_items')
         .select(`
           product_id,
+          quantity,
           deposit_order:deposit_orders!inner(id, status, customer_name)
         `)
         .not('deposit_order.status', 'in', '(completed,cancelled)');
 
       if (reservedError) throw reservedError;
 
-      // Create a map of reserved products with their deposit order info
-      const reservedMap = new Map<number, { deposit_order_id: number; customer_name: string }>();
+      // Create a map of reserved products with their count and order info
+      const reservedMap = new Map<number, { 
+        reserved_count: number; 
+        orders: Array<{ deposit_order_id: number; customer_name: string; quantity: number }> 
+      }>();
       reservedData?.forEach((item: any) => {
         if (item.product_id && item.deposit_order) {
-          reservedMap.set(item.product_id, {
+          const existing = reservedMap.get(item.product_id);
+          const orderInfo = {
             deposit_order_id: item.deposit_order.id,
-            customer_name: item.deposit_order.customer_name
-          });
+            customer_name: item.deposit_order.customer_name,
+            quantity: item.quantity || 1
+          };
+          if (existing) {
+            existing.reserved_count += (item.quantity || 1);
+            existing.orders.push(orderInfo);
+          } else {
+            reservedMap.set(item.product_id, {
+              reserved_count: item.quantity || 1,
+              orders: [orderInfo]
+            });
+          }
         }
       });
 
       // Create stock lookup map
       const stockMap = new Map(stockData?.map(s => [s.product_id, s]) || []);
       
-      // Filter products: show if qty > 0 OR is reserved
+      // Filter products: show if qty > 0 OR has reservations
       const productsWithStock = products.filter(p => {
         const stock = stockMap.get(p.id)?.qty_on_hand || 0;
-        const isReserved = reservedMap.has(p.id);
-        return stock > 0 || isReserved;
+        const reservationInfo = reservedMap.get(p.id);
+        const reservedCount = reservationInfo?.reserved_count || 0;
+        // Show if there's any stock OR any active reservations
+        return stock > 0 || reservedCount > 0;
       });
 
       // Get inventory data separately
@@ -169,6 +186,12 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
         const avgCost = inventoryInfo?.avg_cost || product.unit_cost;
         const inventoryValue = inventoryInfo?.inventory_value || (qtyOnHand * avgCost);
         
+        // Calculate reservation quantities
+        const qtyReserved = reservationInfo?.reserved_count || 0;
+        const qtyAvailable = Math.max(0, qtyOnHand - qtyReserved);
+        const isFullyReserved = qtyReserved > 0 && qtyAvailable === 0;
+        const isPartiallyReserved = qtyReserved > 0 && qtyAvailable > 0;
+        
         // Calculate markup percentage (Profit / Cost * 100) - jewellery industry standard
         const margin = product.unit_cost > 0 
           ? ((product.unit_price - product.unit_cost) / product.unit_cost) * 100 
@@ -177,12 +200,15 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
         return {
           ...product,
           qty_on_hand: qtyOnHand,
+          qty_available: qtyAvailable,
+          qty_reserved: qtyReserved,
           inventory_value: inventoryValue,
           avg_cost: avgCost,
           margin: Math.round(margin * 100) / 100, // Round to 2 decimal places
-          is_reserved: !!reservationInfo,
-          reserved_deposit_order_id: reservationInfo?.deposit_order_id || null,
-          reserved_customer_name: reservationInfo?.customer_name || null,
+          is_reserved: qtyReserved > 0,
+          is_fully_reserved: isFullyReserved,
+          is_partially_reserved: isPartiallyReserved,
+          reserved_orders: reservationInfo?.orders || [],
         };
       });
 
@@ -218,7 +244,9 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
           if (filters.reservationStatus === 'reserved_only') {
             filteredProducts = filteredProducts.filter(product => product.is_reserved);
           } else if (filters.reservationStatus === 'available_only') {
-            filteredProducts = filteredProducts.filter(product => !product.is_reserved);
+            filteredProducts = filteredProducts.filter(product => product.qty_available > 0);
+          } else if (filters.reservationStatus === 'fully_reserved') {
+            filteredProducts = filteredProducts.filter(product => product.is_fully_reserved);
           }
         }
       }

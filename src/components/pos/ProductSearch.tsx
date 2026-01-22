@@ -78,49 +78,69 @@ export function ProductSearch({ onAddToCart, cartItems }: ProductSearchProps) {
   const canAddToCart = (product: ProductSearchResult) => {
     if (!product.track_stock) return true;
     
-    const stockOnHand = product.stock_on_hand || 0;
+    // Use qty_available if set (accounts for reservations), otherwise fall back to stock_on_hand
+    const available = (product as any).qty_available ?? product.stock_on_hand ?? 0;
     const cartQuantity = getCartQuantity(product.id);
-    return stockOnHand > cartQuantity;
+    return available > cartQuantity;
   };
   
   const getStockDisplay = (product: ProductSearchResult) => {
-    if (!product.track_stock) return 'Unlimited';
+    if (!product.track_stock) return { primary: 'Unlimited', secondary: null };
     
     const stockOnHand = product.stock_on_hand || 0;
+    const qtyReserved = (product as any).qty_reserved || 0;
+    const qtyAvailable = (product as any).qty_available ?? stockOnHand;
     const cartQuantity = getCartQuantity(product.id);
-    const available = stockOnHand - cartQuantity;
+    const availableAfterCart = qtyAvailable - cartQuantity;
     
     // Product is in cart and no more available
-    if (available <= 0 && cartQuantity > 0) {
+    if (availableAfterCart <= 0 && cartQuantity > 0) {
       if (cartQuantity === 1) {
-        return 'Last one selected';
+        return { primary: 'Last one selected', secondary: null };
       }
-      return `All ${cartQuantity} selected`;
+      return { primary: `All ${cartQuantity} selected`, secondary: null };
     }
     
     // Truly out of stock (nothing in cart, nothing available)
-    if (available <= 0) {
-      return 'Out of stock';
+    if (availableAfterCart <= 0 && qtyReserved === 0) {
+      return { primary: 'Out of stock', secondary: null };
     }
     
-    return `${available} available`;
+    // Fully reserved
+    if (availableAfterCart <= 0 && qtyReserved > 0) {
+      return { primary: 'Reserved', secondary: null };
+    }
+    
+    // Partially reserved - show both available and reserved counts
+    if (qtyReserved > 0) {
+      return { 
+        primary: `${availableAfterCart} available`, 
+        secondary: `${qtyReserved} reserved` 
+      };
+    }
+    
+    return { primary: `${availableAfterCart} available`, secondary: null };
   };
   
   const getStockBadgeVariant = (product: ProductSearchResult) => {
     if (!product.track_stock) return 'default';
     
-    const stockOnHand = product.stock_on_hand || 0;
+    const qtyAvailable = (product as any).qty_available ?? product.stock_on_hand ?? 0;
+    const qtyReserved = (product as any).qty_reserved || 0;
     const cartQuantity = getCartQuantity(product.id);
-    const available = stockOnHand - cartQuantity;
+    const availableAfterCart = qtyAvailable - cartQuantity;
     
-    // In cart - use secondary instead of destructive
-    if (available <= 0 && cartQuantity > 0) return 'secondary';
+    // In cart - use secondary
+    if (availableAfterCart <= 0 && cartQuantity > 0) return 'secondary';
+    
+    // Fully reserved
+    if (availableAfterCart <= 0 && qtyReserved > 0) return 'outline';
     
     // Truly out of stock
-    if (available <= 0) return 'destructive';
+    if (availableAfterCart <= 0) return 'destructive';
     
     // Low stock warning
-    if (available <= 5) return 'secondary';
+    if (availableAfterCart <= 5) return 'secondary';
     
     return 'default';
   };
@@ -199,9 +219,16 @@ export function ProductSearch({ onAddToCart, cartItems }: ProductSearchProps) {
                   
                   {/* Right side: Availability + Add Button */}
                   <div className="flex flex-col items-end gap-2 ml-3 shrink-0">
-                    <Badge variant={badgeVariant} className="text-xs">
-                      {stockDisplay}
-                    </Badge>
+                    <div className="flex flex-col items-end gap-1">
+                      <Badge variant={badgeVariant} className={`text-xs ${badgeVariant === 'outline' ? 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300' : ''}`}>
+                        {stockDisplay.primary}
+                      </Badge>
+                      {stockDisplay.secondary && (
+                        <Badge variant="outline" className="text-xs bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300">
+                          {stockDisplay.secondary}
+                        </Badge>
+                      )}
+                    </div>
                     <Button 
                       variant={canAdd ? "default" : "secondary"}
                       size="sm"
