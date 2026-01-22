@@ -518,6 +518,48 @@ export function useCompleteDepositOrder() {
         }
       }
 
+      // Create consignment settlements for consignment products
+      const productIds = (order.deposit_order_items || [])
+        .filter(item => item.product_id)
+        .map(item => item.product_id);
+
+      if (productIds.length > 0) {
+        const { data: productsData } = await supabase
+          .from('products')
+          .select('id, is_consignment, consignment_supplier_id, unit_cost')
+          .in('id', productIds);
+
+        const consignmentProducts = productsData?.filter(p => p.is_consignment) || [];
+        
+        if (consignmentProducts.length > 0) {
+          const consignmentProductMap = new Map(
+            consignmentProducts.map(p => [p.id, p])
+          );
+          
+          const settlementRecords = (order.deposit_order_items || [])
+            .filter(item => item.product_id && consignmentProductMap.has(item.product_id))
+            .map(item => {
+              const product = consignmentProductMap.get(item.product_id)!;
+              return {
+                product_id: item.product_id,
+                sale_id: sale.id,
+                supplier_id: product.consignment_supplier_id,
+                sale_price: item.unit_price * item.quantity,
+                payout_amount: (product.unit_cost || item.unit_cost || 0) * item.quantity,
+                paid_at: null
+              };
+            });
+
+          if (settlementRecords.length > 0) {
+            const { error: settlementError } = await supabase
+              .from('consignment_settlements')
+              .insert(settlementRecords);
+
+            if (settlementError) throw settlementError;
+          }
+        }
+      }
+
       // Update the deposit order status
       const { error: updateError } = await supabase
         .from('deposit_orders')
@@ -537,6 +579,9 @@ export function useCompleteDepositOrder() {
       queryClient.invalidateQueries({ queryKey: ['sales'] });
       queryClient.invalidateQueries({ queryKey: ['products'] });
       queryClient.invalidateQueries({ queryKey: ['part-exchanges'] });
+      queryClient.invalidateQueries({ queryKey: ['consignment-settlements'] });
+      queryClient.invalidateQueries({ queryKey: ['consignment-products'] });
+      queryClient.invalidateQueries({ queryKey: ['consignment-stats'] });
       toast({
         title: 'Order completed',
         description: 'The deposit order has been converted to a sale.',
