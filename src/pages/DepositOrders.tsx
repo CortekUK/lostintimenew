@@ -63,9 +63,9 @@ function StatCard({ title, value, subtitle, icon: Icon }: {
 }) {
   return (
     <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
-      <CardHeader className="flex flex-row items-center justify-between pb-2 min-h-[3.5rem]">
-        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-muted-foreground" />
+      <CardHeader className="flex flex-row items-start justify-between pb-2 min-h-[3.5rem]">
+        <CardTitle className="text-sm font-medium text-muted-foreground flex-1 pr-2">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground shrink-0" />
       </CardHeader>
       <CardContent>
         <p className="text-2xl font-bold font-luxury">{value}</p>
@@ -405,23 +405,23 @@ export default function DepositOrders() {
 
       {/* Tabs and Content */}
       <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as any)}>
-        <TabsList className="mb-4">
-          <TabsTrigger value="active" className="flex items-center gap-1.5">
+        <TabsList className="mb-4 w-full">
+          <TabsTrigger value="active" className="flex-1 flex items-center justify-center gap-1.5">
             <Clock className="h-4 w-4" />
             Active
             {stats?.pending.count ? (
               <Badge variant="secondary" className="ml-1">{stats.pending.count}</Badge>
             ) : null}
           </TabsTrigger>
-          <TabsTrigger value="completed" className="flex items-center gap-1.5">
+          <TabsTrigger value="completed" className="flex-1 flex items-center justify-center gap-1.5">
             <CheckCircle2 className="h-4 w-4" />
             Completed
           </TabsTrigger>
-          <TabsTrigger value="cancelled" className="flex items-center gap-1.5">
+          <TabsTrigger value="cancelled" className="flex-1 flex items-center justify-center gap-1.5">
             <XCircle className="h-4 w-4" />
             Cancelled
           </TabsTrigger>
-          <TabsTrigger value="all">All Orders</TabsTrigger>
+          <TabsTrigger value="all" className="flex-1">All Orders</TabsTrigger>
         </TabsList>
 
         <TabsContent value={activeTab} className="mt-0">
