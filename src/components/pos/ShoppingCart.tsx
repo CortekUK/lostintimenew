@@ -101,20 +101,9 @@ export function ShoppingCartComponent({
           <div className="text-center py-12">
             <ShoppingCart className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-40" />
             <p className="font-medium text-muted-foreground">Cart is empty</p>
-            <p className="text-sm text-muted-foreground mb-4">
-              {showCustomItemButton 
-                ? 'Add products from stock or create a custom order'
-                : 'Add products to start a sale'}
+            <p className="text-sm text-muted-foreground">
+              Add products to start a sale
             </p>
-            {showCustomItemButton && onAddCustomItem && (
-              <Button
-                onClick={onAddCustomItem}
-                className="bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-700 dark:hover:bg-purple-600"
-              >
-                <Sparkles className="h-4 w-4 mr-2" />
-                Add Custom Item
-              </Button>
-            )}
           </div>
         ) : (
           <div className="space-y-3">
@@ -264,18 +253,6 @@ export function ShoppingCartComponent({
               </div>
             )}
 
-            {/* Add Custom Item Button (only shown in deposit mode) */}
-            {showCustomItemButton && onAddCustomItem && (
-              <div className="pt-2">
-                <Button
-                  onClick={onAddCustomItem}
-                  className="w-full bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-700 dark:hover:bg-purple-600"
-                >
-                  <Sparkles className="h-4 w-4 mr-2" />
-                  Add Custom Item
-                </Button>
-              </div>
-            )}
 
             {/* Part Exchange Section */}
             {partExchanges.length > 0 && (
