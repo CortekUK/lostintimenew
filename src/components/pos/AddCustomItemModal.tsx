@@ -197,11 +197,14 @@ export function AddCustomItemModal({ open, onOpenChange, onAdd }: AddCustomItemM
                   <Minus className="h-4 w-4" />
                 </Button>
                 <Input
-                  type="number"
-                  min="1"
+                  type="text"
+                  inputMode="numeric"
                   value={quantity}
-                  onChange={(e) => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-20 text-center"
+                  onChange={(e) => {
+                    const val = e.target.value.replace(/[^0-9]/g, '');
+                    setQuantity(Math.max(1, parseInt(val) || 1));
+                  }}
+                  className="w-20 text-center [appearance:textfield]"
                 />
                 <Button
                   type="button"
