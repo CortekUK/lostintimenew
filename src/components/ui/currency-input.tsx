@@ -27,8 +27,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
       
       const numValue = typeof value === "string" ? parseFloat(value) : value;
       if (!isNaN(numValue)) {
-        // Only format with decimals if already initialized (not first render with a default)
-        setDisplayValue(hasInitialized.current ? numValue.toFixed(2) : String(numValue));
+        setDisplayValue(String(numValue));
         hasInitialized.current = true;
       }
     }, [value, isFocused]);
@@ -54,7 +53,8 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
     const handleBlur = () => {
       setIsFocused(false);
       if (displayValue && !isNaN(parseFloat(displayValue))) {
-        const formatted = parseFloat(displayValue).toFixed(2);
+        const numValue = parseFloat(displayValue);
+        const formatted = Number.isInteger(numValue) ? String(numValue) : numValue.toString();
         setDisplayValue(formatted);
         onValueChange(formatted);
       }
@@ -62,7 +62,7 @@ const CurrencyInput = React.forwardRef<HTMLInputElement, CurrencyInputProps>(
 
     return (
       <div className="relative">
-        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#D4AF37] font-medium">
+        <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
           £
         </span>
         <Input
