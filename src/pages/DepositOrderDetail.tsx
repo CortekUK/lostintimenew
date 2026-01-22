@@ -250,7 +250,7 @@ export default function DepositOrderDetail() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className="text-2xl font-bold text-green-600">{formatCurrency(order.amount_paid)}</p>
+              <p className="text-2xl font-bold text-[#D4AF37]">{formatCurrency(order.amount_paid)}</p>
             </CardContent>
           </Card>
           <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
@@ -259,7 +259,7 @@ export default function DepositOrderDetail() {
               <CreditCard className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <p className={`text-2xl font-bold ${order.balance_due > 0 ? 'text-primary' : 'text-green-600'}`}>
+              <p className={`text-2xl font-bold ${order.balance_due > 0 ? 'text-primary' : 'text-[#D4AF37]'}`}>
                 {formatCurrency(order.balance_due)}
               </p>
             </CardContent>
@@ -379,11 +379,11 @@ export default function DepositOrderDetail() {
                   )}
                   <div className="flex justify-between text-sm">
                     <span className="text-muted-foreground">Amount Paid</span>
-                    <span className="text-green-600">{formatCurrency(order.amount_paid)}</span>
+                    <span className="text-[#D4AF37]">{formatCurrency(order.amount_paid)}</span>
                   </div>
                   <div className="flex justify-between font-semibold text-lg pt-2 border-t">
                     <span>Balance Due</span>
-                    <span className={order.balance_due > 0 ? 'text-primary' : 'text-green-600'}>
+                    <span className={order.balance_due > 0 ? 'text-primary' : 'text-[#D4AF37]'}>
                       {formatCurrency(order.balance_due)}
                     </span>
                   </div>
