@@ -533,10 +533,10 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
               <AccordionContent className="space-y-6 pt-4 pb-6 px-1.5">
                 {isTradeIn && partExchangeData ? (
                   // Part Exchange Customer Details
-                  <div className="p-6 bg-blue-50 border border-blue-200 rounded-lg">
+                  <div className="p-6 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
                     <div className="flex items-center gap-3 mb-4">
-                      <User className="h-5 w-5 text-blue-600" />
-                      <h4 className="font-luxury text-lg text-blue-900">Part Exchange Customer</h4>
+                      <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                      <h4 className="font-luxury text-lg text-blue-900 dark:text-blue-200">Part Exchange Customer</h4>
                     </div>
                     <div className="space-y-3">
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
