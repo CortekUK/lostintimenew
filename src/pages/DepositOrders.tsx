@@ -31,6 +31,7 @@ import {
 import { 
   useDepositOrders, 
   useDepositOrderStats, 
+  useCompleteDepositOrder,
   DepositOrderStatus,
   isPickupApproaching,
   isPickupOverdue,
@@ -40,6 +41,7 @@ import { RecordPaymentModal } from '@/components/deposits/RecordPaymentModal';
 import { EditDepositOrderModal } from '@/components/deposits/EditDepositOrderModal';
 import { format } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 const STATUS_CONFIG: Record<DepositOrderStatus, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'outline'; icon: typeof Clock }> = {
   active: { label: 'Active', variant: 'default', icon: Clock },
@@ -180,12 +182,14 @@ function DepositOrderTable({
   orders, 
   onRowClick,
   onEdit,
-  onPay 
+  onPay,
+  onComplete
 }: { 
   orders: any[]; 
   onRowClick: (id: number) => void;
   onEdit: (order: any) => void;
   onPay: (order: any) => void;
+  onComplete: (order: any) => void;
 }) {
   return (
     <div className="rounded-md border">
@@ -286,6 +290,17 @@ function DepositOrderTable({
                         <PoundSterling className="h-4 w-4" />
                       </Button>
                     )}
+                    {order.status === 'active' && (order.balance_due || 0) <= 0 && (
+                      <Button
+                        variant="default"
+                        size="sm"
+                        className="h-8"
+                        onClick={(e) => { e.stopPropagation(); onComplete(order); }}
+                      >
+                        <CheckCircle2 className="h-4 w-4 mr-1" />
+                        Complete
+                      </Button>
+                    )}
                   </div>
                 </TableCell>
               </TableRow>
@@ -308,6 +323,7 @@ export default function DepositOrders() {
   
   const { data: orders, isLoading: ordersLoading, refetch } = useDepositOrders(activeTab === 'all' ? undefined : activeTab);
   const { data: stats, isLoading: statsLoading } = useDepositOrderStats();
+  const completeOrder = useCompleteDepositOrder();
 
   const filteredOrders = orders?.filter(order => {
     if (!searchQuery) return true;
@@ -330,6 +346,22 @@ export default function DepositOrders() {
   const handlePayClick = (order: any) => {
     setSelectedOrder(order);
     setShowPaymentModal(true);
+  };
+
+  const handleCompleteClick = async (order: any) => {
+    if ((order.balance_due || 0) > 0) {
+      toast.error('Order must be fully paid before completing');
+      return;
+    }
+    try {
+      const result = await completeOrder.mutateAsync(order.id);
+      if (result?.sale?.id) {
+        toast.success('Order completed! Redirecting to sale...');
+        navigate(`/transactions/${result.sale.id}`);
+      }
+    } catch (error) {
+      // Error handled by hook
+    }
   };
 
   return (
@@ -468,6 +500,7 @@ export default function DepositOrders() {
               onRowClick={handleRowClick}
               onEdit={handleEditClick}
               onPay={handlePayClick}
+              onComplete={handleCompleteClick}
             />
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
