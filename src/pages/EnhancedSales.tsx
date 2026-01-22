@@ -10,7 +10,8 @@ import { SaleConfirmationModal } from '@/components/pos/SaleConfirmationModal';
 import { ProductSearch } from '@/components/pos/ProductSearch';
 import { AddCustomItemModal, CustomItemData } from '@/components/pos/AddCustomItemModal';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { ShoppingBag, Wallet } from 'lucide-react';
+import { ShoppingBag, Wallet, Sparkles } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
@@ -655,6 +656,19 @@ export default function EnhancedSales() {
                 </TabsTrigger>
               </TabsList>
             </Tabs>
+            
+            {/* Quick access custom item button - only shown in deposit mode */}
+            {depositMode && (
+              <Button
+                size="sm"
+                onClick={() => setShowCustomItemModal(true)}
+                className="bg-purple-600 hover:bg-purple-700 text-white dark:bg-purple-700 dark:hover:bg-purple-600"
+              >
+                <Sparkles className="h-4 w-4 mr-1.5" />
+                <span className="hidden sm:inline">Add Custom Item</span>
+                <span className="sm:hidden">Custom Item</span>
+              </Button>
+            )}
           </div>
         </div>
 
