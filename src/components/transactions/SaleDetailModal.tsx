@@ -240,7 +240,7 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
     );
   }
 
-  if (!data || items.length === 0 || !sale) {
+  if (!data || !sale) {
     return (
       <Dialog open={open} onOpenChange={onClose}>
         <DialogContent className="max-w-4xl">
@@ -338,7 +338,16 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
             {/* Items */}
             <div className="space-y-3">
               <h3 className="font-semibold text-base">Items Sold</h3>
-              {calculatedItems.map((item) => {
+              {calculatedItems.length === 0 ? (
+                <div className="py-6 text-center text-muted-foreground bg-muted/30 rounded-lg border border-dashed">
+                  <p className="text-sm">No line items were recorded for this sale.</p>
+                  {sale.notes?.includes('Converted from Deposit Order') && (
+                    <p className="text-xs mt-1 text-muted-foreground/70">
+                      This can happen for older deposit-order conversions.
+                    </p>
+                  )}
+                </div>
+              ) : calculatedItems.map((item) => {
                 const product = item.products;
                 const isCustomOrder = (item as any).is_custom_order;
                 const displayName = product?.name || (item as any).product_name || 'Unknown Product';
