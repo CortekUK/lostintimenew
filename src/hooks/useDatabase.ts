@@ -524,6 +524,9 @@ export const useSoldItemsReport = () => {
   
   return useQuery({
     queryKey: ['sold-items-report'],
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       const { data, error } = await supabase
         .from('sale_items')
@@ -536,8 +539,9 @@ export const useSoldItemsReport = () => {
             suppliers!products_supplier_id_fkey ( id, name, supplier_type ),
             consignment_supplier:suppliers!products_consignment_supplier_id_fkey ( id, name, supplier_type )
           ),
-          sales ( id, sold_at, staff_id, staff_member_name, customer_name, customer_id, total, is_voided, location_id, profiles!fk_sales_staff_id ( full_name ), locations!sales_location_id_fkey ( id, name ) )
+          sales!inner ( id, sold_at, staff_id, staff_member_name, customer_name, customer_id, total, is_voided, location_id, profiles!fk_sales_staff_id ( full_name ), locations!sales_location_id_fkey ( id, name ) )
         `)
+        .neq('sales.is_voided', true)
         .order('sales(sold_at)', { ascending: false });
       
       if (error) throw error;

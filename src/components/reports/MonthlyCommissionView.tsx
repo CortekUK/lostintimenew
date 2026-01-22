@@ -30,14 +30,17 @@ import {
   Pencil,
   Star,
   Calendar,
-  CreditCard
+  CreditCard,
+  RefreshCw
 } from 'lucide-react';
+import { useQueryClient } from '@tanstack/react-query';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export function MonthlyCommissionView() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { isOwner } = usePermissions();
+  const queryClient = useQueryClient();
   const { 
     monthlyData, 
     grandTotals, 
@@ -46,6 +49,7 @@ export function MonthlyCommissionView() {
     commissionRate,
     commissionBasis
   } = useMonthlyCommission({ monthsBack: 12 });
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const [expandedMonths, setExpandedMonths] = useState<Set<string>>(new Set([monthlyData[0]?.month]));
   const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -55,6 +59,21 @@ export function MonthlyCommissionView() {
   const [editingStaff, setEditingStaff] = useState<{ id: string; name: string } | null>(null);
   const [filterStatus, setFilterStatus] = useState<'all' | 'unpaid' | 'paid'>('all');
   const [bulkPayMonth, setBulkPayMonth] = useState<MonthlyCommission | null>(null);
+
+  const handleForceRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await queryClient.invalidateQueries({ queryKey: ['sold-items-report'], refetchType: 'all' });
+      await queryClient.invalidateQueries({ queryKey: ['commission-payments'], refetchType: 'all' });
+      await queryClient.invalidateQueries({ queryKey: ['staff-commission-overrides'], refetchType: 'all' });
+      toast({
+        title: 'Data refreshed',
+        description: 'Commission data has been refreshed from the database.'
+      });
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const toggleMonth = (month: string) => {
     setExpandedMonths(prev => {
@@ -223,6 +242,15 @@ export function MonthlyCommissionView() {
           <Button variant="outline" size="sm" onClick={handleExport} disabled={isLoading}>
             <Download className="h-4 w-4 sm:mr-2" />
             <span className="hidden sm:inline">Export CSV</span>
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleForceRefresh} 
+            disabled={isRefreshing || isLoading}
+          >
+            <RefreshCw className={`h-4 w-4 sm:mr-2 ${isRefreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">Refresh</span>
           </Button>
         </div>
       </div>
