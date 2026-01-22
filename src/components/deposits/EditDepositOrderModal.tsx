@@ -64,15 +64,20 @@ export function EditDepositOrderModal({ open, onOpenChange, order }: EditDeposit
     );
   };
 
-  const itemsTotal = order.deposit_order_items?.reduce(
-    (sum, item) => sum + item.unit_price * item.quantity,
-    0
-  ) || 0;
+  // Use pre-calculated totals as fallback when opened from list view (no item details)
+  const itemsTotal = order.deposit_order_items?.length 
+    ? order.deposit_order_items.reduce(
+        (sum, item) => sum + item.unit_price * item.quantity,
+        0
+      )
+    : (order.total_amount || 0);
 
-  const partExchangeTotal = order.deposit_order_part_exchanges?.reduce(
-    (sum, px) => sum + px.allowance,
-    0
-  ) || 0;
+  const partExchangeTotal = order.deposit_order_part_exchanges?.length 
+    ? order.deposit_order_part_exchanges.reduce(
+        (sum, px) => sum + px.allowance,
+        0
+      )
+    : (order.part_exchange_total || 0);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
