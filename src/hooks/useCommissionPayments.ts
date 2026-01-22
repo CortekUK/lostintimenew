@@ -35,6 +35,9 @@ export function useCommissionPayments(params: UseCommissionPaymentsParams = {}) 
 
   return useQuery({
     queryKey: ['commission-payments', params, user?.id, isOwner, isManager],
+    staleTime: 0,
+    refetchOnMount: 'always',
+    refetchOnWindowFocus: true,
     queryFn: async () => {
       let query = supabase
         .from('commission_payments')
