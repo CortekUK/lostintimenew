@@ -1,12 +1,13 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from '@/components/ui/alert-dialog';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Product } from '@/types';
-import { Package, PoundSterling, TrendingUp, Calendar, Truck, Tag, Gem, Award, FileText, Eye, Download, Repeat, User, Phone, Copy, ExternalLink, MapPin, Clock, Percent } from 'lucide-react';
-import { format } from 'date-fns';
+import { Package, PoundSterling, TrendingUp, Calendar, Truck, Tag, Gem, Award, FileText, Eye, Download, Repeat, User, Phone, Copy, ExternalLink, MapPin, Clock, Percent, CalendarClock, X, AlertTriangle } from 'lucide-react';
+import { format, differenceInDays, parseISO } from 'date-fns';
 import { ConsignmentAgreementSection } from '@/components/consignments/ConsignmentAgreementSection';
 import { StockAdjustmentModal } from '@/components/products/StockAdjustmentModal';
 import { ImageModal } from '@/components/ui/image-modal';
@@ -20,6 +21,8 @@ import { useProductTradeInStatus } from '@/hooks/useProductTradeInStatus';
 import { usePartExchangesByProduct } from '@/hooks/usePartExchanges';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { getSupplierDisplayName, getCleanedDescription, formatCurrency } from '@/lib/utils';
+import { supabase } from '@/integrations/supabase/client';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 interface ProductDetailModalProps {
   product: Product | null;
@@ -38,13 +41,108 @@ interface ProductDetailModalProps {
 export function ProductDetailModal({ product, open, onOpenChange, onEditClick, onDuplicateClick, soldInfo, hideViewSale }: ProductDetailModalProps) {
   const [stockModalOpen, setStockModalOpen] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [releaseConfirmOpen, setReleaseConfirmOpen] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState<{ orderId: number; itemId: number; customerName: string } | null>(null);
+  const [isReleasing, setIsReleasing] = useState(false);
   const navigate = useNavigate();
   const isOwner = useOwnerGuard();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
   // Check product type status
   const { data: isTradeIn } = useProductTradeInStatus(product?.id || 0);
   const { data: partExchange } = usePartExchangesByProduct(product?.id || 0);
+
+  // Fetch product reservations
+  const { data: reservations = [] } = useQuery({
+    queryKey: ['product-reservations', product?.id],
+    queryFn: async () => {
+      if (!product?.id) return [];
+      const { data, error } = await supabase
+        .from('deposit_order_items')
+        .select(`
+          id,
+          product_id,
+          product_name,
+          unit_price,
+          quantity,
+          reserved_at,
+          deposit_order:deposit_orders!inner(
+            id,
+            customer_name,
+            customer_id,
+            expected_date,
+            status,
+            amount_paid,
+            total_amount
+          )
+        `)
+        .eq('product_id', product.id)
+        .not('deposit_order.status', 'in', '(completed,cancelled)');
+      
+      if (error) throw error;
+      return (data || []).map((item: any) => ({
+        itemId: item.id,
+        productName: item.product_name,
+        unitPrice: item.unit_price,
+        quantity: item.quantity || 1,
+        reservedAt: item.reserved_at,
+        orderId: item.deposit_order.id,
+        customerName: item.deposit_order.customer_name,
+        customerId: item.deposit_order.customer_id,
+        expectedDate: item.deposit_order.expected_date,
+        status: item.deposit_order.status,
+        amountPaid: item.deposit_order.amount_paid,
+        totalAmount: item.deposit_order.total_amount
+      }));
+    },
+    enabled: !!product?.id && open,
+  });
+
+  const handleReleaseReservation = async () => {
+    if (!selectedReservation) return;
+    
+    setIsReleasing(true);
+    try {
+      const { error } = await supabase
+        .from('deposit_order_items')
+        .delete()
+        .eq('id', selectedReservation.itemId);
+
+      if (error) throw error;
+
+      toast({
+        title: 'Reservation released',
+        description: `Removed reservation for ${selectedReservation.customerName}`,
+      });
+      
+      queryClient.invalidateQueries({ queryKey: ['product-reservations'] });
+      queryClient.invalidateQueries({ queryKey: ['enhanced-products'] });
+      queryClient.invalidateQueries({ queryKey: ['deposit-orders'] });
+    } catch (error: any) {
+      toast({
+        title: 'Error releasing reservation',
+        description: error.message,
+        variant: 'destructive',
+      });
+    } finally {
+      setIsReleasing(false);
+      setReleaseConfirmOpen(false);
+      setSelectedReservation(null);
+    }
+  };
+
+  const getPickupStatus = (expectedDate: string | null) => {
+    if (!expectedDate) return null;
+    const days = differenceInDays(parseISO(expectedDate), new Date());
+    if (days < 0) {
+      return { text: `${Math.abs(days)}d overdue`, className: 'bg-destructive/10 text-destructive border-destructive/30', isOverdue: true };
+    }
+    if (days <= 3) {
+      return { text: `${days}d left`, className: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300', isOverdue: false };
+    }
+    return { text: format(parseISO(expectedDate), 'MMM d'), className: 'bg-muted text-muted-foreground', isOverdue: false };
+  };
 
   // Keyboard shortcut for duplicate (Cmd/Ctrl + D)
   useKeyboardShortcuts([
@@ -160,6 +258,12 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
                       <Badge variant={stockStatus.variant} className="font-medium px-2.5 py-0.5">
                         <Package className="h-3 w-3 mr-1.5" />
                         {stockStatus.text}
+                      </Badge>
+                    )}
+                    {reservations.length > 0 && (
+                      <Badge variant="outline" className="bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700 font-medium px-2.5 py-0.5">
+                        <CalendarClock className="h-3 w-3 mr-1.5" />
+                        {reservations.length} Reserved
                       </Badge>
                     )}
                     {(product as any).is_registered && (
@@ -317,7 +421,99 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
               </Card>
             )}
 
-            {/* Ownership Source Section */}
+            {/* Active Reservations Section */}
+            {reservations.length > 0 && !soldInfo && (
+              <Card className="shadow-sm border-amber-300/50 overflow-hidden bg-amber-50/30 dark:bg-amber-950/20">
+                <CardHeader className="bg-amber-100/50 dark:bg-amber-900/30 py-4 px-5 border-b border-amber-200/50 dark:border-amber-800/50">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="h-9 w-9 rounded-lg bg-amber-500/20 flex items-center justify-center">
+                        <CalendarClock className="h-4 w-4 text-amber-700 dark:text-amber-300" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-base font-medium text-foreground">Active Reservations</CardTitle>
+                        <CardDescription className="text-xs mt-0.5">
+                          {reservations.length} reservation{reservations.length !== 1 ? 's' : ''} for deposit orders
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <div className="space-y-3">
+                    {reservations.map((reservation: any, index: number) => {
+                      const pickupStatus = getPickupStatus(reservation.expectedDate);
+                      
+                      return (
+                        <div
+                          key={`${reservation.orderId}-${reservation.itemId}-${index}`}
+                          className="flex items-center gap-4 p-3 rounded-lg bg-background border border-border/50 hover:border-border transition-colors"
+                        >
+                          {/* Customer Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center gap-2 mb-1">
+                              <p className="font-medium text-sm truncate">{reservation.customerName}</p>
+                              {pickupStatus && (
+                                <Badge variant="outline" className={`text-xs ${pickupStatus.className}`}>
+                                  {pickupStatus.isOverdue && <AlertTriangle className="h-3 w-3 mr-1" />}
+                                  {pickupStatus.text}
+                                </Badge>
+                              )}
+                            </div>
+                            <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+                              <span>Order #{reservation.orderId}</span>
+                              {reservation.quantity > 1 && <span>Qty: {reservation.quantity}</span>}
+                              <span>{formatCurrency(reservation.unitPrice)}</span>
+                              <Badge variant="outline" className="text-xs capitalize">{reservation.status}</Badge>
+                            </div>
+                          </div>
+
+                          {/* Actions */}
+                          <div className="flex items-center gap-2">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                navigate(`/deposits/${reservation.orderId}`);
+                                onOpenChange(false);
+                              }}
+                            >
+                              <Eye className="h-3.5 w-3.5 mr-1" />
+                              View Order
+                            </Button>
+                            {isOwner && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <Button
+                                      variant="outline"
+                                      size="sm"
+                                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                                      onClick={() => {
+                                        setSelectedReservation({
+                                          orderId: reservation.orderId,
+                                          itemId: reservation.itemId,
+                                          customerName: reservation.customerName
+                                        });
+                                        setReleaseConfirmOpen(true);
+                                      }}
+                                    >
+                                      <X className="h-3.5 w-3.5" />
+                                    </Button>
+                                  </TooltipTrigger>
+                                  <TooltipContent>Release this reservation</TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
             {((product as any).is_consignment || isTradeIn || getSupplierDisplayName(product) !== 'Unknown Supplier') && (
               <Card className="shadow-sm border-border/50 overflow-hidden">
                 <CardHeader className="bg-muted/30 py-4 px-5 border-b border-border/50">
@@ -684,6 +880,30 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
           onOpenChange={setImageModalOpen}
         />
       )}
+
+      {/* Release Reservation Confirmation */}
+      <AlertDialog open={releaseConfirmOpen} onOpenChange={setReleaseConfirmOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Release Reservation</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to release this reservation for{' '}
+              <span className="font-medium">{selectedReservation?.customerName}</span>?
+              This will remove the product from Deposit Order #{selectedReservation?.orderId}.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isReleasing}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleReleaseReservation}
+              disabled={isReleasing}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isReleasing ? 'Releasing...' : 'Release Reservation'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }
