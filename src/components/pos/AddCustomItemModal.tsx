@@ -95,7 +95,7 @@ export function AddCustomItemModal({ open, onOpenChange, onAdd }: AddCustomItemM
 
         <Separator />
 
-        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-4 space-y-5">
+        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-4 space-y-4 max-h-[60vh] overflow-y-auto">
           {/* Item Details Section */}
           <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
             <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
