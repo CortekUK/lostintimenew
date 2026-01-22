@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
 import { PartExchangeFileUpload } from './PartExchangeFileUpload';
 import { Repeat, Search, Check } from 'lucide-react';
@@ -15,6 +16,7 @@ import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, Command
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { CurrencyInput } from '@/components/ui/currency-input';
 
 interface PartExchangeModalProps {
   isOpen: boolean;
@@ -35,7 +37,6 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
     notes: '',
   });
 
-  // Trade-in source is always customer at POS (suppliers are added via Products/Suppliers section)
   const [selectedPerson, setSelectedPerson] = useState<{ id: number; name: string; email?: string; phone?: string } | null>(null);
   const [searchOpen, setSearchOpen] = useState(false);
   const [showNewPersonModal, setShowNewPersonModal] = useState(false);
@@ -43,10 +44,6 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
   const [uploadedFiles, setUploadedFiles] = useState<any[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [showCustomCategory, setShowCustomCategory] = useState(false);
-
-  const handleCategorySelect = (category: string) => {
-    setFormData(prev => ({ ...prev, category }));
-  };
 
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -59,7 +56,6 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
       newErrors.allowance = "Allowance must be greater than 0";
     }
 
-    // Validate customer selection
     if (!selectedPerson) {
       newErrors.source = "Please select or create a customer";
     }
@@ -76,7 +72,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
     }
 
     const partExchange: PartExchangeItem = {
-      id: Date.now().toString(), // temporary ID for cart management
+      id: Date.now().toString(),
       product_name: formData.product_name,
       category: formData.category || undefined,
       description: formData.description || undefined,
@@ -86,20 +82,15 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
       customer_name: selectedPerson?.name,
       customer_email: selectedPerson?.email,
       customer_phone: selectedPerson?.phone,
-      customer_id: selectedPerson?.id, // ID from customers table
+      customer_id: selectedPerson?.id,
     };
 
-    // Analytics tracking
-    if (selectedPerson) {
-      console.log('px_person_attached', {
-        mode: 'record',
-        person_type: 'customer',
-      });
-    }
-
     onAdd(partExchange);
-    
-    // Reset form
+    resetForm();
+    onClose();
+  };
+
+  const resetForm = () => {
     setFormData({
       product_name: '',
       category: '',
@@ -112,149 +103,187 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
     setUploadedFiles([]);
     setErrors({});
     setShowCustomCategory(false);
-    
+  };
+
+  const handleClose = () => {
+    resetForm();
     onClose();
   };
 
+  const isValid = formData.product_name.trim() && parseInt(formData.allowance) > 0 && selectedPerson;
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 font-luxury text-2xl">
-            <Repeat className="h-6 w-6 text-[#D4AF37]" />
-            Add Part Exchange
+    <Dialog open={isOpen} onOpenChange={handleClose}>
+      <DialogContent className="sm:max-w-lg p-0">
+        <DialogHeader className="px-6 pt-5 pb-3">
+          <DialogTitle className="font-luxury text-2xl flex items-center gap-2">
+            <Repeat className="h-5 w-5 text-primary" />
+            Add Trade-In
           </DialogTitle>
         </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <Label htmlFor="product_name">Product Name *</Label>
-            <Input
-              id="product_name"
-              value={formData.product_name}
-              onChange={(e) => {
-                setFormData(prev => ({ ...prev, product_name: e.target.value }));
-                setErrors(prev => ({ ...prev, product_name: '' }));
-              }}
-              placeholder="e.g., Rolex Submariner, Diamond Ring..."
-              autoFocus
-              aria-invalid={!!errors.product_name}
-              aria-describedby={errors.product_name ? "product-name-error" : undefined}
-            />
-            {errors.product_name && (
-              <p id="product-name-error" className="text-sm text-destructive mt-1">
-                {errors.product_name}
-              </p>
-            )}
-          </div>
+        <Separator />
 
-          {/* Category Selection */}
-          <div className="space-y-2">
-            <Label htmlFor="category">Category</Label>
-            <Select
-              value={showCustomCategory ? '__other__' : formData.category}
-              onValueChange={(value) => {
-                if (value === '__other__') {
-                  setFormData(prev => ({ ...prev, category: '' }));
-                  setShowCustomCategory(true);
-                } else {
-                  setFormData(prev => ({ ...prev, category: value }));
-                  setShowCustomCategory(false);
-                }
-              }}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select a category" />
-              </SelectTrigger>
-              <SelectContent>
-                {filterOptions?.categories.map((category) => (
-                  <SelectItem key={category} value={category}>
-                    {category}
-                  </SelectItem>
-                ))}
-                <SelectItem value="__other__">Other...</SelectItem>
-              </SelectContent>
-            </Select>
-            
-            {showCustomCategory && (
+        <form onSubmit={handleSubmit} className="px-6 pb-6 pt-4 space-y-4 max-h-[65vh] overflow-y-auto">
+          {/* Item Details Section */}
+          <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
+            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Item Details
+            </h4>
+
+            {/* Product Name */}
+            <div className="space-y-2">
+              <Label htmlFor="product_name">
+                Product Name <span className="text-destructive">*</span>
+              </Label>
               <Input
-                placeholder="Enter custom category..."
-                value={formData.category}
-                onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
-                autoFocus
-              />
-            )}
-          </div>
-
-          <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
-              value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              placeholder="e.g., Black dial, stainless steel, ref 116610LN"
-              rows={2}
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="serial">Serial Number</Label>
-            <Input
-              id="serial"
-              value={formData.serial}
-              onChange={(e) => setFormData(prev => ({ ...prev, serial: e.target.value }))}
-              placeholder="Optional - enter serial number if available"
-            />
-          </div>
-
-          <div>
-            <Label htmlFor="allowance">Trade-In Allowance (£) *</Label>
-            <div className="relative">
-              <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[#D4AF37] font-medium">
-                £
-              </span>
-              <Input
-                id="allowance"
-                type="text"
-                inputMode="numeric"
-                value={formData.allowance}
+                id="product_name"
+                value={formData.product_name}
                 onChange={(e) => {
-                  // Only allow digits
-                  const value = e.target.value.replace(/[^0-9]/g, '');
+                  setFormData(prev => ({ ...prev, product_name: e.target.value }));
+                  setErrors(prev => ({ ...prev, product_name: '' }));
+                }}
+                placeholder="e.g., Rolex Submariner, Diamond Ring..."
+                autoFocus
+                aria-invalid={!!errors.product_name}
+              />
+              {errors.product_name && (
+                <p className="text-sm text-destructive">{errors.product_name}</p>
+              )}
+            </div>
+
+            {/* Category */}
+            <div className="space-y-2">
+              <Label htmlFor="category" className="flex items-center gap-1">
+                Category
+                <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+              </Label>
+              <Select
+                value={showCustomCategory ? '__other__' : formData.category}
+                onValueChange={(value) => {
+                  if (value === '__other__') {
+                    setFormData(prev => ({ ...prev, category: '' }));
+                    setShowCustomCategory(true);
+                  } else {
+                    setFormData(prev => ({ ...prev, category: value }));
+                    setShowCustomCategory(false);
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {filterOptions?.categories.map((category) => (
+                    <SelectItem key={category} value={category}>
+                      {category}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="__other__">Other...</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              {showCustomCategory && (
+                <Input
+                  placeholder="Enter custom category..."
+                  value={formData.category}
+                  onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+                />
+              )}
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description" className="flex items-center gap-1">
+                Description
+                <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+              </Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="e.g., Black dial, stainless steel, ref 116610LN"
+                rows={2}
+              />
+            </div>
+
+            {/* Serial Number */}
+            <div className="space-y-2">
+              <Label htmlFor="serial" className="flex items-center gap-1">
+                Serial Number
+                <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+              </Label>
+              <Input
+                id="serial"
+                value={formData.serial}
+                onChange={(e) => setFormData(prev => ({ ...prev, serial: e.target.value }))}
+                placeholder="Enter serial number if available"
+              />
+            </div>
+          </div>
+
+          {/* Valuation Section */}
+          <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
+            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Valuation
+            </h4>
+
+            {/* Trade-In Allowance */}
+            <div className="space-y-2">
+              <Label>
+                Trade-In Allowance <span className="text-destructive">*</span>
+              </Label>
+              <CurrencyInput
+                value={formData.allowance}
+                onValueChange={(value) => {
                   setFormData(prev => ({ ...prev, allowance: value }));
                   setErrors(prev => ({ ...prev, allowance: '' }));
                 }}
-                placeholder="0"
-                className={cn(
-                  "pl-8",
-                  errors.allowance && "border-destructive focus-visible:ring-destructive"
-                )}
-                aria-required="true"
+                placeholder="0.00"
+                className={cn(errors.allowance && "border-destructive focus-visible:ring-destructive")}
+              />
+              {errors.allowance && (
+                <p className="text-sm text-destructive">{errors.allowance}</p>
+              )}
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <Label htmlFor="notes" className="flex items-center gap-1">
+                Valuation Notes
+                <span className="text-xs text-muted-foreground font-normal">(Optional)</span>
+              </Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
+                placeholder="Condition, defects, valuation rationale..."
+                rows={2}
               />
             </div>
-            {errors.allowance && (
-              <p className="text-sm text-destructive mt-1">{errors.allowance}</p>
-            )}
           </div>
 
-          {/* Customer Selection */}
-          <div className="space-y-3">
-            <Label>Customer *</Label>
+          {/* Customer Section */}
+          <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
+            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide">
+              Customer
+            </h4>
 
-            {/* Contextual Person Selector */}
             <div className="space-y-3">
               {selectedPerson ? (
-                // Show selected person as chip
-                <div className="flex items-center gap-2 p-3 border rounded-md bg-muted/50">
+                <div className="flex items-center gap-2 p-3 border rounded-md bg-background">
                   <Badge variant="secondary" className="flex items-center gap-2">
                     <Check className="h-3 w-3" />
                     {selectedPerson.name}
                   </Badge>
+                  {selectedPerson.email && (
+                    <span className="text-xs text-muted-foreground">{selectedPerson.email}</span>
+                  )}
                   <Button
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="h-6 text-xs"
+                    className="h-6 text-xs ml-auto"
                     onClick={() => {
                       setSelectedPerson(null);
                       setErrors(prev => ({ ...prev, source: '' }));
@@ -264,24 +293,26 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
                   </Button>
                 </div>
               ) : (
-                // Show search combobox
                 <div className="flex gap-2">
                   <Popover open={searchOpen} onOpenChange={setSearchOpen}>
                     <PopoverTrigger asChild>
                       <Button
                         type="button"
                         variant="outline"
-                        className="flex-1 justify-start text-muted-foreground font-normal"
+                        className={cn(
+                          "flex-1 justify-start text-muted-foreground font-normal",
+                          errors.source && "border-destructive"
+                        )}
                       >
                         <Search className="h-4 w-4 mr-2" />
-                        Find customer by name, phone, or email…
+                        Find customer...
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-[400px] p-0" align="start">
+                    <PopoverContent className="w-[350px] p-0" align="start">
                       <Command>
-                        <CommandInput placeholder="Search customers..." />
+                        <CommandInput placeholder="Search by name, phone, email..." />
                         <CommandList>
-                          <CommandEmpty>No results found.</CommandEmpty>
+                          <CommandEmpty>No customers found.</CommandEmpty>
                           <CommandGroup>
                             {customers?.map((customer) => (
                               <CommandItem
@@ -300,7 +331,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
                                 <div className="flex flex-col">
                                   <span className="font-medium">{customer.name}</span>
                                   <span className="text-xs text-muted-foreground">
-                                    {customer.email || customer.phone || 'No contact'}
+                                    {customer.email || customer.phone || 'No contact info'}
                                   </span>
                                 </div>
                               </CommandItem>
@@ -316,7 +347,7 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
                     variant="outline"
                     onClick={() => setShowNewPersonModal(true)}
                   >
-                    + New Customer
+                    + New
                   </Button>
                 </div>
               )}
@@ -327,41 +358,27 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
             </div>
           </div>
 
-          <div>
-            <Label htmlFor="notes">Notes</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData(prev => ({ ...prev, notes: e.target.value }))}
-              placeholder="Valuation notes, defects, condition details..."
-              rows={2}
-            />
-          </div>
-
-          <div>
-            <Label>Upload Photos / Documents (Optional)</Label>
+          {/* Photos Section */}
+          <div className="rounded-lg border bg-muted/30 p-4 space-y-4">
+            <h4 className="text-sm font-medium text-muted-foreground uppercase tracking-wide flex items-center gap-2">
+              Photos / Documents
+              <span className="text-xs font-normal">(Optional)</span>
+            </h4>
             <PartExchangeFileUpload
               files={uploadedFiles}
               onFilesChange={setUploadedFiles}
             />
           </div>
 
-          <div className="flex gap-3 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={onClose} 
-              className="flex-1"
-            >
+          <DialogFooter className="pt-2">
+            <Button type="button" variant="outline" onClick={handleClose}>
               Cancel
             </Button>
-            <Button 
-              type="submit" 
-              className="flex-1 bg-[#D4AF37] hover:bg-[#B8942E] text-white font-semibold"
-            >
+            <Button type="submit" disabled={!isValid} className="gap-2">
+              <Repeat className="h-4 w-4" />
               Add Trade-In
             </Button>
-          </div>
+          </DialogFooter>
         </form>
 
         {/* New Customer Modal */}
@@ -370,7 +387,6 @@ export const PartExchangeModal = ({ isOpen, onClose, onAdd }: PartExchangeModalP
           onOpenChange={setShowNewPersonModal}
           hideTrigger
           onCustomerCreated={async (customerId) => {
-            // Refetch customers to get the newly created one
             const { data: refreshedCustomers } = await refetchCustomers();
             const newCustomer = refreshedCustomers?.find(c => c.id === customerId);
             if (newCustomer) {
