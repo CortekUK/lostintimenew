@@ -317,7 +317,7 @@ export default function MySales() {
       key: 'payment',
       title: 'Payment',
       render: (value: any, row: any) => (
-        <Badge variant={row.payment === 'cash' ? 'secondary' : 'default'}>
+        <Badge variant={row.payment === 'cash' ? 'secondary' : 'default'} className="capitalize">
           {row.payment}
         </Badge>
       )
