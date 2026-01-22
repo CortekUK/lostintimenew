@@ -77,6 +77,11 @@ const ProductCard = ({
   
   // Professional stock status with gold for in stock, neutral grey for out of stock
   const getStockStatusBadge = () => {
+    // Check if product is reserved (has active deposit order)
+    if (product.is_reserved) {
+      return { variant: 'outline' as const, text: 'Reserved', className: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700' };
+    }
+    
     if (stockStatus) {
       if (stockStatus.text.includes('Out of stock')) {
         return { variant: 'secondary' as const, text: 'Out of Stock', className: 'bg-muted text-muted-foreground' };
@@ -151,12 +156,23 @@ const ProductCard = ({
           
           {/* Top-right badges */}
           <div className="flex flex-col items-end gap-1 ml-2">
-            <Badge 
-              variant={finalStockStatus.variant} 
-              className={`whitespace-nowrap text-xs ${finalStockStatus.className}`}
-            >
-              {finalStockStatus.text}
-            </Badge>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Badge 
+                    variant={finalStockStatus.variant} 
+                    className={`whitespace-nowrap text-xs ${finalStockStatus.className}`}
+                  >
+                    {finalStockStatus.text}
+                  </Badge>
+                </TooltipTrigger>
+                {product.is_reserved && product.reserved_customer_name && (
+                  <TooltipContent>
+                    Reserved for: {product.reserved_customer_name}
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            </TooltipProvider>
             
             {/* Smaller tags below stock badge */}
             <div className="flex flex-col gap-1">
@@ -288,7 +304,8 @@ export default function Products() {
     marginRange: { min: 0, max: 100 },
     isTradeIn: 'all',
     inventoryAge: 'all',
-    sortBy: 'newest'
+    sortBy: 'newest',
+    reservationStatus: 'all'
   });
 
   // Initialize price range when filter options load
