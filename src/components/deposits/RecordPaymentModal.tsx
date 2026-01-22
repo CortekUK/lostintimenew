@@ -105,7 +105,18 @@ export function RecordPaymentModal({
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-2">
-            <Label htmlFor="amount">Amount *</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="amount">Amount *</Label>
+              <Button
+                type="button"
+                variant="link"
+                size="sm"
+                className="h-auto p-0 text-xs"
+                onClick={() => setAmount(balanceDue.toString())}
+              >
+                Pay full balance
+              </Button>
+            </div>
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
                 £
@@ -113,12 +124,12 @@ export function RecordPaymentModal({
               <Input
                 id="amount"
                 type="number"
-                step="0.01"
-                min="0.01"
+                step="1"
+                min="1"
                 max={balanceDue}
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
-                placeholder="0.00"
+                placeholder="0"
                 className="pl-7"
                 required
               />
