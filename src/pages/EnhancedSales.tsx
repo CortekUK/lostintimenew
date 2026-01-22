@@ -631,8 +631,8 @@ export default function EnhancedSales() {
       subtitle="Process sales transactions with part exchange support"
     >
       <div className="space-y-6">
-        {/* Page-level mode switcher - sticky on mobile */}
-        <div className="sticky top-0 z-10 -mx-4 px-4 py-3 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b sm:static sm:mx-0 sm:px-0 sm:py-0 sm:bg-transparent sm:backdrop-blur-none sm:border-0">
+        {/* Page-level mode switcher */}
+        <div className="py-2 sm:py-0">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2">
             <Tabs 
               value={depositMode ? 'deposit' : 'sale'} 
