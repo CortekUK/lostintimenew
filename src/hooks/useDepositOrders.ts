@@ -582,6 +582,8 @@ export function useCompleteDepositOrder() {
       queryClient.invalidateQueries({ queryKey: ['consignment-settlements'] });
       queryClient.invalidateQueries({ queryKey: ['consignment-products'] });
       queryClient.invalidateQueries({ queryKey: ['consignment-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['sold-items-report'] });
+      queryClient.invalidateQueries({ queryKey: ['commission-payments'] });
       toast({
         title: 'Order completed',
         description: 'The deposit order has been converted to a sale.',
