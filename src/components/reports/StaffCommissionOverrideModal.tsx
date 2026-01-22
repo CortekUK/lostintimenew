@@ -23,8 +23,12 @@ import {
   useUpsertStaffCommissionOverride,
   useDeleteStaffCommissionOverride,
 } from '@/hooks/useStaffCommissionOverrides';
+import { useStaffCommissionRateHistory } from '@/hooks/useStaffCommissionRateHistory';
 import { useSettings } from '@/contexts/SettingsContext';
 import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { format } from 'date-fns';
+import { History } from 'lucide-react';
 
 interface StaffCommissionOverrideModalProps {
   open: boolean;
@@ -41,12 +45,14 @@ export function StaffCommissionOverrideModal({
 }: StaffCommissionOverrideModalProps) {
   const { settings } = useSettings();
   const { data: override, isLoading } = useStaffCommissionOverride(staffId);
+  const { data: rateHistory = [] } = useStaffCommissionRateHistory(staffId);
   const upsertOverride = useUpsertStaffCommissionOverride();
   const deleteOverride = useDeleteStaffCommissionOverride();
 
   const [rate, setRate] = useState('');
   const [basis, setBasis] = useState<'revenue' | 'profit'>('revenue');
   const [notes, setNotes] = useState('');
+  const [showHistory, setShowHistory] = useState(false);
 
   const globalRate = settings.commissionSettings?.defaultRate ?? 5;
   const globalBasis = settings.commissionSettings?.calculationBasis ?? 'revenue';
@@ -126,7 +132,7 @@ export function StaffCommissionOverrideModal({
               )}
 
               <div className="space-y-2">
-                <Label htmlFor="commission-rate">Commission Rate (%)</Label>
+                <Label htmlFor="commission-rate">New Commission Rate (%)</Label>
                 <Input
                   id="commission-rate"
                   type="number"
@@ -137,6 +143,9 @@ export function StaffCommissionOverrideModal({
                   onChange={(e) => setRate(e.target.value)}
                   placeholder="Enter commission rate"
                 />
+                <p className="text-xs text-muted-foreground">
+                  This rate will apply to sales made from now onwards
+                </p>
               </div>
 
               <div className="space-y-2">
@@ -162,6 +171,46 @@ export function StaffCommissionOverrideModal({
                   rows={2}
                 />
               </div>
+
+              {/* Rate History Section */}
+              {rateHistory.length > 0 && (
+                <div className="space-y-2 pt-2 border-t">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start text-muted-foreground"
+                    onClick={() => setShowHistory(!showHistory)}
+                  >
+                    <History className="h-4 w-4 mr-2" />
+                    {showHistory ? 'Hide' : 'Show'} Rate History ({rateHistory.length})
+                  </Button>
+                  
+                  {showHistory && (
+                    <ScrollArea className="h-32 rounded border p-2">
+                      <div className="space-y-2">
+                        {rateHistory.map((h) => (
+                          <div key={h.id} className="flex items-center justify-between text-xs">
+                            <div className="flex items-center gap-2">
+                              <Badge variant={h.effective_to ? 'outline' : 'default'} className="text-xs">
+                                {h.commission_rate}% of {h.commission_basis}
+                              </Badge>
+                              {!h.effective_to && (
+                                <span className="text-primary text-[10px] font-medium">ACTIVE</span>
+                              )}
+                            </div>
+                            <span className="text-muted-foreground">
+                              {format(new Date(h.effective_from), 'dd MMM yyyy')}
+                              {h.effective_to && (
+                                <> → {format(new Date(h.effective_to), 'dd MMM yyyy')}</>
+                              )}
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  )}
+                </div>
+              )}
             </div>
 
             <DialogFooter className="flex-col sm:flex-row gap-2">
