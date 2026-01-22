@@ -314,9 +314,14 @@ export default function DepositOrderDetail() {
                             </Badge>
                           )}
                         </div>
-                        {item.product?.sku && (
-                          <p className="text-sm text-muted-foreground">SKU: {item.product.sku}</p>
-                        )}
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                          {item.product?.internal_sku && (
+                            <span>Item #{item.product.internal_sku}</span>
+                          )}
+                          {item.product?.sku && (
+                            <span>SKU: {item.product.sku}</span>
+                          )}
+                        </div>
                       </div>
                       <div className="text-right">
                         <p className="font-medium">{formatCurrency(item.unit_price * item.quantity)}</p>
