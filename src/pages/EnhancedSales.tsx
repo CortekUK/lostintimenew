@@ -79,6 +79,14 @@ export default function EnhancedSales() {
     enabled: !!user?.id
   });
 
+  // Initialize deposit mode from URL params
+  useEffect(() => {
+    const mode = searchParams.get('mode');
+    if (mode === 'deposit') {
+      setDepositMode(true);
+    }
+  }, [searchParams]);
+
   // Auto-set staff member when profile loads
   useEffect(() => {
     if (userProfile?.full_name && !staffMember) {
