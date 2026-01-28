@@ -74,27 +74,83 @@ export const useProducts = () => {
     enabled: !!user && !!session
   });
 
+  // Fetch active reservations from deposit orders
+  const reservationsQuery = useQuery({
+    queryKey: ['product-reservations'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('deposit_order_items')
+        .select(`
+          product_id,
+          quantity,
+          deposit_order:deposit_orders!inner(id, status, customer_name)
+        `)
+        .not('deposit_order.status', 'in', '(completed,cancelled)');
+      
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!user && !!session
+  });
+
   // Return combined result with proper loading/error states
-  const isLoading = productsQuery.isLoading || stockQuery.isLoading || inventoryQuery.isLoading;
-  const isError = productsQuery.isError || stockQuery.isError || inventoryQuery.isError;
-  const error = productsQuery.error || stockQuery.error || inventoryQuery.error;
+  const isLoading = productsQuery.isLoading || stockQuery.isLoading || inventoryQuery.isLoading || reservationsQuery.isLoading;
+  const isError = productsQuery.isError || stockQuery.isError || inventoryQuery.isError || reservationsQuery.isError;
+  const error = productsQuery.error || stockQuery.error || inventoryQuery.error || reservationsQuery.error;
 
   let data = [];
   if (productsQuery.data && stockQuery.data && inventoryQuery.data) {
     const products = productsQuery.data;
     const stockData = stockQuery.data;
     const inventoryData = inventoryQuery.data;
+    const reservedData = reservationsQuery.data || [];
 
     // Create lookup maps for efficient merging
     const stockMap = new Map(stockData.map(s => [s.product_id, s]));
     const inventoryMap = new Map(inventoryData.map(i => [i.product_id, i]));
+    
+    // Build reservation map
+    const reservedMap = new Map<number, { reserved_count: number; orders: Array<{ deposit_order_id: number; customer_name: string; quantity: number }> }>();
+    reservedData.forEach((item: any) => {
+      if (item.product_id && item.deposit_order) {
+        const existing = reservedMap.get(item.product_id);
+        const orderInfo = {
+          deposit_order_id: item.deposit_order.id,
+          customer_name: item.deposit_order.customer_name,
+          quantity: item.quantity || 1
+        };
+        if (existing) {
+          existing.reserved_count += (item.quantity || 1);
+          existing.orders.push(orderInfo);
+        } else {
+          reservedMap.set(item.product_id, {
+            reserved_count: item.quantity || 1,
+            orders: [orderInfo]
+          });
+        }
+      }
+    });
 
-    // Merge data
-    data = products.map(product => ({
-      ...product,
-      stock: stockMap.get(product.id) ? [stockMap.get(product.id)] : [],
-      value: inventoryMap.get(product.id) ? [inventoryMap.get(product.id)] : []
-    }));
+    // Merge data with reservation info
+    data = products.map(product => {
+      const stockOnHand = stockMap.get(product.id)?.qty_on_hand || 0;
+      const reservationInfo = reservedMap.get(product.id);
+      const qtyReserved = reservationInfo?.reserved_count || 0;
+      const qtyAvailable = Math.max(0, stockOnHand - qtyReserved);
+      
+      return {
+        ...product,
+        stock: stockMap.get(product.id) ? [stockMap.get(product.id)] : [],
+        value: inventoryMap.get(product.id) ? [inventoryMap.get(product.id)] : [],
+        qty_on_hand: stockOnHand,
+        qty_available: qtyAvailable,
+        qty_reserved: qtyReserved,
+        is_reserved: qtyReserved > 0,
+        is_fully_reserved: qtyReserved > 0 && qtyAvailable === 0,
+        is_partially_reserved: qtyReserved > 0 && qtyAvailable > 0,
+        reserved_orders: reservationInfo?.orders || []
+      };
+    });
   }
 
   return {
@@ -135,16 +191,50 @@ export const useProductSearch = (query: string, limit = 20) => {
         .select('*')
         .in('product_id', productIds);
       
+      // Fetch active reservations for these products
+      const { data: reservedData } = await supabase
+        .from('deposit_order_items')
+        .select(`
+          product_id,
+          quantity,
+          deposit_order:deposit_orders!inner(id, status, customer_name)
+        `)
+        .not('deposit_order.status', 'in', '(completed,cancelled)')
+        .in('product_id', productIds);
+      
       // Create stock lookup map
       const stockMap = new Map(stockData?.map(s => [s.product_id, s]) || []);
+      
+      // Build reservation map
+      const reservedMap = new Map<number, { reserved_count: number }>();
+      reservedData?.forEach((item: any) => {
+        if (item.product_id && item.deposit_order) {
+          const existing = reservedMap.get(item.product_id);
+          if (existing) {
+            existing.reserved_count += (item.quantity || 1);
+          } else {
+            reservedMap.set(item.product_id, { reserved_count: item.quantity || 1 });
+          }
+        }
+      });
 
-      // Merge data and filter out out-of-stock products
+      // Merge data with reservation info and filter out fully out-of-stock products
       return data
-        .map(product => ({
-          ...product,
-          stock_on_hand: stockMap.get(product.id)?.qty_on_hand || 0
-        }))
-        .filter(product => !product.track_stock || product.stock_on_hand > 0);
+        .map(product => {
+          const stockOnHand = stockMap.get(product.id)?.qty_on_hand || 0;
+          const reservationInfo = reservedMap.get(product.id);
+          const qtyReserved = reservationInfo?.reserved_count || 0;
+          const qtyAvailable = Math.max(0, stockOnHand - qtyReserved);
+          
+          return {
+            ...product,
+            stock_on_hand: stockOnHand,
+            qty_available: qtyAvailable,
+            qty_reserved: qtyReserved
+          };
+        })
+        // Show products that have any stock OR any active reservations
+        .filter(product => !product.track_stock || product.stock_on_hand > 0 || product.qty_reserved > 0);
     },
     enabled: !!user && !!session && query.length > 0
   });
