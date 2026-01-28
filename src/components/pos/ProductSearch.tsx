@@ -114,12 +114,12 @@ export function ProductSearch({ onAddToCart, cartItems }: ProductSearchProps) {
     // Partially reserved - show both available and reserved counts
     if (qtyReserved > 0) {
       return { 
-        primary: `${availableAfterCart} available`, 
-        secondary: `${qtyReserved} reserved` 
+        primary: `${availableAfterCart} Available`, 
+        secondary: `${qtyReserved} Reserved` 
       };
     }
     
-    return { primary: `${availableAfterCart} available`, secondary: null };
+    return { primary: `${availableAfterCart} Available`, secondary: null };
   };
   
   const getStockBadgeVariant = (product: ProductSearchResult) => {

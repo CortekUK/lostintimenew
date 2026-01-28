@@ -109,7 +109,7 @@ function DepositOrderCard({ order, onClick }: { order: any; onClick: () => void 
               {isOverdue && (
                 <Badge variant="destructive" className="text-xs shrink-0">
                   <AlertCircle className="h-3 w-3 mr-1" />
-                  {Math.abs(daysUntil || 0)}d overdue
+                  {Math.abs(daysUntil || 0)}d Overdue
                 </Badge>
               )}
               {isApproaching && (
@@ -248,7 +248,7 @@ function DepositOrderTable({
                       <span className="text-sm">{format(new Date(order.expected_date), 'dd MMM yyyy')}</span>
                       {isOverdue && (
                         <Badge variant="destructive" className="text-xs">
-                          {Math.abs(daysUntil || 0)}d overdue
+                          {Math.abs(daysUntil || 0)}d Overdue
                         </Badge>
                       )}
                       {isApproaching && (
