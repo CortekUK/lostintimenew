@@ -328,6 +328,14 @@ export default function EnhancedSales() {
     setCart(cart.filter(item => item.product.id !== productId));
   };
 
+  const updateItemPrice = (productId: number, newPrice: number) => {
+    setCart(cart.map(item =>
+      item.product.id === productId
+        ? { ...item, unit_price: newPrice }
+        : item
+    ));
+  };
+
   // Custom item handlers
   const addCustomItem = (item: CustomItemData) => {
     setCustomItems([...customItems, item as CustomCartItem]);
@@ -705,6 +713,7 @@ export default function EnhancedSales() {
               onEditPartExchange={editPartExchange}
               onAddPartExchange={() => setShowPartExchangeModal(true)}
               onAddCustomItem={() => setShowCustomItemModal(true)}
+              onUpdateItemPrice={updateItemPrice}
               discount={depositMode ? 0 : discount}
               discountType={discountType}
               showCustomItemButton={depositMode}
