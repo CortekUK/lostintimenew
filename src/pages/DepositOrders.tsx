@@ -209,6 +209,7 @@ function DepositOrderTable({
             <TableHead className="text-right">Total</TableHead>
             <TableHead className="text-right">Paid</TableHead>
             <TableHead className="text-right">Balance Due</TableHead>
+            <TableHead>Staff</TableHead>
             <TableHead>Created</TableHead>
             <TableHead className="text-right">Actions</TableHead>
           </TableRow>
@@ -271,6 +272,9 @@ function DepositOrderTable({
                   <span className={order.balance_due > 0 ? 'text-primary font-medium font-luxury' : 'text-green-600'}>
                     {formatCurrency(order.balance_due || 0)}
                   </span>
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {order.staff_name || '—'}
                 </TableCell>
                 <TableCell className="text-muted-foreground">
                   {format(new Date(order.created_at), 'dd MMM yyyy')}

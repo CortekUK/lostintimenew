@@ -59,6 +59,7 @@ export interface DepositOrderWithDetails extends DepositOrder {
   deposit_payments?: DepositPayment[];
   deposit_order_part_exchanges?: DepositOrderPartExchange[];
   customer?: { name: string; email?: string; phone?: string } | null;
+  staff?: { full_name: string | null } | null;
 }
 
 export interface CreateDepositOrderParams {
@@ -138,7 +139,22 @@ export function useDepositOrderDetails(orderId: number | null) {
         .single();
 
       if (orderError) throw orderError;
-      return order as DepositOrderWithDetails;
+
+      // Fetch staff name separately if staff_id exists
+      let staffName: string | null = null;
+      if (order.staff_id) {
+        const { data: staffProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('user_id', order.staff_id)
+          .single();
+        staffName = staffProfile?.full_name || null;
+      }
+
+      return {
+        ...order,
+        staff: staffName ? { full_name: staffName } : null,
+      } as DepositOrderWithDetails;
     },
     enabled: !!orderId,
   });

@@ -553,6 +553,12 @@ export default function DepositOrderDetail() {
                 </CardTitle>
               </CardHeader>
               <CardContent className="space-y-3">
+                {order.staff && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Created By</p>
+                    <p className="text-sm font-medium">{order.staff.full_name || 'Unknown'}</p>
+                  </div>
+                )}
                 <div>
                   <p className="text-sm text-muted-foreground">Created</p>
                   <p className="text-sm">{format(new Date(order.created_at), 'dd MMM yyyy, HH:mm')}</p>
