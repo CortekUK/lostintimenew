@@ -1,6 +1,8 @@
+import { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { formatCurrency, calculateCartTotals } from '@/lib/utils';
 import type { CartItem, PartExchangeItem, CustomCartItem } from '@/types';
 import { PartExchangeItem as PartExchangeItemComponent } from './PartExchangeItem';
@@ -13,7 +15,10 @@ import {
   Package,
   Hash,
   Repeat,
-  Sparkles
+  Sparkles,
+  Pencil,
+  Check,
+  X
 } from 'lucide-react';
 
 export type DiscountType = 'percentage' | 'fixed';
@@ -30,6 +35,7 @@ interface ShoppingCartProps {
   onEditPartExchange: (id: string) => void;
   onAddPartExchange: () => void;
   onAddCustomItem?: () => void;
+  onUpdateItemPrice?: (productId: number, newPrice: number) => void;
   discount: number;
   discountType: DiscountType;
   onSerialAssignment?: (item: CartItem) => void;
@@ -48,11 +54,14 @@ export function ShoppingCartComponent({
   onEditPartExchange,
   onAddPartExchange,
   onAddCustomItem,
+  onUpdateItemPrice,
   discount,
   discountType,
   onSerialAssignment,
   showCustomItemButton = false
 }: ShoppingCartProps) {
+  const [editingPriceId, setEditingPriceId] = useState<number | null>(null);
+  const [editPriceValue, setEditPriceValue] = useState('');
   // Calculate discount based on type
   const calculateItemDiscount = (lineTotal: number) => {
     if (discountType === 'percentage') {
@@ -113,6 +122,33 @@ export function ShoppingCartComponent({
               const lineDiscount = calculateItemDiscount(lineTotal);
               const lineTax = (lineTotal - lineDiscount) * (item.tax_rate / 100);
               const lineFinal = lineTotal - lineDiscount + lineTax;
+              const catalogPrice = item.product.unit_price;
+              const priceChanged = item.unit_price !== catalogPrice;
+              const priceIncreased = item.unit_price > catalogPrice;
+              const isEditing = editingPriceId === item.product.id;
+
+              const startEditing = () => {
+                setEditingPriceId(item.product.id);
+                setEditPriceValue(String(item.unit_price));
+              };
+
+              const cancelEditing = () => {
+                setEditingPriceId(null);
+                setEditPriceValue('');
+              };
+
+              const savePrice = () => {
+                const newPrice = parseFloat(editPriceValue);
+                if (!isNaN(newPrice) && newPrice >= 0 && onUpdateItemPrice) {
+                  onUpdateItemPrice(item.product.id, newPrice);
+                }
+                cancelEditing();
+              };
+
+              const handleKeyDown = (e: React.KeyboardEvent) => {
+                if (e.key === 'Enter') savePrice();
+                if (e.key === 'Escape') cancelEditing();
+              };
               
               return (
                 <div key={item.product.id} className="p-3 bg-muted/30 rounded-lg border">
@@ -127,12 +163,48 @@ export function ShoppingCartComponent({
                       {item.product.sku && (
                         <p className="text-xs text-muted-foreground">SKU: {item.product.sku}</p>
                       )}
-                      <p className="text-xs text-muted-foreground">
-                        <span className="text-primary font-medium">{formatCurrency(item.unit_price)}</span> each
-                        {item.tax_rate > 0 && (
-                          <span className="ml-2">• {item.tax_rate}% tax</span>
+                      <div className="text-xs text-muted-foreground flex items-center gap-1 flex-wrap">
+                        {isEditing ? (
+                          <div className="flex items-center gap-1">
+                            <span>£</span>
+                            <Input
+                              type="number"
+                              min="0"
+                              step="1"
+                              value={editPriceValue}
+                              onChange={(e) => setEditPriceValue(e.target.value)}
+                              onKeyDown={handleKeyDown}
+                              className="h-6 w-20 text-xs px-1"
+                              autoFocus
+                            />
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={savePrice}>
+                              <Check className="h-3 w-3 text-success" />
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={cancelEditing}>
+                              <X className="h-3 w-3 text-destructive" />
+                            </Button>
+                          </div>
+                        ) : (
+                          <>
+                            {priceChanged && (
+                              <span className="line-through text-muted-foreground/60">{formatCurrency(catalogPrice)}</span>
+                            )}
+                            <button 
+                              onClick={startEditing}
+                              className={`font-medium inline-flex items-center gap-1 hover:underline cursor-pointer ${
+                                priceIncreased ? 'text-blue-600 dark:text-blue-400' : priceChanged ? 'text-success' : 'text-primary'
+                              }`}
+                            >
+                              {formatCurrency(item.unit_price)}
+                              <Pencil className="h-3 w-3 opacity-60" />
+                            </button>
+                            <span>each</span>
+                          </>
                         )}
-                      </p>
+                        {item.tax_rate > 0 && !isEditing && (
+                          <span className="ml-1">• {item.tax_rate}% tax</span>
+                        )}
+                      </div>
                     </div>
                     <div className="text-right">
                       <p className="font-medium text-sm text-primary">{formatCurrency(lineFinal)}</p>
