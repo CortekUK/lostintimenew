@@ -449,7 +449,9 @@ export type Database = {
       }
       deposit_order_items: {
         Row: {
+          category: string | null
           deposit_order_id: number
+          description: string | null
           id: number
           is_custom_order: boolean
           product_id: number | null
@@ -460,7 +462,9 @@ export type Database = {
           unit_price: number
         }
         Insert: {
+          category?: string | null
           deposit_order_id: number
+          description?: string | null
           id?: number
           is_custom_order?: boolean
           product_id?: number | null
@@ -471,7 +475,9 @@ export type Database = {
           unit_price?: number
         }
         Update: {
+          category?: string | null
           deposit_order_id?: number
+          description?: string | null
           id?: number
           is_custom_order?: boolean
           product_id?: number | null
