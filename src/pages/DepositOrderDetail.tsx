@@ -48,6 +48,7 @@ import {
   useVoidDepositOrder,
   useUpdateDepositOrderItemCost,
   DepositOrderStatus,
+  DepositPayment,
   isPickupApproaching,
   isPickupOverdue,
   getDaysUntilPickup
@@ -468,27 +469,44 @@ export default function DepositOrderDetail() {
               <CardContent>
                 {order.deposit_payments && order.deposit_payments.length > 0 ? (
                   <div className="space-y-4">
-                    {order.deposit_payments.map((payment) => (
-                      <div key={payment.id} className="flex items-start gap-4">
-                        <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                          <PoundSterling className="h-5 w-5 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center justify-between">
-                            <p className="font-semibold">{formatCurrency(payment.amount)}</p>
-                            <Badge variant="outline">
-                              {PAYMENT_METHOD_LABELS[payment.payment_method] || payment.payment_method}
-                            </Badge>
+                    {order.deposit_payments
+                      .sort((a, b) => new Date(a.received_at).getTime() - new Date(b.received_at).getTime())
+                      .map((payment, index, sortedPayments) => {
+                        // Calculate running balance after this payment
+                        const paymentsUpToThis = sortedPayments.slice(0, index + 1);
+                        const totalPaidAfterThis = paymentsUpToThis.reduce((sum, p) => sum + Number(p.amount), 0);
+                        const balanceAfterPayment = netOrderTotal - totalPaidAfterThis;
+                        
+                        return (
+                          <div key={payment.id} className="flex items-start gap-4">
+                            <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                              <PoundSterling className="h-5 w-5 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between">
+                                <p className="font-semibold">{formatCurrency(payment.amount)}</p>
+                                <Badge variant="outline">
+                                  {PAYMENT_METHOD_LABELS[payment.payment_method] || payment.payment_method}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">
+                                {format(new Date(payment.received_at), 'dd MMM yyyy, HH:mm')}
+                              </p>
+                              <div className="flex items-center gap-4 mt-1 text-sm text-muted-foreground">
+                                {(payment as DepositPayment).received_by_name && (
+                                  <span>Received by: {(payment as DepositPayment).received_by_name}</span>
+                                )}
+                                <span className={balanceAfterPayment <= 0 ? 'text-[#D4AF37]' : ''}>
+                                  Balance After: {formatCurrency(Math.max(0, balanceAfterPayment))}
+                                </span>
+                              </div>
+                              {payment.notes && (
+                                <p className="text-sm mt-1 italic text-muted-foreground">{payment.notes}</p>
+                              )}
+                            </div>
                           </div>
-                          <p className="text-sm text-muted-foreground">
-                            {format(new Date(payment.received_at), 'dd MMM yyyy, HH:mm')}
-                          </p>
-                          {payment.notes && (
-                            <p className="text-sm mt-1 italic text-muted-foreground">{payment.notes}</p>
-                          )}
-                        </div>
-                      </div>
-                    ))}
+                        );
+                      })}
                   </div>
                 ) : (
                   <div className="text-center py-8 text-muted-foreground">
