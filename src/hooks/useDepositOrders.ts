@@ -461,7 +461,7 @@ export function useCompleteDepositOrder() {
           part_exchange_total: partExchangeTotal,
           payment: paymentMethod,
           notes: `Converted from Deposit Order #${order.id}`,
-          staff_id: user.id,
+          staff_id: order.staff_id,
           location_id: order.location_id,
         })
         .select()
