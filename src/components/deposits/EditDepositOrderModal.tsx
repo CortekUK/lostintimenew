@@ -185,7 +185,7 @@ export function EditDepositOrderModal({ open, onOpenChange, orderId }: EditDepos
                         </div>
                         {isCustom && (
                           <p className="text-xs text-muted-foreground ml-6">
-                            Custom • Cost: {hasCost ? formatCurrency(item.unit_cost) : <span className="text-amber-500">Not set</span>}
+                            Custom • Cost: {hasCost ? formatCurrency(item.unit_cost) : <span className="text-amber-500">Not Set</span>}
                           </p>
                         )}
                       </div>
