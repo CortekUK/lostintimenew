@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useQueryClient } from '@tanstack/react-query';
 import { AppLayout } from '@/components/layout/AppLayout';
@@ -14,6 +14,9 @@ import { DateRangePicker } from '@/components/reports/DateRangePicker';
 import { useToast } from '@/hooks/use-toast';
 import { useSoldItemsReport, useProducts } from '@/hooks/useDatabase';
 import { useAuth } from '@/contexts/AuthContext';
+import { useSettings } from '@/contexts/SettingsContext';
+import { usePermissions } from '@/hooks/usePermissions';
+import { useAllStaffRateHistory, getRateForSaleDate } from '@/hooks/useStaffCommissionRateHistory';
 import { exportSoldItemsCSV } from '@/utils/csvExport';
 import { getDateRange } from '@/lib/utils';
 import { 
@@ -30,7 +33,8 @@ import {
   Eye,
   Printer,
   X,
-  Ban
+  Ban,
+  Coins
 } from 'lucide-react';
 import { SaleDetailModal } from '@/components/transactions/SaleDetailModal';
 import { ProductDetailModal } from '@/components/modals/ProductDetailModal';
@@ -59,10 +63,38 @@ export default function SoldItemsReport() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { userRole } = useAuth();
+  const { isOwner } = usePermissions();
+  const { settings } = useSettings();
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { data: soldItemsData = [], isLoading } = useSoldItemsReport();
   const { data: products = [] } = useProducts();
+  const { data: rateHistory = [] } = useAllStaffRateHistory();
+  
+  // Commission settings
+  const commissionRate = settings.commissionSettings?.defaultRate ?? 5;
+  const commissionBasis = settings.commissionSettings?.calculationBasis ?? 'revenue';
+  
+  // Helper function to calculate commission for a single item
+  const calculateItemCommission = useCallback((item: any): number => {
+    if (!item) return 0;
+    const saleDate = new Date(item.sold_at);
+    const staffId = item.sales?.staff_id;
+    
+    // Skip voided sales
+    if (item.sales?.is_voided) return 0;
+    
+    // Get historical rate for this staff member at the time of sale
+    const historicalRate = staffId ? getRateForSaleDate(rateHistory, staffId, saleDate) : null;
+    const rate = historicalRate?.rate ?? commissionRate;
+    const basis = historicalRate?.basis ?? commissionBasis;
+    
+    const base = basis === 'profit' 
+      ? (item.line_gross_profit || 0) 
+      : (item.line_revenue || 0);
+    
+    return base * (rate / 100);
+  }, [rateHistory, commissionRate, commissionBasis]);
   
   const [filters, setFilters] = useState<SoldItemsFilters>({
     dateRange: {
@@ -384,6 +416,22 @@ export default function SoldItemsReport() {
         );
       }
     },
+    // Commission column - owner only
+    ...(isOwner ? [{
+      key: 'commission',
+      title: 'Commission',
+      sortable: true,
+      width: 110,
+      render: (value: any, row: any, index: number) => {
+        const commission = calculateItemCommission(row);
+        const isVoided = row?.sales?.is_voided;
+        return (
+          <span className={`font-mono text-primary ${isVoided ? 'line-through text-muted-foreground' : ''}`}>
+            £{commission.toFixed(0)}
+          </span>
+        );
+      }
+    }] : []),
     {
       key: 'actions',
       title: 'Actions',
@@ -425,11 +473,16 @@ export default function SoldItemsReport() {
   // Calculate totals
   const totals = useMemo(() => {
     if (!filteredItems || !Array.isArray(filteredItems)) {
-      return { revenue: 0, cogs: 0, profit: 0, items: 0, tradeInCount: 0 };
+      return { revenue: 0, cogs: 0, profit: 0, items: 0, tradeInCount: 0, commission: 0 };
     }
     
     // Count how many trade-ins are excluded
     const tradeInCount = soldItemsData?.filter((item: any) => item?.products?.is_trade_in === true).length || 0;
+    
+    // Calculate commission only for owners
+    const totalCommission = isOwner 
+      ? filteredItems.reduce((sum, item) => sum + calculateItemCommission(item), 0)
+      : 0;
     
     return filteredItems.reduce(
       (acc, item) => ({
@@ -437,11 +490,12 @@ export default function SoldItemsReport() {
         cogs: acc.cogs + (item.line_cogs || 0),
         profit: acc.profit + (item.line_gross_profit || 0),
         items: acc.items + (item.quantity || 0),
-        tradeInCount
+        tradeInCount,
+        commission: totalCommission
       }),
-      { revenue: 0, cogs: 0, profit: 0, items: 0, tradeInCount }
+      { revenue: 0, cogs: 0, profit: 0, items: 0, tradeInCount, commission: totalCommission }
     );
-  }, [filteredItems, soldItemsData]);
+  }, [filteredItems, soldItemsData, isOwner, calculateItemCommission]);
 
   return (
     <>
@@ -489,11 +543,11 @@ export default function SoldItemsReport() {
       >
       <div className="space-y-8">
         {/* Summary Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6" role="region" aria-label="Summary statistics">
+        <div className={`grid grid-cols-1 ${isOwner ? 'md:grid-cols-5' : 'md:grid-cols-4'} gap-6`} role="region" aria-label="Summary statistics">
           {isLoading ? (
             // Loading skeletons
             <>
-              {[1, 2, 3, 4].map((i) => (
+              {[1, 2, 3, 4, ...(isOwner ? [5] : [])].map((i) => (
                 <Card key={i} className="shadow-card">
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <div className="h-4 w-24 bg-muted/50 animate-pulse rounded" />
@@ -530,7 +584,7 @@ export default function SoldItemsReport() {
               <PoundSterling className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-luxury text-success">£{totals.revenue.toFixed(2)}</div>
+              <div className="text-2xl font-bold font-luxury text-success">£{totals.revenue.toFixed(0)}</div>
               <p className="text-xs text-muted-foreground mt-1">gross revenue</p>
             </CardContent>
           </Card>
@@ -541,7 +595,7 @@ export default function SoldItemsReport() {
               <Package className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold font-luxury">£{totals.cogs.toFixed(2)}</div>
+              <div className="text-2xl font-bold font-luxury">£{totals.cogs.toFixed(0)}</div>
               <p className="text-xs text-muted-foreground mt-1">cost of goods sold</p>
             </CardContent>
           </Card>
@@ -553,13 +607,27 @@ export default function SoldItemsReport() {
             </CardHeader>
             <CardContent>
               <div className={`text-2xl font-bold font-luxury ${totals.profit >= 0 ? 'text-foreground' : 'text-destructive'}`}>
-                £{totals.profit.toFixed(2)}
+                £{totals.profit.toFixed(0)}
               </div>
               <p className="text-xs text-muted-foreground mt-1">
                 {totals.revenue > 0 ? `${((totals.profit / totals.revenue) * 100).toFixed(1)}%` : '0%'} margin
               </p>
             </CardContent>
           </Card>
+          
+          {/* Commission Card - Owner Only */}
+          {isOwner && (
+            <Card className="shadow-card hover:shadow-elegant transition-all duration-300">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium text-primary">Commission</CardTitle>
+                <Coins className="h-4 w-4 text-primary" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold font-luxury text-primary">£{totals.commission.toFixed(0)}</div>
+                <p className="text-xs text-muted-foreground mt-1">total for period</p>
+              </CardContent>
+            </Card>
+          )}
             </>
           )}
         </div>
@@ -831,20 +899,26 @@ export default function SoldItemsReport() {
               <div className="mt-6 p-4 bg-gradient-to-r from-primary/5 via-primary/10 to-primary/5 rounded-lg border border-primary/20">
                 <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
                   <span className="font-semibold text-primary text-sm sm:text-base">Current Filter Totals:</span>
-                  <div className="grid grid-cols-3 gap-2 sm:flex sm:gap-6 text-xs sm:text-sm font-medium">
+                  <div className={`grid ${isOwner ? 'grid-cols-4' : 'grid-cols-3'} gap-2 sm:flex sm:gap-6 text-xs sm:text-sm font-medium`}>
                     <div className="text-success">
                       <span className="block sm:inline text-muted-foreground text-xs">Revenue</span>
-                      <strong className="text-base sm:text-lg block sm:inline sm:ml-1">£{totals.revenue.toFixed(2)}</strong>
+                      <strong className="text-base sm:text-lg block sm:inline sm:ml-1">£{totals.revenue.toFixed(0)}</strong>
                     </div>
                     <div>
                       <span className="block sm:inline text-muted-foreground text-xs">COGS</span>
-                      <strong className="text-base sm:text-lg block sm:inline sm:ml-1">£{totals.cogs.toFixed(2)}</strong>
+                      <strong className="text-base sm:text-lg block sm:inline sm:ml-1">£{totals.cogs.toFixed(0)}</strong>
                     </div>
                     <div className={totals.profit >= 0 ? 'text-primary' : 'text-destructive'}>
                       <span className="block sm:inline text-muted-foreground text-xs">GP</span>
-                      <strong className="text-base sm:text-lg block sm:inline sm:ml-1">£{totals.profit.toFixed(2)}</strong>
+                      <strong className="text-base sm:text-lg block sm:inline sm:ml-1">£{totals.profit.toFixed(0)}</strong>
                       <span className="text-xs ml-1 hidden sm:inline">({totals.revenue > 0 ? `${((totals.profit / totals.revenue) * 100).toFixed(1)}%` : '0%'})</span>
                     </div>
+                    {isOwner && (
+                      <div className="text-primary">
+                        <span className="block sm:inline text-muted-foreground text-xs">Commission</span>
+                        <strong className="text-base sm:text-lg block sm:inline sm:ml-1">£{totals.commission.toFixed(0)}</strong>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
