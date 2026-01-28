@@ -552,7 +552,7 @@ export default function DepositOrders() {
           <EditDepositOrderModal
             open={showEditModal}
             onOpenChange={setShowEditModal}
-            order={selectedOrder}
+            orderId={selectedOrder.id}
           />
         </>
       )}

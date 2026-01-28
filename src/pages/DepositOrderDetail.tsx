@@ -686,7 +686,7 @@ export default function DepositOrderDetail() {
       <EditDepositOrderModal
         open={showEditModal}
         onOpenChange={setShowEditModal}
-        order={order}
+        orderId={orderId!}
       />
 
       {/* Set Custom Item Cost Modal */}
