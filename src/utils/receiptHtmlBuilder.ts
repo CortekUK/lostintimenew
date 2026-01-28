@@ -52,13 +52,6 @@ export function buildReceiptHtml(data: ReceiptData, settings: SettingsData, isDa
     email: "info@sourcedjewellers.com"
   };
   
-  const branding = settings?.branding || {
-    logo: "/new-logo.png",
-    primary_gold: "#D4AF37"
-  };
-  
-  const storeName = store.name || 'Sourced Jewellers';
-  const tagline = store.tagline || 'Premium Jewelry & Timepieces';
   const contactInfo = [store.address, store.phone].filter(Boolean).join(' | ') || '123 High Street | 020 7123 4567';
   
   const netTotal = sale.total - pxTotal;
@@ -118,32 +111,23 @@ export function buildReceiptHtml(data: ReceiptData, settings: SettingsData, isDa
       padding: 20px;
     }
     
-    .rcpt-header { 
-      text-align: center; 
-      margin-bottom: 24px; 
+    .rcpt-header {
+      text-align: center;
+      margin-bottom: 24px;
       border-bottom: 2px solid #e0e0e0;
       padding-bottom: 16px;
     }
-    
-    
-    .rcpt-title { 
-      font-family: 'Playfair Display', Georgia, serif; 
-      font-size: 24px; 
-      margin: 0 0 8px 0; 
-      color: #1a1a1a;
-      font-weight: 700;
+
+    .rcpt-logo {
+      width: 280px;
+      height: auto;
+      margin: 0 auto 12px auto;
+      display: block;
     }
-    
-    .rcpt-tag { 
-      color: #666; 
-      font-size: 13px; 
-      margin-bottom: 8px;
-      font-style: italic;
-    }
-    
-    .rcpt-meta { 
-      color: #666; 
-      font-size: 12px; 
+
+    .rcpt-meta {
+      color: #666;
+      font-size: 12px;
       line-height: 1.4;
     }
     
@@ -276,8 +260,7 @@ export function buildReceiptHtml(data: ReceiptData, settings: SettingsData, isDa
 <body>
   <div class="receipt">
     <div class="rcpt-header">
-      <h1 class="rcpt-title">${escapeHtml(storeName)}</h1>
-      <div class="rcpt-tag">${escapeHtml(tagline)}</div>
+      <img src="/new-logo-cropped.png" alt="Sourced" class="rcpt-logo" />
       <div class="rcpt-meta">${escapeHtml(contactInfo)}</div>
     </div>
 

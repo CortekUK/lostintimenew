@@ -44,12 +44,12 @@ export function ReceiptDocument({ data, settings }: ReceiptProps) {
   };
   
   const branding = settings?.branding || {
-    logo: "/new-logo.png",
+    logo: "/new-logo-cropped.png",
     primary_gold: "#D4AF37"
   };
 
   // Use the new logo
-  const logo = branding.logo || "/new-logo.png";
+  const logo = branding.logo || "/new-logo-cropped.png";
   
   const handlePrint = () => {
     window.print();

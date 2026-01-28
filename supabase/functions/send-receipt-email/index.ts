@@ -76,11 +76,19 @@ function generateReceiptHtml(data: ReceiptEmailRequest): string {
     <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; background-color: #f9fafb;">
       <div style="background-color: white; border-radius: 8px; padding: 32px; box-shadow: 0 1px 3px rgba(0,0,0,0.1);">
         <!-- Header -->
-        <div style="text-align: center; margin-bottom: 24px;">
-          <h1 style="font-size: 24px; font-weight: bold; color: #1f2937; margin: 0 0 4px 0;">Sourced Jewellers</h1>
-          <p style="color: #6b7280; font-size: 14px; margin: 0;">123 High Street, London SW1A 1AA</p>
-          <p style="color: #6b7280; font-size: 14px; margin: 0;">Tel: 020 7123 4567</p>
-        </div>
+        <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
+          <tr>
+            <td align="center">
+              <img src="https://qthosixbvinxmmjdfuii.supabase.co/storage/v1/object/public/assets/new-logo-cropped.png" alt="Sourced Jewellers" width="280" style="height: auto; max-width: 280px; display: block; margin: 0 auto 12px auto;" />
+            </td>
+          </tr>
+          <tr>
+            <td align="center" style="color: #6b7280; font-size: 14px;">123 High Street, London SW1A 1AA</td>
+          </tr>
+          <tr>
+            <td align="center" style="color: #6b7280; font-size: 14px;">Tel: 020 7123 4567</td>
+          </tr>
+        </table>
 
         <hr style="border: none; border-top: 1px solid #e5e7eb; margin: 24px 0;">
 
