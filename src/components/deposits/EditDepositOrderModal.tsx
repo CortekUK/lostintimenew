@@ -166,9 +166,12 @@ export function EditDepositOrderModal({ open, onOpenChange, orderId }: EditDepos
                             </span>
                             {isCustom && (
                               <Button
-                                variant="ghost"
+                                variant={hasCost ? "ghost" : "outline"}
                                 size="sm"
-                                className="h-7 px-2 text-xs"
+                                className={cn(
+                                  "h-7 px-2 text-xs",
+                                  !hasCost && "border-amber-500 text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-950/30"
+                                )}
                                 onClick={() => setEditingItem(item as DepositOrderItem)}
                               >
                                 {hasCost ? (
