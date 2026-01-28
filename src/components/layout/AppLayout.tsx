@@ -10,6 +10,7 @@ import { useAppShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { GlobalSearchInput } from '@/components/search/GlobalSearchInput';
 import { CommandPalette } from '@/components/search/CommandPalette';
 import { ChatSidebar } from '@/components/chat/ChatSidebar';
+import { useAuth } from '@/contexts/AuthContext';
 
 interface AppLayoutProps {
   children: ReactNode;
@@ -23,6 +24,7 @@ export const AppLayout = ({ children, title, subtitle, showSearch = false, showD
   const location = useLocation();
   const navigate = useNavigate();
   const [commandPaletteOpen, setCommandPaletteOpen] = useState(false);
+  const { userRole } = useAuth();
   
   // Setup keyboard shortcuts
   useAppShortcuts({
@@ -141,8 +143,8 @@ export const AppLayout = ({ children, title, subtitle, showSearch = false, showD
           onOpenChange={setCommandPaletteOpen}
         />
 
-        {/* AI Chat Sidebar */}
-        <ChatSidebar />
+        {/* AI Chat Sidebar - Owner only */}
+        {userRole === 'owner' && <ChatSidebar />}
       </div>
     </SidebarProvider>
   );

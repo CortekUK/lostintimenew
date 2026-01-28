@@ -15,11 +15,11 @@
   padding-bottom: 16px;
 }
 
-.rcpt-logo { 
-  height: 64px; 
-  width: auto; 
-  margin: 0 auto 12px; 
-  display: block; 
+.rcpt-logo {
+  height: 180px;
+  width: auto;
+  margin: 0 auto 8px;
+  display: block;
 }
 
 .rcpt-title { 
@@ -250,11 +250,11 @@
     border-bottom: 2px solid #e0e0e0;
   }
 
-  .rcpt-title {
-    color: #000 !important;
+  .rcpt-logo {
+    height: 180px !important;
   }
 
-  .rcpt-tag, .rcpt-meta {
+  .rcpt-meta {
     color: #555 !important;
   }
 

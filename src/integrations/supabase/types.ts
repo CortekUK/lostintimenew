@@ -1209,6 +1209,7 @@ export type Database = {
           gemstone: string | null
           id: number
           image_url: string | null
+          images: string[] | null
           internal_sku: string
           is_consignment: boolean
           is_registered: boolean
@@ -1242,6 +1243,7 @@ export type Database = {
           gemstone?: string | null
           id?: number
           image_url?: string | null
+          images?: string[] | null
           internal_sku: string
           is_consignment?: boolean
           is_registered?: boolean
@@ -1275,6 +1277,7 @@ export type Database = {
           gemstone?: string | null
           id?: number
           image_url?: string | null
+          images?: string[] | null
           internal_sku?: string
           is_consignment?: boolean
           is_registered?: boolean

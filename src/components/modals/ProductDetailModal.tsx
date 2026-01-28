@@ -5,14 +5,16 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
 import { Product } from '@/types';
-import { Package, PoundSterling, TrendingUp, Calendar, Truck, Tag, Gem, Award, FileText, Eye, Download, Repeat, User, Phone, Copy, ExternalLink, MapPin, Clock, Percent, CalendarClock, X, AlertTriangle } from 'lucide-react';
+import { Package, PoundSterling, TrendingUp, Calendar, Truck, Tag, Gem, Award, FileText, Eye, Download, Repeat, User, Phone, Copy, ExternalLink, MapPin, Clock, Percent, CalendarClock, X, AlertTriangle, Video, Image as ImageIcon } from 'lucide-react';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { ConsignmentAgreementSection } from '@/components/consignments/ConsignmentAgreementSection';
 import { StockAdjustmentModal } from '@/components/products/StockAdjustmentModal';
 import { ImageModal } from '@/components/ui/image-modal';
 import { ProductDocumentsTab } from '@/components/documents/ProductDocumentsTab';
 import { PartExchangeInfoTab } from '@/components/products/PartExchangeInfoTab';
+import { isVideoUrl } from '@/components/ui/multi-image-upload';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOwnerGuard } from '@/hooks/useOwnerGuard';
@@ -41,6 +43,7 @@ interface ProductDetailModalProps {
 export function ProductDetailModal({ product, open, onOpenChange, onEditClick, onDuplicateClick, soldInfo, hideViewSale }: ProductDetailModalProps) {
   const [stockModalOpen, setStockModalOpen] = useState(false);
   const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [releaseConfirmOpen, setReleaseConfirmOpen] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<{ orderId: number; itemId: number; customerName: string } | null>(null);
   const [isReleasing, setIsReleasing] = useState(false);
@@ -222,19 +225,35 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
             
             <DialogHeader className="mb-0">
               <div className="flex items-start gap-5">
-                {/* Premium Image Container */}
+                {/* Premium Image/Video Container */}
                 {(product as any).image_url ? (
                   <div className="relative group">
                     <div className="absolute -inset-1 bg-gradient-to-br from-primary/20 to-primary/5 rounded-2xl blur-sm opacity-50" />
-                    <img
-                      src={(product as any).image_url}
-                      alt={product.name}
-                      className="relative w-24 h-24 object-cover rounded-xl border border-border/50 cursor-pointer shadow-md transition-all duration-200 group-hover:shadow-lg group-hover:scale-[1.02]"
-                      onClick={() => setImageModalOpen(true)}
-                    />
-                    <div className="absolute inset-0 rounded-xl bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer" onClick={() => setImageModalOpen(true)}>
-                      <Eye className="h-5 w-5 text-white drop-shadow-md" />
-                    </div>
+                    {isVideoUrl((product as any).image_url) ? (
+                      <div className="relative w-24 h-24 rounded-xl border border-border/50 overflow-hidden shadow-md">
+                        <video
+                          src={(product as any).image_url}
+                          className="w-full h-full object-cover"
+                          muted
+                          preload="metadata"
+                        />
+                        <div className="absolute inset-0 flex items-center justify-center bg-black/30">
+                          <Video className="h-8 w-8 text-white" />
+                        </div>
+                      </div>
+                    ) : (
+                      <>
+                        <img
+                          src={(product as any).image_url}
+                          alt={product.name}
+                          className="relative w-24 h-24 object-cover rounded-xl border border-border/50 cursor-pointer shadow-md transition-all duration-200 group-hover:shadow-lg group-hover:scale-[1.02]"
+                          onClick={() => setImageModalOpen(true)}
+                        />
+                        <div className="absolute inset-0 rounded-xl bg-black/0 group-hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer" onClick={() => setImageModalOpen(true)}>
+                          <Eye className="h-5 w-5 text-white drop-shadow-md" />
+                        </div>
+                      </>
+                    )}
                   </div>
                 ) : (
                   <div className="w-24 h-24 bg-gradient-to-br from-muted to-muted/50 rounded-xl border border-border/50 flex items-center justify-center shadow-sm">
@@ -289,7 +308,83 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
               </div>
             </DialogHeader>
           </div>
-          
+
+          {/* Media Gallery Carousel */}
+          {(() => {
+            // Get media from images array, falling back to image_url for backwards compatibility
+            const mediaList: string[] = (product as any).images && Array.isArray((product as any).images) && (product as any).images.length > 0
+              ? (product as any).images
+              : (product as any).image_url
+                ? [(product as any).image_url]
+                : [];
+
+            if (mediaList.length === 0) return null;
+
+            return (
+            <div className="px-6 pt-5">
+              <Card className="shadow-sm border-border/50 overflow-hidden">
+                <CardHeader className="bg-muted/30 py-3 px-4 border-b border-border/50">
+                  <div className="flex items-center gap-2">
+                    <ImageIcon className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-sm font-medium">Media Gallery ({mediaList.length})</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="p-4">
+                  <Carousel className="w-full">
+                    <CarouselContent>
+                      {mediaList.map((mediaUrl, index) => (
+                        <CarouselItem key={index}>
+                          <div className="relative aspect-video bg-muted rounded-lg overflow-hidden">
+                            {isVideoUrl(mediaUrl) ? (
+                              <video
+                                src={mediaUrl}
+                                controls
+                                className="w-full h-full object-contain bg-black"
+                              >
+                                Your browser does not support the video tag.
+                              </video>
+                            ) : (
+                              <img
+                                src={mediaUrl}
+                                alt={`${product.name} - ${index + 1}`}
+                                className="w-full h-full object-contain cursor-pointer hover:scale-105 transition-transform"
+                                onClick={() => {
+                                  setSelectedImageIndex(index);
+                                  setImageModalOpen(true);
+                                }}
+                              />
+                            )}
+                            {/* Media type indicator */}
+                            <div className="absolute bottom-2 right-2 bg-black/50 text-white text-xs px-2 py-1 rounded">
+                              {isVideoUrl(mediaUrl) ? (
+                                <span className="flex items-center gap-1"><Video className="h-3 w-3" /> Video</span>
+                              ) : (
+                                <span className="flex items-center gap-1"><ImageIcon className="h-3 w-3" /> {index + 1}/{mediaList.length}</span>
+                              )}
+                            </div>
+                          </div>
+                        </CarouselItem>
+                      ))}
+                    </CarouselContent>
+                    {/* Navigation arrows - visible when multiple items exist */}
+                    {mediaList.length > 1 && (
+                      <>
+                        <CarouselPrevious className="left-2" />
+                        <CarouselNext className="right-2" />
+                      </>
+                    )}
+                  </Carousel>
+                  <p className="text-xs text-muted-foreground text-center mt-3">
+                    {mediaList.length > 1
+                      ? `Swipe or use arrows to navigate (${mediaList.length} items)`
+                      : isVideoUrl(mediaList[0]) ? 'Click to play video' : 'Click image to enlarge'}
+                  </p>
+                </CardContent>
+              </Card>
+            </div>
+            );
+          })()}
+
           {/* Financial Highlights Bar */}
           <div className="px-6 pt-5">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">

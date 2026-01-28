@@ -3,13 +3,15 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { formatCurrency, formatDateTime } from '@/lib/utils';
-import { CheckCircle2, Printer, Mail, Download, ShoppingCart, ExternalLink, Eye } from 'lucide-react';
+import { formatCurrency, formatDateTime, formatPaymentMethod } from '@/lib/utils';
+import { CheckCircle2, Printer, Mail, Download, ShoppingCart, ExternalLink, Eye, Loader2 } from 'lucide-react';
 import type { Sale, SaleItem, Product, PartExchangeItem } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { SaleDetailModal } from '@/components/transactions/SaleDetailModal';
+import { EmailReceiptDialog } from '@/components/pos/EmailReceiptDialog';
 import { useSettings } from '@/contexts/SettingsContext';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SaleConfirmationModalProps {
   isOpen: boolean;
@@ -40,6 +42,12 @@ export function SaleConfirmationModal({
   const partExchangeTotal = partExchanges.reduce((sum, px) => sum + px.allowance, 0);
   const netTotal = sale.total - partExchangeTotal;
   const [showDetailModal, setShowDetailModal] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+
+  // Get customer info from sale
+  const customerEmail = (sale as any).customer_email;
+  const customerName = (sale as any).customer_name;
 
   const handleNewSale = () => {
     onClose();
@@ -60,84 +68,63 @@ export function SaleConfirmationModal({
     navigate(`/pos/receipt/${sale.id}`);
   };
 
-  const handleEmail = () => {
-    // Get store information from settings
-    const storeInfo = (settings as any).store || {};
-    const storeName = storeInfo.name || 'Sourced Jewellers';
-    const storeEmail = storeInfo.email || '';
-    
-    // Build email subject
-    const subject = `Receipt for Sale #${sale.id.toString().padStart(6, '0')} - ${storeName}`;
-    
-    // Build email body
-    let body = `Thank you for your purchase at ${storeName}!\n\n`;
-    body += `TRANSACTION DETAILS\n`;
-    body += `${'='.repeat(50)}\n\n`;
-    body += `Transaction Number: #${sale.id.toString().padStart(6, '0')}\n`;
-    body += `Date & Time: ${formatDateTime(sale.sold_at)}\n`;
-    body += `Payment Method: ${sale.payment.toUpperCase()}\n`;
-    
-    if ((sale as any).staff_member_name) {
-      body += `Processed By: ${(sale as any).staff_member_name}\n`;
-    }
-    
-    body += `\n\nITEMS PURCHASED\n`;
-    body += `${'='.repeat(50)}\n\n`;
-    
-    items.forEach((item) => {
-      const itemTotal = item.quantity * item.unit_price;
-      body += `${item.product.name}\n`;
-      body += `  ${item.quantity} x ${formatCurrency(item.unit_price)} = ${formatCurrency(itemTotal)}\n\n`;
-    });
-    
-    if (partExchanges.length > 0) {
-      body += `\nTRADE-INS\n`;
-      body += `${'='.repeat(50)}\n\n`;
-      partExchanges.forEach((px) => {
-        body += `${px.product_name}\n`;
-        body += `  Trade-in allowance: -${formatCurrency(px.allowance)}\n\n`;
+  const sendReceiptEmail = async (email: string, customMessage?: string) => {
+    setIsSendingEmail(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-receipt-email', {
+        body: {
+          recipientEmail: email,
+          recipientName: customerName,
+          saleId: sale.id,
+          saleDate: sale.sold_at,
+          items: items.map(item => ({
+            name: item.product.name,
+            quantity: item.quantity,
+            unitPrice: item.unit_price,
+            discount: 0
+          })),
+          partExchanges: partExchanges.map(px => ({
+            title: px.product_name,
+            allowance: px.allowance
+          })),
+          subtotal: sale.subtotal,
+          discountTotal: sale.discount_total,
+          taxTotal: sale.tax_total,
+          total: sale.total,
+          paymentMethod: formatPaymentMethod(sale.payment),
+          notes: sale.notes || undefined,
+          customMessage: customMessage || undefined
+        }
       });
+
+      if (error) throw error;
+
+      toast({
+        title: "Receipt sent!",
+        description: `Email sent successfully to ${email}`,
+      });
+
+      // Save email to customer if new
+      if (email !== customerEmail && (sale as any).customer_id) {
+        await supabase
+          .from('customers')
+          .update({ email })
+          .eq('id', (sale as any).customer_id);
+      }
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      toast({
+        title: "Failed to send email",
+        description: error.message || 'An error occurred',
+        variant: "destructive"
+      });
+    } finally {
+      setIsSendingEmail(false);
     }
-    
-    body += `\nTOTALS\n`;
-    body += `${'='.repeat(50)}\n\n`;
-    body += `Subtotal: ${formatCurrency(sale.subtotal)}\n`;
-    
-    if (sale.discount_total > 0) {
-      body += `Discount: -${formatCurrency(sale.discount_total)}\n`;
-    }
-    
-    if (sale.tax_total > 0) {
-      body += `Tax: ${formatCurrency(sale.tax_total)}\n`;
-    }
-    
-    if (partExchangeTotal > 0) {
-      body += `Trade-in Total: -${formatCurrency(partExchangeTotal)}\n`;
-    }
-    
-    body += `\nNET TOTAL: ${formatCurrency(netTotal)}\n`;
-    
-    if (storeInfo.address || storeInfo.phone || storeEmail) {
-      body += `\n\n${'='.repeat(50)}\n`;
-      body += `${storeName}\n`;
-      if (storeInfo.address) body += `${storeInfo.address}\n`;
-      if (storeInfo.phone) body += `Phone: ${storeInfo.phone}\n`;
-      if (storeEmail) body += `Email: ${storeEmail}\n`;
-    }
-    
-    // Get customer email if available
-    const toEmail = (sale as any).customer_email || '';
-    
-    // Create mailto link
-    const mailtoLink = `mailto:${toEmail}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    
-    // Open email client
-    window.location.href = mailtoLink;
-    
-    toast({
-      title: "Opening email client",
-      description: "Your default email application will open with the receipt details",
-    });
+  };
+
+  const handleEmail = () => {
+    setShowEmailDialog(true);
   };
 
   return (
@@ -308,9 +295,19 @@ export function SaleConfirmationModal({
               variant="outline"
               onClick={handleEmail}
               className="w-full"
+              disabled={isSendingEmail}
             >
-              <Mail className="h-4 w-4 mr-2" />
-              Email Receipt
+              {isSendingEmail ? (
+                <>
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail className="h-4 w-4 mr-2" />
+                  Email Receipt
+                </>
+              )}
             </Button>
           </div>
 
@@ -332,6 +329,15 @@ export function SaleConfirmationModal({
       saleId={sale.id}
       open={showDetailModal}
       onClose={() => setShowDetailModal(false)}
+    />
+
+    {/* Email Receipt Dialog */}
+    <EmailReceiptDialog
+      open={showEmailDialog}
+      onOpenChange={setShowEmailDialog}
+      onSubmit={sendReceiptEmail}
+      customerName={customerName}
+      defaultEmail={customerEmail || ''}
     />
     </>
   );

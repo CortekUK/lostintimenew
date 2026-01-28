@@ -6,11 +6,11 @@ import { useSettings } from '@/contexts/SettingsContext';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/layout/AppLayout';
 import { Helmet } from 'react-helmet';
-import { formatCurrency, formatDateTime } from '@/lib/utils';
-import { Printer, Mail, ArrowLeft } from 'lucide-react';
+import { formatCurrency, formatDateTime, formatPaymentMethod } from '@/lib/utils';
+import { Printer, Mail, ArrowLeft, Loader2 } from 'lucide-react';
 import { printHtml } from '@/utils/printUtils';
 import { buildReceiptHtml } from '@/utils/receiptHtmlBuilder';
-import { EmailService } from '@/components/integrations/EmailService';
+import { EmailReceiptDialog } from '@/components/pos/EmailReceiptDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { useTheme } from 'next-themes';
@@ -22,6 +22,8 @@ export default function ReceiptPreview() {
   const { settings, isLoading: settingsLoading } = useSettings();
   const { theme } = useTheme();
   const [isPrinting, setIsPrinting] = useState(false);
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
 
   // Fetch sale data with related information
   const { data, isLoading, error } = useQuery({
@@ -113,22 +115,65 @@ export default function ReceiptPreview() {
     }
   };
 
-  const handleEmail = () => {
+  const sendReceiptEmail = async (email: string, customMessage?: string) => {
     if (!data) return;
-    
-    EmailService.sendReceipt({
-      saleId: saleId || '',
-      customerName: data.sale.customer_name || data.sale.customer_email,
-      items: data.saleItems.map(item => ({
-        product: { name: item.products?.name || 'Unknown' },
-        quantity: item.quantity,
-        unit_price: item.unit_price
-      })),
-      total: data.sale.total,
-      soldAt: data.sale.sold_at,
-      paymentMethod: data.sale.payment,
-      notes: data.sale.notes
-    });
+
+    setIsSendingEmail(true);
+    try {
+      const { error } = await supabase.functions.invoke('send-receipt-email', {
+        body: {
+          recipientEmail: email,
+          recipientName: data.sale.customer_name,
+          saleId: data.sale.id,
+          saleDate: data.sale.sold_at,
+          items: data.saleItems.map(item => ({
+            name: item.products?.name || 'Unknown',
+            quantity: item.quantity,
+            unitPrice: item.unit_price,
+            discount: item.discount || 0
+          })),
+          partExchanges: data.partExchanges.map(px => ({
+            title: px.title,
+            allowance: px.allowance
+          })),
+          subtotal: data.sale.subtotal,
+          discountTotal: data.sale.discount_total,
+          taxTotal: data.sale.tax_total,
+          total: data.sale.total,
+          paymentMethod: formatPaymentMethod(data.sale.payment),
+          notes: data.sale.notes || undefined,
+          customMessage: customMessage || undefined
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Receipt sent!",
+        description: `Email sent successfully to ${email}`,
+      });
+
+      // Save email to customer if new
+      if (email !== data.sale.customer_email && data.sale.customer_id) {
+        await supabase
+          .from('customers')
+          .update({ email })
+          .eq('id', data.sale.customer_id);
+      }
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      toast({
+        title: "Failed to send email",
+        description: error.message || 'An error occurred',
+        variant: "destructive"
+      });
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
+  const handleEmail = () => {
+    setShowEmailDialog(true);
   };
 
   if (!saleId) {
@@ -175,11 +220,20 @@ export default function ReceiptPreview() {
             <Button
               variant="outline"
               onClick={handleEmail}
-              disabled={isLoading || !data}
+              disabled={isLoading || !data || isSendingEmail}
               className="gap-2"
             >
-              <Mail className="h-4 w-4" />
-              Email Receipt
+              {isSendingEmail ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                <>
+                  <Mail className="h-4 w-4" />
+                  Email Receipt
+                </>
+              )}
             </Button>
           </div>
         </div>
@@ -210,6 +264,15 @@ export default function ReceiptPreview() {
           </div>
         )}
       </div>
+
+      {/* Email Receipt Dialog */}
+      <EmailReceiptDialog
+        open={showEmailDialog}
+        onOpenChange={setShowEmailDialog}
+        onSubmit={sendReceiptEmail}
+        customerName={data?.sale.customer_name}
+        defaultEmail={data?.sale.customer_email || ''}
+      />
     </AppLayout>
   );
 }

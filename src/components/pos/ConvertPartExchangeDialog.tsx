@@ -97,7 +97,10 @@ export function ConvertPartExchangeDialog({ open, onOpenChange, partExchange }: 
       if (images.length > 0) {
         const { error: updateError } = await supabase
           .from('products')
-          .update({ image_url: images[0] })
+          .update({
+            image_url: images[0],
+            images: images
+          })
           .eq('id', product.id);
 
         if (updateError) throw updateError;

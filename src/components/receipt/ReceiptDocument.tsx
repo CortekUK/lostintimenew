@@ -1,11 +1,13 @@
+import { useState } from 'react';
 import { useTheme } from 'next-themes';
 import { formatCurrency, formatPaymentMethod } from '@/lib/utils';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 import { exportReceiptCSV } from '@/utils/receiptExport';
-import { EmailService } from '@/components/integrations/EmailService';
-import { Download } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { EmailReceiptDialog } from '@/components/pos/EmailReceiptDialog';
+import { Download, Loader2 } from 'lucide-react';
 import '@/styles/receipt.css';
 
 interface ReceiptProps {
@@ -23,8 +25,14 @@ export function ReceiptDocument({ data, settings }: ReceiptProps) {
   const { theme } = useTheme();
   const { toast } = useToast();
   const { userRole } = useAuth();
-  
+  const [showEmailDialog, setShowEmailDialog] = useState(false);
+  const [isSendingEmail, setIsSendingEmail] = useState(false);
+
   const { sale, saleItems, partExchanges, pxTotal, staff } = data;
+
+  // Get customer email if available
+  const customerEmail = sale.customer_email;
+  const customerName = sale.customer_name;
   
   // Get store and branding info from settings
   const store = settings?.store || {
@@ -47,20 +55,64 @@ export function ReceiptDocument({ data, settings }: ReceiptProps) {
     window.print();
   };
 
+  const sendReceiptEmail = async (email: string, customMessage?: string) => {
+    setIsSendingEmail(true);
+    try {
+      const { data: response, error } = await supabase.functions.invoke('send-receipt-email', {
+        body: {
+          recipientEmail: email,
+          recipientName: customerName,
+          saleId: sale.id,
+          saleDate: sale.sold_at,
+          items: saleItems.map(item => ({
+            name: item.products?.name || 'Unknown',
+            quantity: item.quantity,
+            unitPrice: item.unit_price,
+            discount: item.discount || 0
+          })),
+          partExchanges: partExchanges.map(px => ({
+            title: px.title,
+            allowance: px.allowance
+          })),
+          subtotal: sale.subtotal,
+          discountTotal: sale.discount_total,
+          taxTotal: sale.tax_total,
+          total: sale.total,
+          paymentMethod: formatPaymentMethod(sale.payment),
+          notes: sale.notes || undefined,
+          customMessage: customMessage || undefined
+        }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Receipt sent!",
+        description: `Email sent successfully to ${email}`,
+      });
+
+      // If this was a new email for a customer, save it
+      if (email !== customerEmail && sale.customer_id) {
+        await supabase
+          .from('customers')
+          .update({ email })
+          .eq('id', sale.customer_id);
+      }
+    } catch (error: any) {
+      console.error('Error sending email:', error);
+      toast({
+        title: "Failed to send email",
+        description: error.message || 'An error occurred',
+        variant: "destructive"
+      });
+    } finally {
+      setIsSendingEmail(false);
+    }
+  };
+
   const handleEmail = () => {
-    EmailService.sendReceipt({
-      saleId: sale.id.toString(),
-      customerName: sale.customer_name || sale.customer_email,
-      items: saleItems.map(item => ({
-        product: { name: item.products?.name || 'Unknown' },
-        quantity: item.quantity,
-        unit_price: item.unit_price
-      })),
-      total: sale.total,
-      soldAt: sale.sold_at,
-      paymentMethod: sale.payment,
-      notes: sale.notes
-    });
+    // Always show the dialog so user can add a message
+    setShowEmailDialog(true);
   };
 
   const formatDateTime = (dateString: string) => {
@@ -107,8 +159,6 @@ export function ReceiptDocument({ data, settings }: ReceiptProps) {
     <main className="receipt">
       <header className="rcpt-header">
         <img src={logo} alt={store.name} className="rcpt-logo" />
-        <h1 className="rcpt-title">{store.name}</h1>
-        {store.tagline && <div className="rcpt-tag">{store.tagline}</div>}
         <div className="rcpt-meta">
           {store.address} • {store.phone} • {store.email}
         </div>
@@ -224,8 +274,19 @@ export function ReceiptDocument({ data, settings }: ReceiptProps) {
         </button>
         {(userRole === 'owner' || userRole === 'staff') && (
           <>
-            <button className="btn-secondary" onClick={handleEmail}>
-              Email
+            <button
+              className="btn-secondary"
+              onClick={handleEmail}
+              disabled={isSendingEmail}
+            >
+              {isSendingEmail ? (
+                <>
+                  <Loader2 className="inline-block w-4 h-4 mr-1 animate-spin" />
+                  Sending...
+                </>
+              ) : (
+                'Email'
+              )}
             </button>
             <button className="btn-secondary" onClick={handleExportCSV}>
               <Download className="inline-block w-4 h-4 mr-1" />
@@ -237,6 +298,15 @@ export function ReceiptDocument({ data, settings }: ReceiptProps) {
           View Sale
         </a>
       </div>
+
+      {/* Email Receipt Dialog */}
+      <EmailReceiptDialog
+        open={showEmailDialog}
+        onOpenChange={setShowEmailDialog}
+        onSubmit={sendReceiptEmail}
+        customerName={customerName}
+        defaultEmail={customerEmail || ''}
+      />
     </main>
   );
 }
