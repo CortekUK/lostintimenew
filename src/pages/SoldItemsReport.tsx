@@ -173,9 +173,6 @@ export default function SoldItemsReport() {
     return soldItemsData.filter((item: any) => {
       if (!item || typeof item !== 'object') return false;
       
-      // Exclude trade-in products from sold items report
-      if (item?.products?.is_trade_in === true) return false;
-      
       const saleDate = new Date(item.sold_at);
       const isValidDate = !isNaN(saleDate.getTime());
       
