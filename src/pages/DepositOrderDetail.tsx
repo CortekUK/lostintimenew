@@ -38,12 +38,15 @@ import {
   CreditCard,
   Pencil,
   CalendarClock,
-  AlertCircle
+  AlertCircle,
+  AlertTriangle,
+  Settings
 } from 'lucide-react';
 import { 
   useDepositOrderDetails, 
   useCompleteDepositOrder, 
   useVoidDepositOrder,
+  useUpdateDepositOrderItemCost,
   DepositOrderStatus,
   isPickupApproaching,
   isPickupOverdue,
@@ -51,6 +54,7 @@ import {
 } from '@/hooks/useDepositOrders';
 import { RecordPaymentModal } from '@/components/deposits/RecordPaymentModal';
 import { EditDepositOrderModal } from '@/components/deposits/EditDepositOrderModal';
+import { SetCustomItemCostModal } from '@/components/deposits/SetCustomItemCostModal';
 import { format } from 'date-fns';
 import { usePermissions } from '@/hooks/usePermissions';
 
@@ -86,11 +90,14 @@ export default function DepositOrderDetail() {
   const [showEditModal, setShowEditModal] = useState(false);
   const [showVoidDialog, setShowVoidDialog] = useState(false);
   const [showCompleteDialog, setShowCompleteDialog] = useState(false);
+  const [showCostWarningDialog, setShowCostWarningDialog] = useState(false);
   const [voidReason, setVoidReason] = useState('');
+  const [editingCostItem, setEditingCostItem] = useState<any>(null);
   
   const { data: order, isLoading, error } = useDepositOrderDetails(orderId);
   const completeOrder = useCompleteDepositOrder();
   const voidOrder = useVoidDepositOrder();
+  const updateItemCost = useUpdateDepositOrderItemCost();
 
   if (isLoading) {
     return (
@@ -141,15 +148,43 @@ export default function DepositOrderDetail() {
   const isActive = order.status === 'active';
   const isFullyPaid = order.balance_due <= 0;
 
+  // Check for custom items without costs set
+  const customItemsWithoutCost = order?.deposit_order_items?.filter(
+    item => item.is_custom_order && (!item.unit_cost || item.unit_cost === 0)
+  ) || [];
+  const hasUnsetCosts = customItemsWithoutCost.length > 0;
+
+  const handleCompleteClick = () => {
+    if (hasUnsetCosts) {
+      setShowCostWarningDialog(true);
+    } else {
+      setShowCompleteDialog(true);
+    }
+  };
+
   const handleComplete = () => {
     if (orderId) {
       completeOrder.mutate(orderId, {
-        onSuccess: () => {
+        onSuccess: (result) => {
           setShowCompleteDialog(false);
-          navigate('/deposits');
+          setShowCostWarningDialog(false);
+          // Navigate to the created sale
+          if (result?.sale?.id) {
+            navigate(`/sales/${result.sale.id}`);
+          } else {
+            navigate('/deposits');
+          }
         },
       });
     }
+  };
+
+  const handleSaveItemCost = (data: { itemId: number; unit_cost: number; category?: string; description?: string }) => {
+    updateItemCost.mutate(data, {
+      onSuccess: () => {
+        setEditingCostItem(null);
+      },
+    });
   };
 
   const handleVoid = () => {
@@ -211,7 +246,7 @@ export default function DepositOrderDetail() {
                   <span className="sm:hidden">Payment</span>
                 </Button>
                 {isFullyPaid && (
-                  <Button size="sm" onClick={() => setShowCompleteDialog(true)}>
+                  <Button size="sm" onClick={handleCompleteClick}>
                     <CheckCircle2 className="h-4 w-4 sm:mr-2" />
                     <span className="hidden sm:inline">Complete</span>
                   </Button>
@@ -300,36 +335,60 @@ export default function DepositOrderDetail() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-3">
-                  {order.deposit_order_items?.map((item) => (
-                    <div key={item.id} className="flex items-center justify-between py-3 border-b last:border-0">
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <p className="font-medium">
-                            {item.product?.name || item.product_name}
-                          </p>
-                          {item.is_custom_order && (
-                            <Badge className="bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 text-xs">
-                              Custom
-                            </Badge>
-                          )}
+                  {order.deposit_order_items?.map((item) => {
+                    const hasCostWarning = item.is_custom_order && (!item.unit_cost || item.unit_cost === 0);
+                    
+                    return (
+                      <div key={item.id} className="flex items-center justify-between py-3 border-b last:border-0">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            {hasCostWarning && (
+                              <AlertTriangle className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                            )}
+                            <p className="font-medium">
+                              {item.product?.name || item.product_name}
+                            </p>
+                            {item.is_custom_order && (
+                              <Badge className="bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-950 dark:text-purple-300 dark:border-purple-800 text-xs">
+                                Custom
+                              </Badge>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                            {item.product?.internal_sku && (
+                              <span>Item #{item.product.internal_sku}</span>
+                            )}
+                            {item.product?.sku && (
+                              <span>SKU: {item.product.sku}</span>
+                            )}
+                            {item.is_custom_order && (
+                              <span className={hasCostWarning ? 'text-amber-600 dark:text-amber-400' : ''}>
+                                Cost: {item.unit_cost > 0 ? formatCurrency(item.unit_cost) : 'Not set'}
+                              </span>
+                            )}
+                          </div>
                         </div>
-                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                          {item.product?.internal_sku && (
-                            <span>Item #{item.product.internal_sku}</span>
+                        <div className="flex items-center gap-3">
+                          {item.is_custom_order && isActive && (
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => setEditingCostItem(item)}
+                            >
+                              <Settings className="h-3 w-3 mr-1" />
+                              {item.unit_cost > 0 ? 'Edit' : 'Set Cost'}
+                            </Button>
                           )}
-                          {item.product?.sku && (
-                            <span>SKU: {item.product.sku}</span>
-                          )}
+                          <div className="text-right">
+                            <p className="font-medium">{formatCurrency(item.unit_price * item.quantity)}</p>
+                            <p className="text-sm text-muted-foreground">
+                              {item.quantity} × {formatCurrency(item.unit_price)}
+                            </p>
+                          </div>
                         </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">{formatCurrency(item.unit_price * item.quantity)}</p>
-                        <p className="text-sm text-muted-foreground">
-                          {item.quantity} × {formatCurrency(item.unit_price)}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
 
                 {/* Trade-In Items */}
@@ -629,6 +688,53 @@ export default function DepositOrderDetail() {
         onOpenChange={setShowEditModal}
         order={order}
       />
+
+      {/* Set Custom Item Cost Modal */}
+      <SetCustomItemCostModal
+        open={!!editingCostItem}
+        onOpenChange={(open) => !open && setEditingCostItem(null)}
+        item={editingCostItem}
+        onSave={handleSaveItemCost}
+        isPending={updateItemCost.isPending}
+      />
+
+      {/* Cost Warning Dialog */}
+      <AlertDialog open={showCostWarningDialog} onOpenChange={setShowCostWarningDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-amber-500" />
+              Custom Items Missing Costs
+            </AlertDialogTitle>
+            <AlertDialogDescription>
+              {customItemsWithoutCost.length} custom item{customItemsWithoutCost.length !== 1 ? 's have' : ' has'} no cost set. 
+              Completing without setting costs will result in inaccurate profit and commission tracking.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          
+          <div className="space-y-2 py-2">
+            {customItemsWithoutCost.map((item) => (
+              <div key={item.id} className="flex items-center justify-between py-2 px-3 bg-amber-50 dark:bg-amber-950/30 rounded-lg border border-amber-200 dark:border-amber-800">
+                <span className="font-medium text-amber-900 dark:text-amber-200">{item.product_name}</span>
+                <span className="text-sm text-muted-foreground">Cost: Not set</span>
+              </div>
+            ))}
+          </div>
+          
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+            <AlertDialogCancel onClick={() => setShowCostWarningDialog(false)}>
+              Set Costs First
+            </AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleComplete}
+              disabled={completeOrder.isPending}
+              className="bg-amber-600 text-white hover:bg-amber-700"
+            >
+              {completeOrder.isPending ? 'Completing...' : 'Complete Anyway'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </AppLayout>
   );
 }
