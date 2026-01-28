@@ -1,95 +1,67 @@
 
-# Fix: Display Reservation Counts in POS and Product Inventory
+# Add Line-Item Price Editing at Checkout
 
-## Problem Summary
-When an item is reserved via a deposit order, the stock display should show "5 available, 1 reserved" instead of "6 available". Currently:
-- **Product Inventory page** - Uses `useEnhancedProducts` which fetches reservation data correctly but shows "In Stock" instead of the breakdown
-- **POS Product Search** - Uses `useProductSearch` which doesn't fetch reservation data at all
+## Current Behavior
+- Products are added to the cart at their catalog `unit_price`
+- Users can only apply global discounts (percentage or fixed) to reduce prices
+- No way to increase prices or adjust individual line items
 
-## Root Cause
-The `useProductSearch` hook in `src/hooks/useDatabase.ts` only queries `v_stock_on_hand` for stock counts but doesn't query `deposit_order_items` to calculate reserved quantities.
+## Proposed Solution
+Add a click-to-edit price feature for each item in the shopping cart, allowing staff to:
+- Increase prices (for premium service, negotiation, etc.)
+- Decrease prices per item (as an alternative to global discount)
+- See original price alongside adjusted price for transparency
 
-## Solution
+## User Experience
+- Each cart item will show the current price with a small edit (pencil) icon
+- Clicking the price or icon opens an inline input to edit
+- If price differs from catalog price, show the original price crossed out
+- Visual indicators: price increases in blue, decreases in green
 
-### 1. Update `useProductSearch` hook (`src/hooks/useDatabase.ts`)
+## Technical Implementation
 
-Add reservation data fetching to match how `useEnhancedProducts` does it:
-
+### 1. Update ShoppingCart Component Props
+Add a new callback for price updates:
 ```typescript
-// After fetching stock data, also fetch reservations
-const { data: reservedData } = await supabase
-  .from('deposit_order_items')
-  .select(`
-    product_id,
-    quantity,
-    deposit_order:deposit_orders!inner(id, status, customer_name)
-  `)
-  .not('deposit_order.status', 'in', '(completed,cancelled)')
-  .in('product_id', productIds);
-
-// Build reservation map
-const reservedMap = new Map();
-reservedData?.forEach(item => {
-  if (item.product_id && item.deposit_order) {
-    const existing = reservedMap.get(item.product_id);
-    if (existing) {
-      existing.reserved_count += (item.quantity || 1);
-    } else {
-      reservedMap.set(item.product_id, { reserved_count: item.quantity || 1 });
-    }
-  }
-});
-
-// Include in returned product data
-return data.map(product => {
-  const stockOnHand = stockMap.get(product.id)?.qty_on_hand || 0;
-  const reservationInfo = reservedMap.get(product.id);
-  const qtyReserved = reservationInfo?.reserved_count || 0;
-  const qtyAvailable = Math.max(0, stockOnHand - qtyReserved);
-  
-  return {
-    ...product,
-    stock_on_hand: stockOnHand,
-    qty_available: qtyAvailable,
-    qty_reserved: qtyReserved
-  };
-});
+interface ShoppingCartProps {
+  // ... existing props
+  onUpdateItemPrice?: (productId: number, newPrice: number) => void;
+}
 ```
 
-### 2. Update Product Inventory Display
+### 2. Add Inline Price Editor UI
+For each cart item in `ShoppingCartComponent`:
+- Replace static price display with an editable component
+- Show original price (struck through) when price has been modified
+- Use `CurrencyInput` component for consistent formatting
 
-The `useEnhancedProducts` hook already returns the correct reservation data, but I need to verify the display in ProductTable is working. From my analysis, it appears the logic is correct but may not be triggering because `is_partially_reserved` might not be set on the product objects when they reach the ProductTable.
+### 3. Update EnhancedSales Page
+Add handler function to update cart item prices:
+```typescript
+const updateItemPrice = (productId: number, newPrice: number) => {
+  setCart(cart.map(item =>
+    item.product.id === productId
+      ? { ...item, unit_price: newPrice }
+      : item
+  ));
+};
+```
 
-Double-check that products from `useEnhancedProducts` include:
-- `qty_available`
-- `qty_reserved`
-- `is_fully_reserved`
-- `is_partially_reserved`
-- `reserved_orders`
-
-These are all calculated in lines 190-211 of `useEnhancedProducts.ts`, so this should already work. Let me verify the Products page is passing the correct data to ProductTable.
-
-### 3. Update `useProducts` hook (optional enhancement)
-
-The basic `useProducts` hook (used by ProductSearch when no query is entered) also doesn't include reservation data. This should be updated for consistency.
+### 4. Visual Design
+- Original price: Small, struck-through, muted color
+- Adjusted price: Primary color, editable
+- Price increase indicator: Blue text or badge
+- Price decrease indicator: Green text (like discount)
 
 ## Files to Modify
 
 | File | Change |
 |------|--------|
-| `src/hooks/useDatabase.ts` | Update `useProductSearch` to fetch and calculate reservation quantities |
-| `src/hooks/useDatabase.ts` | Update `useProducts` to include reservation data for the initial product list |
+| `src/components/pos/ShoppingCart.tsx` | Add `onUpdateItemPrice` prop, inline price editing UI, original vs adjusted price display |
+| `src/pages/EnhancedSales.tsx` | Add `updateItemPrice` handler, pass to ShoppingCart |
 
-## Expected Result After Fix
-
-**POS Product Search:**
-- Shows "5 available" badge (primary, gold)
-- Shows "1 reserved" badge (secondary, amber)
-
-**Product Inventory:**
-- Shows "5 available" badge (primary)
-- Shows "1 reserved" badge (secondary, amber)
-- Tooltip shows which customer/order has the reservation
-
-## Technical Note
-The UI components (`ProductSearch.tsx` lines 87-123 and `ProductTable.tsx` lines 130-164) already have the logic to display reservation info - they just need the data (`qty_available`, `qty_reserved`) to be populated by the hooks.
+## Edge Cases Handled
+- Prevent negative prices (minimum £0)
+- No maximum limit (allows premium pricing)
+- Price changes properly flow to checkout totals
+- Original catalog price preserved for reference
