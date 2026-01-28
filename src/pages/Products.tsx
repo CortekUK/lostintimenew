@@ -92,8 +92,8 @@ const ProductCard = ({
     // Partially reserved - some stock available, some reserved
     if (product.is_partially_reserved) {
       return {
-        primary: { variant: 'outline' as const, text: `${qtyAvailable} available`, className: 'bg-primary/10 border-primary text-primary' },
-        secondary: { variant: 'outline' as const, text: `${qtyReserved} reserved`, className: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700' }
+        primary: { variant: 'outline' as const, text: `${qtyAvailable} Available`, className: 'bg-primary/10 border-primary text-primary' },
+        secondary: { variant: 'outline' as const, text: `${qtyReserved} Reserved`, className: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700' }
       };
     }
     
