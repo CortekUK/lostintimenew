@@ -36,10 +36,15 @@ export function getDaysUntilPickup(expectedDate: string | null): number | null {
 type DepositOrder = Database['public']['Tables']['deposit_orders']['Row'];
 type DepositOrderUpdate = Database['public']['Tables']['deposit_orders']['Update'];
 type DepositOrderItem = Database['public']['Tables']['deposit_order_items']['Row'];
-type DepositPayment = Database['public']['Tables']['deposit_payments']['Row'];
+type DepositPaymentRow = Database['public']['Tables']['deposit_payments']['Row'];
 type DepositOrderSummary = Database['public']['Views']['v_deposit_order_summary']['Row'];
 
 export type DepositOrderStatus = 'active' | 'completed' | 'cancelled' | 'voided' | 'expired';
+
+// Extended payment type with staff name
+export interface DepositPayment extends DepositPaymentRow {
+  received_by_name?: string | null;
+}
 export type PaymentMethod = Database['public']['Enums']['payment_method'];
 
 // Extended types with relations
@@ -151,8 +156,38 @@ export function useDepositOrderDetails(orderId: number | null) {
         staffName = staffProfile?.full_name || null;
       }
 
+      // Fetch staff names for all payments
+      let paymentsWithNames: DepositPayment[] = order.deposit_payments || [];
+      if (paymentsWithNames.length > 0) {
+        // Get unique received_by IDs
+        const receivedByIds = [...new Set(
+          paymentsWithNames
+            .map(p => p.received_by)
+            .filter((id): id is string => id !== null)
+        )];
+
+        if (receivedByIds.length > 0) {
+          const { data: profiles } = await supabase
+            .from('profiles')
+            .select('user_id, full_name')
+            .in('user_id', receivedByIds);
+
+          const profileMap = new Map(
+            profiles?.map(p => [p.user_id, p.full_name]) || []
+          );
+
+          paymentsWithNames = paymentsWithNames.map(payment => ({
+            ...payment,
+            received_by_name: payment.received_by 
+              ? profileMap.get(payment.received_by) || null 
+              : null,
+          }));
+        }
+      }
+
       return {
         ...order,
+        deposit_payments: paymentsWithNames,
         staff: staffName ? { full_name: staffName } : null,
       } as DepositOrderWithDetails;
     },
