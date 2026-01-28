@@ -144,8 +144,8 @@ export function ProductTable({
     // Partially reserved - some stock available, some reserved
     if (product.is_partially_reserved) {
       return {
-        primary: { text: `${qtyAvailable} available`, className: 'bg-primary/10 border-primary text-primary' },
-        secondary: { text: `${qtyReserved} reserved`, className: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700' }
+        primary: { text: `${qtyAvailable} Available`, className: 'bg-primary/10 border-primary text-primary' },
+        secondary: { text: `${qtyReserved} Reserved`, className: 'bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-700' }
       };
     }
 
