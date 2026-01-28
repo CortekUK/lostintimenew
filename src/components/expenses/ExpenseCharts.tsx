@@ -33,6 +33,7 @@ const CATEGORY_LABELS: Record<string, string> = {
   fees: 'Fees',
   wages: 'Wages & Salaries',
   repairs: 'Repairs & Maintenance',
+  commission: 'Commission',
   other: 'Other',
 };
 
