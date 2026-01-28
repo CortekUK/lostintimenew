@@ -740,7 +740,6 @@ export default function EnhancedSales() {
                 onCreateDepositOrder={handleCreateDepositOrder}
                 isProcessing={createDepositOrder.isPending}
                 disabled={!canCreateSales}
-                onSwitchToSale={() => setDepositMode(false)}
               />
             ) : (
             <CheckoutForm
@@ -778,10 +777,6 @@ export default function EnhancedSales() {
                 onLocationChange={setLocationId}
                 locationLocked={cart.length > 0}
                 disabled={!canCreateSales}
-                onSwitchToDeposit={() => {
-                  setDepositMode(true);
-                  setDiscount(0);
-                }}
               />
             )}
           </div>
