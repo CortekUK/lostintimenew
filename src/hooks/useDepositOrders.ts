@@ -496,23 +496,14 @@ export function useCompleteDepositOrder() {
           if (productError) throw productError;
           productId = newProduct.id;
 
-          // Create stock movement for receiving the custom item (purchase)
+          // Create stock movement for receiving the custom item (purchase only)
+          // Note: Sale stock movement is handled automatically by on_sale_item_insert trigger
           await supabase.from('stock_movements').insert({
             product_id: newProduct.id,
             quantity: item.quantity,
             movement_type: 'purchase',
             unit_cost: item.unit_cost,
             note: `Custom order from Deposit #${order.id}`,
-            created_by: user.id,
-          });
-
-          // Create sale movement for selling the custom item
-          await supabase.from('stock_movements').insert({
-            product_id: newProduct.id,
-            quantity: item.quantity,
-            movement_type: 'sale',
-            related_sale_id: sale.id,
-            note: `Sale #${sale.id}`,
             created_by: user.id,
           });
         }
