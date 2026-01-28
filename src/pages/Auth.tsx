@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Mail, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
-import { Logo } from '@/components/ui/logo';
+
 import { ThemeToggle } from '@/components/ui/theme-toggle';
 import { DynamicBorderCard } from '@/components/ui/dynamic-border-card';
 import { toast } from '@/hooks/use-toast';
@@ -151,10 +151,7 @@ export default function Auth() {
       </div>
       <DynamicBorderCard className="w-full max-w-[440px]">
         <CardHeader className="text-center pt-10 pb-4 px-6">
-          <div className="flex justify-center">
-            <Logo variant="login" size="sm" />
-          </div>
-          <div className="pt-10">
+          <div className="pt-4">
             <CardTitle className="text-2xl font-luxury" style={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 600, fontStyle: 'normal' }}>
               Welcome Back
             </CardTitle>
