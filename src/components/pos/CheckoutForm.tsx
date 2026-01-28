@@ -9,7 +9,7 @@ import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { formatCurrency, calculateCartTotals } from '@/lib/utils';
 import type { CartItem, PaymentMethod, PartExchangeItem } from '@/types';
-import { CreditCard, Banknote, Smartphone, Building, Loader2, PenTool, ChevronDown, MapPin, ShoppingBag, Wallet } from 'lucide-react';
+import { CreditCard, Banknote, Smartphone, Building, Loader2, PenTool, ChevronDown, MapPin } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { SignaturePad, SignaturePadRef } from './SignaturePad';
 import { CustomerSearchInput } from './CustomerSearchInput';
@@ -50,7 +50,6 @@ interface CheckoutFormProps {
   onLocationChange: (locationId: number | null) => void;
   locationLocked?: boolean;
   disabled?: boolean;
-  onSwitchToDeposit?: () => void;
 }
 
 const paymentMethods = [{
@@ -100,7 +99,6 @@ export function CheckoutForm({
   onLocationChange,
   locationLocked,
   disabled,
-  onSwitchToDeposit,
 }: CheckoutFormProps) {
   const [discountInput, setDiscountInput] = useState(discount.toString());
   const signaturePadRef = useRef<SignaturePadRef>(null);
@@ -137,36 +135,7 @@ export function CheckoutForm({
   const canCompleteSale = (items.length > 0 || partExchanges.length > 0) && paymentMethod && staffMember && locationId && customerName.trim() && !isProcessing && (!requiresOwnerApproval || netTotal >= 0) && !disabled;
   return <Card className="shadow-card">
       <CardHeader className="pb-3">
-        <div className="flex items-center justify-between gap-4">
-          <CardTitle className="font-luxury">Checkout</CardTitle>
-          {onSwitchToDeposit && (
-            <ToggleGroup
-              type="single"
-              value="sale"
-              onValueChange={(value) => {
-                if (value === 'deposit') onSwitchToDeposit();
-              }}
-              className="bg-muted/50 p-1 rounded-lg"
-            >
-              <ToggleGroupItem 
-                value="sale" 
-                aria-label="Complete sale now"
-                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
-              >
-                <ShoppingBag className="h-4 w-4" />
-                <span className="text-sm">Complete Sale</span>
-              </ToggleGroupItem>
-              <ToggleGroupItem 
-                value="deposit" 
-                aria-label="Create deposit order"
-                className="gap-1.5 data-[state=on]:bg-background data-[state=on]:shadow-sm px-3"
-              >
-                <Wallet className="h-4 w-4" />
-                <span className="text-sm">Deposit Order</span>
-              </ToggleGroupItem>
-            </ToggleGroup>
-          )}
-        </div>
+        <CardTitle className="font-luxury">Checkout</CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Staff Member Display - Auto-filled from logged-in user */}
