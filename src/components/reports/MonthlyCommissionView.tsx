@@ -162,13 +162,13 @@ export function MonthlyCommissionView() {
       return (
         <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
           <AlertCircle className="h-3 w-3 mr-1" />
-          £{outstanding.toFixed(0)} outstanding
+          £{outstanding.toFixed(0)} Outstanding
         </Badge>
       );
     }
     return (
       <Badge variant="outline" className="text-muted-foreground">
-        £{owed.toFixed(0)} owed
+        £{owed.toFixed(0)} Owed
       </Badge>
     );
   };
@@ -185,7 +185,7 @@ export function MonthlyCommissionView() {
       return (
         <Badge variant="secondary" className="bg-warning/10 text-warning border-warning/20">
           <AlertCircle className="h-3 w-3 mr-1" />
-          £{staff.outstanding.toFixed(2)} due
+          £{staff.outstanding.toFixed(2)} Due
         </Badge>
       );
     }
@@ -215,7 +215,7 @@ export function MonthlyCommissionView() {
           
           {grandTotals.outstanding > 0 && (
             <Badge variant="destructive" className="ml-2">
-              £{grandTotals.outstanding.toFixed(0)} total outstanding
+              £{grandTotals.outstanding.toFixed(0)} Total Outstanding
             </Badge>
           )}
         </div>
@@ -370,10 +370,10 @@ export function MonthlyCommissionView() {
                           {month.staffData.length} staff • {month.totals.salesCount} sales
                         </span>
                         <span className="font-mono font-medium text-xs sm:text-sm">
-                          £{month.totals.owed.toFixed(2)} <span className="text-muted-foreground">owed</span>
+                          £{month.totals.owed.toFixed(2)} <span className="text-muted-foreground">Owed</span>
                         </span>
                         <span className="font-mono text-success text-xs sm:text-sm">
-                          £{month.totals.paid.toFixed(2)} <span className="text-muted-foreground">paid</span>
+                          £{month.totals.paid.toFixed(2)} <span className="text-muted-foreground">Paid</span>
                         </span>
                         {month.totals.outstanding > 0 && (
                           <Button
