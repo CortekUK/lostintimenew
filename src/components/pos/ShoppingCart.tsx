@@ -198,7 +198,7 @@ export function ShoppingCartComponent({
                               {formatCurrency(item.unit_price)}
                               <Pencil className="h-3 w-3 opacity-60" />
                             </button>
-                            <span>each</span>
+                            <span>Each</span>
                           </>
                         )}
                         {item.tax_rate > 0 && !isEditing && (
