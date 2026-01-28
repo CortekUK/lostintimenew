@@ -1,67 +1,30 @@
 
-# Add Line-Item Price Editing at Checkout
+# Fix Title Casing on Commission Report Page
 
-## Current Behavior
-- Products are added to the cart at their catalog `unit_price`
-- Users can only apply global discounts (percentage or fixed) to reduce prices
-- No way to increase prices or adjust individual line items
+## Summary
+Update all lowercase status labels in the Commission tab to use consistent Title Case formatting, matching the established UI pattern throughout the application.
 
-## Proposed Solution
-Add a click-to-edit price feature for each item in the shopping cart, allowing staff to:
-- Increase prices (for premium service, negotiation, etc.)
-- Decrease prices per item (as an alternative to global discount)
-- See original price alongside adjusted price for transparency
+## Changes Required
 
-## User Experience
-- Each cart item will show the current price with a small edit (pencil) icon
-- Clicking the price or icon opens an inline input to edit
-- If price differs from catalog price, show the original price crossed out
-- Visual indicators: price increases in blue, decreases in green
+### File: `src/components/reports/MonthlyCommissionView.tsx`
 
-## Technical Implementation
+| Location | Current Text | Updated Text |
+|----------|--------------|--------------|
+| Line 165 (month badge) | `£{outstanding.toFixed(0)} outstanding` | `£{outstanding.toFixed(0)} Outstanding` |
+| Line 171 (month badge) | `£{owed.toFixed(0)} owed` | `£{owed.toFixed(0)} Owed` |
+| Line 188 (staff badge) | `£{staff.outstanding.toFixed(2)} due` | `£{staff.outstanding.toFixed(2)} Due` |
+| Line 218 (header badge) | `£{grandTotals.outstanding.toFixed(0)} total outstanding` | `£{grandTotals.outstanding.toFixed(0)} Total Outstanding` |
+| Line 373 (month summary) | `<span className="text-muted-foreground">owed</span>` | `<span className="text-muted-foreground">Owed</span>` |
+| Line 376 (month summary) | `<span className="text-muted-foreground">paid</span>` | `<span className="text-muted-foreground">Paid</span>` |
 
-### 1. Update ShoppingCart Component Props
-Add a new callback for price updates:
-```typescript
-interface ShoppingCartProps {
-  // ... existing props
-  onUpdateItemPrice?: (productId: number, newPrice: number) => void;
-}
-```
+## Visual Impact
+- Badge labels will display as "£350 Total Outstanding" instead of "£350 total outstanding"
+- Month summaries will show "£2610.00 Owed" and "£6670.00 Paid" with capital letters
+- Staff status badges will show "£100.00 Due" instead of "£100.00 due"
 
-### 2. Add Inline Price Editor UI
-For each cart item in `ShoppingCartComponent`:
-- Replace static price display with an editable component
-- Show original price (struck through) when price has been modified
-- Use `CurrencyInput` component for consistent formatting
-
-### 3. Update EnhancedSales Page
-Add handler function to update cart item prices:
-```typescript
-const updateItemPrice = (productId: number, newPrice: number) => {
-  setCart(cart.map(item =>
-    item.product.id === productId
-      ? { ...item, unit_price: newPrice }
-      : item
-  ));
-};
-```
-
-### 4. Visual Design
-- Original price: Small, struck-through, muted color
-- Adjusted price: Primary color, editable
-- Price increase indicator: Blue text or badge
-- Price decrease indicator: Green text (like discount)
-
-## Files to Modify
-
-| File | Change |
-|------|--------|
-| `src/components/pos/ShoppingCart.tsx` | Add `onUpdateItemPrice` prop, inline price editing UI, original vs adjusted price display |
-| `src/pages/EnhancedSales.tsx` | Add `updateItemPrice` handler, pass to ShoppingCart |
-
-## Edge Cases Handled
-- Prevent negative prices (minimum £0)
-- No maximum limit (allows premium pricing)
-- Price changes properly flow to checkout totals
-- Original catalog price preserved for reference
+## Consistency Check
+These changes align with:
+- The "Paid" badge already using Title Case
+- "Unpaid" badge already using Title Case
+- "All Paid" badge already using Title Case
+- Memory guidance on UK English and label formatting standards
