@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git remote:*)",
+      "Bash(supabase:*)",
+      "Bash(npm install:*)",
+      "Bash(pg_dump:*)",
+      "Bash(where:*)",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/pg_dump\" --version)",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/psql\" \"postgresql://postgres.ksznbakyzfyatslnqxfx:Lahore%40%400307@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres\" -c \"SELECT table_name FROM information_schema.tables WHERE table_schema = ''public'' ORDER BY table_name;\")",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/psql\" \"postgresql://postgres.ksznbakyzfyatslnqxfx:Lahore%40%400307@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres\" -c \"SELECT ''products'' as tbl, count\\(*\\) FROM products UNION ALL SELECT ''customers'', count\\(*\\) FROM customers UNION ALL SELECT ''sales'', count\\(*\\) FROM sales UNION ALL SELECT ''suppliers'', count\\(*\\) FROM suppliers;\")",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/psql\" \"postgresql://postgres.qthosixbvinxmmjdfuii:Lahore%40%400307@aws-1-eu-west-2.pooler.supabase.com:5432/postgres\" -c \"SELECT ''products'' as tbl, count\\(*\\) FROM products UNION ALL SELECT ''customers'', count\\(*\\) FROM customers UNION ALL SELECT ''sales'', count\\(*\\) FROM sales UNION ALL SELECT ''suppliers'', count\\(*\\) FROM suppliers;\")",
+      "Bash(scoop:*)",
+      "Bash(curl:*)",
+      "Bash(\"C:/Users/Lenovo T470s/Desktop/supabase.exe\":*)",
+      "Bash(\"C:/Users/Lenovo T470s/Desktop/supabase.exe\" login --help)",
+      "Bash(\"C:/Users/Lenovo T470s/Desktop/supabase.exe\" login --token sbp_60050b657fc9efc56db4dd3c80762193c048b58e)",
+      "Bash(\"C:/Users/Lenovo T470s/Desktop/supabase.exe\" link --project-ref ksznbakyzfyatslnqxfx)",
+      "Bash(\"C:/Users/Lenovo T470s/Desktop/supabase.exe\" functions deploy:*)",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/psql\" \"postgresql://postgres.ksznbakyzfyatslnqxfx:Lahore%40%400307@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres\" -c \"SELECT id, email, email_confirmed_at FROM auth.users;\")",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/psql\" \"postgresql://postgres.ksznbakyzfyatslnqxfx:Lahore%40%400307@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres\" -c \"SELECT * FROM profiles;\")",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/psql\" \"postgresql://postgres.ksznbakyzfyatslnqxfx:Lahore%40%400307@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres\" -c \"UPDATE profiles SET role = ''owner'' WHERE email = ''admin@demo.com'';\")",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/psql\" \"postgresql://postgres.ksznbakyzfyatslnqxfx:Lahore%40%400307@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres\" -c \"SELECT id, email FROM auth.users;\")",
+      "Bash(\"C:/Program Files/PostgreSQL/18/bin/psql\" \"postgresql://postgres.ksznbakyzfyatslnqxfx:Lahore%40%400307@aws-1-ap-northeast-1.pooler.supabase.com:5432/postgres\" -c \"UPDATE profiles SET user_id = ''48fe7604-b603-451c-8dbd-9e8b2ebce545'' WHERE email = ''admin@demo.com''; SELECT id, user_id, email, role FROM profiles WHERE email = ''admin@demo.com'';\")"
+    ]
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "supabase"
+  ]
+}
