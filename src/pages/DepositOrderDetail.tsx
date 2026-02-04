@@ -140,8 +140,9 @@ export default function DepositOrderDetail() {
 
   const config = STATUS_CONFIG[order.status as DepositOrderStatus];
   const StatusIcon = config.icon;
-  const partExchangeTotal = order.part_exchange_total || 0;
-  const netOrderTotal = order.total_amount - partExchangeTotal;
+  // Part exchanges are not used in clothing CRM - keep for backward compatibility
+  const partExchangeTotal = 0;
+  const netOrderTotal = order.total_amount;
   const progressPercent = netOrderTotal > 0 
     ? Math.round((order.amount_paid / netOrderTotal) * 100) 
     : 0;

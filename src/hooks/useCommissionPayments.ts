@@ -35,9 +35,7 @@ export function useCommissionPayments(params: UseCommissionPaymentsParams = {}) 
 
   return useQuery({
     queryKey: ['commission-payments', params, user?.id, isOwner, isManager],
-    staleTime: 0,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
+    staleTime: 1000 * 60 * 2, // 2 minutes cache
     queryFn: async () => {
       let query = supabase
         .from('commission_payments')
@@ -163,10 +161,12 @@ export function useRecordCommissionPayment() {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['commission-payments'] });
-      queryClient.invalidateQueries({ queryKey: ['commission-payment-total'] });
-      queryClient.invalidateQueries({ queryKey: ['consolidated-pnl'] });
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['commission-payments'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['commission-payment-total'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['sold-items-report'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['staff-commission-overrides'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['consolidated-pnl'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['expenses'], refetchType: 'all' });
     }
   });
 }
@@ -202,10 +202,12 @@ export function useDeleteCommissionPayment() {
       }
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['commission-payments'] });
-      queryClient.invalidateQueries({ queryKey: ['commission-payment-total'] });
-      queryClient.invalidateQueries({ queryKey: ['consolidated-pnl'] });
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
+      queryClient.invalidateQueries({ queryKey: ['commission-payments'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['commission-payment-total'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['sold-items-report'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['staff-commission-overrides'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['consolidated-pnl'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['expenses'], refetchType: 'all' });
     }
   });
 }

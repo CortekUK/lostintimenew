@@ -30,6 +30,8 @@ import {
   Crown,
   Diamond,
   Zap,
+  Footprints,
+  Shirt,
 } from 'lucide-react';
 
 interface CustomFilterDialogProps {
@@ -42,8 +44,9 @@ interface CustomFilterDialogProps {
 const iconOptions = [
   { id: 'filter', label: 'Filter', icon: Filter },
   { id: 'tag', label: 'Tag', icon: Tag },
-  { id: 'watch', label: 'Watch', icon: Watch },
-  { id: 'ring', label: 'Ring', icon: CircleDot },
+  { id: 'footprints', label: 'Shoes', icon: Footprints },
+  { id: 'shirt', label: 'Clothing', icon: Shirt },
+  { id: 'bag', label: 'Bag', icon: CircleDot },
   { id: 'gem', label: 'Gem', icon: Gem },
   { id: 'star', label: 'Star', icon: Star },
   { id: 'sparkles', label: 'Sparkles', icon: Sparkles },
@@ -64,13 +67,12 @@ export function CustomFilterDialog({
   const [name, setName] = useState('');
   const [icon, setIcon] = useState('filter');
   const [categories, setCategories] = useState<string[]>([]);
-  const [metals, setMetals] = useState<string[]>([]);
-  const [karats, setKarats] = useState<string[]>([]);
-  const [gemstones, setGemstones] = useState<string[]>([]);
+  const [materials, setMaterials] = useState<string[]>([]);
+  const [sizes, setSizes] = useState<string[]>([]);
+  const [colors, setColors] = useState<string[]>([]);
   const [stockLevel, setStockLevel] = useState<'all' | 'in' | 'risk' | 'out'>('all');
   const [priceMin, setPriceMin] = useState('');
   const [priceMax, setPriceMax] = useState('');
-  const [isTradeInOnly, setIsTradeInOnly] = useState(false);
 
   // Reset form when dialog opens/closes or filter changes
   useEffect(() => {
@@ -78,38 +80,35 @@ export function CustomFilterDialog({
       setName(filter.name);
       setIcon(filter.icon || 'filter');
       setCategories(filter.filters.categories || []);
-      setMetals(filter.filters.metals || []);
-      setKarats(filter.filters.karats || []);
-      setGemstones(filter.filters.gemstones || []);
+      setMaterials(filter.filters.materials || []);
+      setSizes(filter.filters.sizes || []);
+      setColors(filter.filters.colors || []);
       setStockLevel(filter.filters.stockLevel || 'all');
       setPriceMin(filter.filters.priceRange?.min?.toString() || '');
       setPriceMax(filter.filters.priceRange?.max?.toString() || '');
-      setIsTradeInOnly(filter.filters.isTradeIn === 'trade_in_only');
     } else if (open) {
       // Reset for new filter
       setName('');
       setIcon('filter');
       setCategories([]);
-      setMetals([]);
-      setKarats([]);
-      setGemstones([]);
+      setMaterials([]);
+      setSizes([]);
+      setColors([]);
       setStockLevel('all');
       setPriceMin('');
       setPriceMax('');
-      setIsTradeInOnly(false);
     }
   }, [open, filter]);
 
   const handleSave = () => {
     const hasFilters = 
       categories.length > 0 ||
-      metals.length > 0 ||
-      karats.length > 0 ||
-      gemstones.length > 0 ||
+      materials.length > 0 ||
+      sizes.length > 0 ||
+      colors.length > 0 ||
       stockLevel !== 'all' ||
       priceMin !== '' ||
-      priceMax !== '' ||
-      isTradeInOnly;
+      priceMax !== '';
 
     if (!name.trim() || !hasFilters) {
       return;
@@ -121,9 +120,9 @@ export function CustomFilterDialog({
       icon,
       filters: {
         ...(categories.length > 0 && { categories }),
-        ...(metals.length > 0 && { metals }),
-        ...(karats.length > 0 && { karats }),
-        ...(gemstones.length > 0 && { gemstones }),
+        ...(materials.length > 0 && { materials }),
+        ...(sizes.length > 0 && { sizes }),
+        ...(colors.length > 0 && { colors }),
         ...(stockLevel !== 'all' && { stockLevel }),
         ...((priceMin !== '' || priceMax !== '') && {
           priceRange: {
@@ -131,7 +130,6 @@ export function CustomFilterDialog({
             max: priceMax !== '' ? Number(priceMax) : 999999,
           },
         }),
-        ...(isTradeInOnly && { isTradeIn: 'trade_in_only' as const }),
       },
     };
 
@@ -154,12 +152,11 @@ export function CustomFilterDialog({
   const getActiveFiltersCount = () => {
     let count = 0;
     if (categories.length > 0) count++;
-    if (metals.length > 0) count++;
-    if (karats.length > 0) count++;
-    if (gemstones.length > 0) count++;
+    if (materials.length > 0) count++;
+    if (sizes.length > 0) count++;
+    if (colors.length > 0) count++;
     if (stockLevel !== 'all') count++;
     if (priceMin !== '' || priceMax !== '') count++;
-    if (isTradeInOnly) count++;
     return count;
   };
 
@@ -173,23 +170,23 @@ export function CustomFilterDialog({
             {filter ? 'Edit Custom Filter' : 'Create Custom Filter'}
           </DialogTitle>
           <DialogDescription>
-            Create a filter shortcut with your preferred criteria.
+            Create a quick-access filter button. Select the criteria below - when you click this filter, only products matching ALL selected options will show.
           </DialogDescription>
         </DialogHeader>
 
-        <ScrollArea className="flex-1 -mx-6 px-6">
-          <div className="space-y-6 py-4">
+        <ScrollArea className="flex-1">
+          <div className="space-y-6 py-4 px-1">
             {/* Name & Icon */}
             <div className="space-y-4">
               <div className="space-y-2">
                 <Label htmlFor="filter-name">Filter Name *</Label>
-                <div className="flex gap-2">
+                <div className="flex gap-2 px-0.5">
                   <div className="flex items-center justify-center w-10 h-10 border rounded-md bg-muted">
                     <SelectedIcon className="h-5 w-5 text-muted-foreground" />
                   </div>
                   <Input
                     id="filter-name"
-                    placeholder="e.g., High-End Watches"
+                    placeholder="e.g., Designer Trainers"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     className="flex-1"
@@ -224,7 +221,10 @@ export function CustomFilterDialog({
             {/* Categories */}
             {filterOptions?.categories && filterOptions.categories.length > 0 && (
               <div className="space-y-2">
-                <Label>Categories</Label>
+                <div>
+                  <Label>Categories</Label>
+                  <p className="text-xs text-muted-foreground mt-1">Select which categories to include in this filter</p>
+                </div>
                 <div className="flex flex-wrap gap-2">
                   {filterOptions.categories.map((cat) => (
                     <Badge
@@ -240,57 +240,60 @@ export function CustomFilterDialog({
               </div>
             )}
 
-            {/* Metals */}
-            {filterOptions?.metals && filterOptions.metals.length > 0 && (
+            {/* Materials */}
+            {filterOptions?.materials && filterOptions.materials.length > 0 && (
               <div className="space-y-2">
-                <Label>Metals</Label>
+                <div>
+                  <Label>Materials</Label>
+                  <p className="text-xs text-muted-foreground mt-1">Filter by specific materials (optional)</p>
+                </div>
                 <div className="flex flex-wrap gap-2">
-                  {filterOptions.metals.map((metal) => (
+                  {filterOptions.materials.map((material) => (
                     <Badge
-                      key={metal}
-                      variant={metals.includes(metal) ? 'default' : 'outline'}
+                      key={material}
+                      variant={materials.includes(material) ? 'default' : 'outline'}
                       className="cursor-pointer"
-                      onClick={() => toggleArrayItem(metals, setMetals, metal)}
+                      onClick={() => toggleArrayItem(materials, setMaterials, material)}
                     >
-                      {metal}
+                      {material}
                     </Badge>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Karats */}
-            {filterOptions?.karats && filterOptions.karats.length > 0 && (
+            {/* Sizes */}
+            {filterOptions?.sizes && filterOptions.sizes.length > 0 && (
               <div className="space-y-2">
-                <Label>Karats</Label>
+                <Label>Sizes</Label>
                 <div className="flex flex-wrap gap-2">
-                  {filterOptions.karats.map((karat) => (
+                  {filterOptions.sizes.map((size) => (
                     <Badge
-                      key={karat}
-                      variant={karats.includes(karat) ? 'default' : 'outline'}
+                      key={size}
+                      variant={sizes.includes(size) ? 'default' : 'outline'}
                       className="cursor-pointer"
-                      onClick={() => toggleArrayItem(karats, setKarats, karat)}
+                      onClick={() => toggleArrayItem(sizes, setSizes, size)}
                     >
-                      {karat}
+                      {size}
                     </Badge>
                   ))}
                 </div>
               </div>
             )}
 
-            {/* Gemstones */}
-            {filterOptions?.gemstones && filterOptions.gemstones.length > 0 && (
+            {/* Colors */}
+            {filterOptions?.colors && filterOptions.colors.length > 0 && (
               <div className="space-y-2">
-                <Label>Gemstones</Label>
+                <Label>Colors</Label>
                 <div className="flex flex-wrap gap-2">
-                  {filterOptions.gemstones.map((gem) => (
+                  {filterOptions.colors.map((color) => (
                     <Badge
-                      key={gem}
-                      variant={gemstones.includes(gem) ? 'default' : 'outline'}
+                      key={color}
+                      variant={colors.includes(color) ? 'default' : 'outline'}
                       className="cursor-pointer"
-                      onClick={() => toggleArrayItem(gemstones, setGemstones, gem)}
+                      onClick={() => toggleArrayItem(colors, setColors, color)}
                     >
-                      {gem}
+                      {color}
                     </Badge>
                   ))}
                 </div>
@@ -333,16 +336,6 @@ export function CustomFilterDialog({
                   className="flex-1"
                 />
               </div>
-            </div>
-
-            {/* Part Exchange Only */}
-            <div className="flex items-center justify-between">
-              <Label htmlFor="trade-in-only">Part Exchange Only</Label>
-              <Switch
-                id="trade-in-only"
-                checked={isTradeInOnly}
-                onCheckedChange={setIsTradeInOnly}
-              />
             </div>
 
             <Separator />

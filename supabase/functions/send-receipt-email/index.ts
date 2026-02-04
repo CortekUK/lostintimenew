@@ -79,7 +79,7 @@ function generateReceiptHtml(data: ReceiptEmailRequest): string {
         <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 24px;">
           <tr>
             <td align="center">
-              <img src="https://qthosixbvinxmmjdfuii.supabase.co/storage/v1/object/public/assets/new-logo-cropped.png" alt="Sourced Jewellers" width="280" style="height: auto; max-width: 280px; display: block; margin: 0 auto 12px auto;" />
+              <img src="https://qthosixbvinxmmjdfuii.supabase.co/storage/v1/object/public/assets/new-logo-cropped.png" alt="Sourced Clothing" width="280" style="height: auto; max-width: 280px; display: block; margin: 0 auto 12px auto;" />
             </td>
           </tr>
           <tr>
@@ -252,8 +252,8 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: TEST_MODE
-          ? "Sourced Jewellers <onboarding@resend.dev>"
-          : "Sourced Jewellers <receipts@yourdomain.com>",
+          ? "Sourced Clothing <onboarding@resend.dev>"
+          : "Sourced Clothing <receipts@yourdomain.com>",
         to: [actualRecipient],
         subject,
         html,

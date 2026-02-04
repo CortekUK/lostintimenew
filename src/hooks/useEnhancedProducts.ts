@@ -15,17 +15,19 @@ export type ProductSortOption =
 
 export interface EnhancedProductFilters {
   categories: string[];
-  metals: string[];
-  karats: string[];
-  gemstones: string[];
+  materials: string[];
+  sizes: string[];
+  colors: string[];
+  brands: string[];
   suppliers: string[];
   locations: string[];
   priceRange: { min: number; max: number };
   marginRange: { min: number; max: number };
-  isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
   inventoryAge?: 'all' | '30' | '60' | '90';
   sortBy?: ProductSortOption;
   reservationStatus?: 'all' | 'reserved_only' | 'available_only' | 'fully_reserved';
+  conditionGrades?: string[];
+  authenticationStatus?: 'all' | 'authenticated' | 'pending' | 'not_required';
 }
 
 export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
@@ -34,14 +36,15 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
   return useQuery({
     queryKey: ['enhanced-products', filters],
     queryFn: async (): Promise<ProductWithStock[]> => {
-      // Build the base query for products with suppliers and location
+      // Build the base query for products with suppliers, location, and brand
       let query = supabase
         .from('products')
         .select(`
           *,
           supplier:suppliers!supplier_id(name),
           consignment_supplier:suppliers!consignment_supplier_id(name),
-          location:locations!location_id(id, name)
+          location:locations!location_id(id, name),
+          brand:brands!brand_id(id, name, tier)
         `);
 
       // Apply filters if provided
@@ -51,27 +54,27 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
           query = query.in('category', filters.categories);
         }
 
-        // Metal filter
-        if (filters.metals.length > 0) {
-          query = query.in('metal', filters.metals);
+        // Material filter
+        if (filters.materials.length > 0) {
+          query = query.in('material', filters.materials);
         }
 
-        // Karat filter
-        if (filters.karats.length > 0) {
-          query = query.in('karat', filters.karats);
+        // Size filter
+        if (filters.sizes.length > 0) {
+          query = query.in('size', filters.sizes);
         }
 
-        // Gemstone filter - handle "None" specially
-        if (filters.gemstones.length > 0) {
-          if (filters.gemstones.includes('None')) {
-            const otherGemstones = filters.gemstones.filter(g => g !== 'None');
-            if (otherGemstones.length > 0) {
-              query = query.or(`gemstone.in.(${otherGemstones.join(',')}),gemstone.is.null`);
+        // Color filter - handle "None" specially
+        if (filters.colors.length > 0) {
+          if (filters.colors.includes('None')) {
+            const otherColors = filters.colors.filter(c => c !== 'None');
+            if (otherColors.length > 0) {
+              query = query.or(`color.in.(${otherColors.join(',')}),color.is.null`);
             } else {
-              query = query.is('gemstone', null);
+              query = query.is('color', null);
             }
           } else {
-            query = query.in('gemstone', filters.gemstones);
+            query = query.in('color', filters.colors);
           }
         }
 
@@ -81,20 +84,28 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
           query = query.in('supplier_id', supplierIds);
         }
 
+        // Brand filter
+        if (filters.brands && filters.brands.length > 0) {
+          const brandIds = filters.brands.map(b => parseInt(b));
+          query = query.in('brand_id', brandIds);
+        }
+
+        // Condition grade filter
+        if (filters.conditionGrades && filters.conditionGrades.length > 0) {
+          query = query.in('condition_grade', filters.conditionGrades);
+        }
+
+        // Authentication status filter
+        if (filters.authenticationStatus && filters.authenticationStatus !== 'all') {
+          query = query.eq('authentication_status', filters.authenticationStatus);
+        }
+
         // Location filter
         if (filters.locations && filters.locations.length > 0) {
           const locationIds = filters.locations.map(l => parseInt(l));
           query = query.in('location_id', locationIds);
         }
 
-        // Trade-in filter
-        if (filters.isTradeIn && filters.isTradeIn !== 'all') {
-          if (filters.isTradeIn === 'trade_in_only') {
-            query = query.eq('is_trade_in', true);
-          } else if (filters.isTradeIn === 'non_trade_in') {
-            query = query.eq('is_trade_in', false);
-          }
-        }
 
         // Price range filter - handle zero-priced products when minimum is 0
         if (filters.priceRange.min > 0 || filters.priceRange.max < 1000000) {
@@ -192,7 +203,7 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
         const isFullyReserved = qtyReserved > 0 && qtyAvailable === 0;
         const isPartiallyReserved = qtyReserved > 0 && qtyAvailable > 0;
         
-        // Calculate markup percentage (Profit / Cost * 100) - jewellery industry standard
+        // Calculate markup percentage (Profit / Cost * 100) - standard retail metric
         const margin = product.unit_cost > 0 
           ? ((product.unit_price - product.unit_cost) / product.unit_cost) * 100 
           : 0;
@@ -280,5 +291,6 @@ export const useEnhancedProducts = (filters?: EnhancedProductFilters) => {
       return filteredProducts;
     },
     enabled: !!user && !!session,
+    staleTime: 1000 * 60 * 2, // 2 minutes cache - products don't change frequently
   });
 };

@@ -1,5 +1,5 @@
 import { useState, useMemo } from 'react';
-import { Eye, Edit, Copy, ChevronUp, ChevronDown, ChevronsUpDown, MapPin, Repeat, ShoppingCart } from 'lucide-react';
+import { Eye, Edit, Copy, ChevronUp, ChevronDown, ChevronsUpDown, MapPin, ShoppingCart } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -29,7 +29,6 @@ interface ProductTableProps {
   onSell?: (product: any) => void;
   onImageClick?: (product: any) => void;
   stockStatusMap?: Map<number, any>;
-  partExchangeMap?: Record<number, any>;
   highlightedProductId?: number | null;
   /** When true, disables internal sorting and uses products array as-is (sorted by parent) */
   externalSort?: boolean;
@@ -46,7 +45,6 @@ export function ProductTable({
   onSell,
   onImageClick,
   stockStatusMap,
-  partExchangeMap,
   highlightedProductId,
   externalSort = false,
 }: ProductTableProps) {
@@ -273,7 +271,6 @@ export function ProductTable({
                   : '0.0';
                 const stockDisplay = getStockStatusDisplay(product);
                 const reservationTooltip = getReservationTooltip(product);
-                const pxInfo = product.is_trade_in ? partExchangeMap?.[product.id] : null;
 
                 return (
                   <TableRow
@@ -309,12 +306,6 @@ export function ProductTable({
                         <p className="font-medium truncate max-w-[200px]">{product.name}</p>
                         {product.internal_sku && (
                           <p className="text-xs text-muted-foreground">{product.internal_sku}</p>
-                        )}
-                        {pxInfo && (
-                          <p className="text-xs text-amber-600 flex items-center gap-1">
-                            <Repeat className="h-3 w-3" />
-                            Trade-in
-                          </p>
                         )}
                       </div>
                     </TableCell>
@@ -407,12 +398,7 @@ export function ProductTable({
                             Consignment
                           </Badge>
                         )}
-                        {product.is_trade_in && (
-                          <Badge variant="outline" className="text-xs px-1.5 py-0.5">
-                            PX
-                          </Badge>
-                        )}
-                        {!product.is_consignment && !product.is_trade_in && (
+                        {!product.is_consignment && (
                           <span className="text-xs text-muted-foreground">—</span>
                         )}
                       </div>

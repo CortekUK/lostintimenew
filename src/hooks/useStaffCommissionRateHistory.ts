@@ -32,8 +32,7 @@ export function useStaffCommissionRateHistory(staffId?: string) {
       if (error) throw error;
       return data as StaffCommissionRateHistory[];
     },
-    staleTime: 0,
-    refetchOnMount: 'always',
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
   });
 }
 
@@ -49,8 +48,7 @@ export function useAllStaffRateHistory() {
       if (error) throw error;
       return data as StaffCommissionRateHistory[];
     },
-    staleTime: 0,
-    refetchOnMount: 'always',
+    staleTime: 1000 * 60 * 5, // 5 minutes cache
   });
 }
 

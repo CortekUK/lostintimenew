@@ -6,6 +6,7 @@ import { StockAlerts } from '@/components/performance/StockAlerts';
 import { AuditLogViewer } from '@/components/audit/AuditLogViewer';
 import { ProductMixReport } from '@/components/reports/ProductMixReport';
 import { SupplierSpendReport } from '@/components/reports/SupplierSpendReport';
+import { BrandAnalyticsReport } from '@/components/reports/BrandAnalyticsReport';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -17,7 +18,8 @@ import {
   TrendingUp,
   ArrowRight,
   Clock,
-  ChevronRight
+  ChevronRight,
+  Star
 } from 'lucide-react';
 import { useOwnerGuard } from '@/hooks/useOwnerGuard';
 import { useAnalyticsOverview } from '@/hooks/useAnalyticsOverview';
@@ -67,6 +69,11 @@ export default function EnhancedAnalytics() {
               <BarChart3 className="h-4 w-4" />
               <span className="hidden sm:inline">Product Mix</span>
               <span className="sm:hidden">Products</span>
+            </TabsTrigger>
+            <TabsTrigger value="brands" className="flex items-center gap-1 sm:gap-2 flex-1 min-w-[80px] text-xs sm:text-sm">
+              <Star className="h-4 w-4" />
+              <span className="hidden sm:inline">Brand Analytics</span>
+              <span className="sm:hidden">Brands</span>
             </TabsTrigger>
             <TabsTrigger value="suppliers" className="flex items-center gap-1 sm:gap-2 flex-1 min-w-[80px] text-xs sm:text-sm">
               <Building2 className="h-4 w-4" />
@@ -335,6 +342,10 @@ export default function EnhancedAnalytics() {
 
           <TabsContent value="products">
             <ProductMixReport />
+          </TabsContent>
+
+          <TabsContent value="brands">
+            <BrandAnalyticsReport />
           </TabsContent>
 
           <TabsContent value="suppliers">

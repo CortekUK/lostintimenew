@@ -17,7 +17,7 @@ interface ProductFiltersProps {
     supplier: string;
     stockStatus: string;
     priceRange: { min: string; max: string };
-    metal: string;
+    material: string;
   };
   onFiltersChange: (filters: any) => void;
   suppliers: Array<{ id: number; name: string }>;
@@ -40,7 +40,7 @@ export function ProductFilters({
       supplier: '',
       stockStatus: '',
       priceRange: { min: '', max: '' },
-      metal: ''
+      material: ''
     });
     onSearchChange('');
   };
@@ -107,11 +107,12 @@ export function ProductFilters({
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="">All categories</SelectItem>
-                      <SelectItem value="Rings">Rings</SelectItem>
-                      <SelectItem value="Necklaces">Necklaces</SelectItem>
-                      <SelectItem value="Earrings">Earrings</SelectItem>
-                      <SelectItem value="Bracelets">Bracelets</SelectItem>
-                      <SelectItem value="Watches">Watches</SelectItem>
+                      <SelectItem value="Bags">Bags</SelectItem>
+                      <SelectItem value="Shoes">Shoes</SelectItem>
+                      <SelectItem value="Dresses">Dresses</SelectItem>
+                      <SelectItem value="Coats">Coats & Jackets</SelectItem>
+                      <SelectItem value="Tops">Tops</SelectItem>
+                      <SelectItem value="Accessories">Accessories</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -150,19 +151,20 @@ export function ProductFilters({
                   </Select>
                 </div>
 
-                {/* Metal Filter */}
+                {/* Material Filter */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Metal Type</Label>
-                  <Select value={filters.metal} onValueChange={(value) => onFiltersChange({...filters, metal: value})}>
+                  <Label className="text-sm font-medium">Material</Label>
+                  <Select value={filters.material} onValueChange={(value) => onFiltersChange({...filters, material: value})}>
                     <SelectTrigger>
-                      <SelectValue placeholder="All metals" />
+                      <SelectValue placeholder="All materials" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All metals</SelectItem>
-                      <SelectItem value="Gold">Gold</SelectItem>
-                      <SelectItem value="Silver">Silver</SelectItem>
-                      <SelectItem value="Platinum">Platinum</SelectItem>
-                      <SelectItem value="Titanium">Titanium</SelectItem>
+                      <SelectItem value="">All materials</SelectItem>
+                      <SelectItem value="Leather">Leather</SelectItem>
+                      <SelectItem value="Silk">Silk</SelectItem>
+                      <SelectItem value="Cashmere">Cashmere</SelectItem>
+                      <SelectItem value="Cotton">Cotton</SelectItem>
+                      <SelectItem value="Wool">Wool</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
@@ -234,10 +236,10 @@ export function ProductFilters({
             </Badge>
           )}
           
-          {filters.metal && (
+          {filters.material && (
             <Badge variant="secondary" className="gap-1">
-              Metal: {filters.metal}
-              <X className="h-3 w-3 cursor-pointer" onClick={() => removeFilter('metal')} />
+              Material: {filters.material}
+              <X className="h-3 w-3 cursor-pointer" onClick={() => removeFilter('material')} />
             </Badge>
           )}
           

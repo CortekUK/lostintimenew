@@ -62,7 +62,6 @@ export interface DepositOrderPartExchange {
 export interface DepositOrderWithDetails extends DepositOrder {
   deposit_order_items?: (DepositOrderItem & { product?: { name: string; sku: string; internal_sku: string } | null })[];
   deposit_payments?: DepositPayment[];
-  deposit_order_part_exchanges?: DepositOrderPartExchange[];
   customer?: { name: string; email?: string; phone?: string } | null;
   staff?: { full_name: string | null } | null;
 }
@@ -79,13 +78,6 @@ export interface CreateDepositOrderParams {
     unit_price: number;
     unit_cost?: number;
     is_custom_order?: boolean;
-  }[];
-  part_exchanges?: {
-    product_name: string;
-    category?: string;
-    serial?: string;
-    allowance: number;
-    notes?: string;
   }[];
   initial_payment?: {
     amount: number;
@@ -137,7 +129,6 @@ export function useDepositOrderDetails(orderId: number | null) {
             product:products (name, sku, internal_sku)
           ),
           deposit_payments (*),
-          deposit_order_part_exchanges (*),
           customer:customers (name, email, phone)
         `)
         .eq('id', orderId)
@@ -211,12 +202,6 @@ export function useCreateDepositOrder() {
         0
       );
 
-      // Calculate part exchange total
-      const partExchangeTotal = params.part_exchanges?.reduce(
-        (sum, px) => sum + px.allowance,
-        0
-      ) || 0;
-
       // Create the deposit order
       const { data: order, error: orderError } = await supabase
         .from('deposit_orders')
@@ -225,7 +210,7 @@ export function useCreateDepositOrder() {
           customer_name: params.customer_name || 'Walk-in Customer',
           total_amount: totalAmount,
           amount_paid: 0,
-          part_exchange_total: partExchangeTotal,
+          part_exchange_total: 0,
           status: 'active',
           notes: params.notes,
           location_id: params.location_id,
@@ -252,24 +237,6 @@ export function useCreateDepositOrder() {
         .insert(itemsToInsert);
 
       if (itemsError) throw itemsError;
-
-      // Create part exchange records if provided
-      if (params.part_exchanges && params.part_exchanges.length > 0) {
-        const pxToInsert = params.part_exchanges.map((px) => ({
-          deposit_order_id: order.id,
-          product_name: px.product_name,
-          category: px.category || null,
-          serial: px.serial || null,
-          allowance: px.allowance,
-          notes: px.notes || null,
-        }));
-
-        const { error: pxError } = await supabase
-          .from('deposit_order_part_exchanges')
-          .insert(pxToInsert);
-
-        if (pxError) throw pxError;
-      }
 
       // Reserve stock for products
       for (const item of params.items) {
@@ -434,14 +401,13 @@ export function useCompleteDepositOrder() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('Not authenticated');
 
-      // Get the order with items and part exchanges
+      // Get the order with items
       const { data: order, error: orderError } = await supabase
         .from('deposit_orders')
         .select(`
           *,
           deposit_order_items (*),
-          deposit_payments (*),
-          deposit_order_part_exchanges (*)
+          deposit_payments (*)
         `)
         .eq('id', orderId)
         .single();
@@ -472,21 +438,6 @@ export function useCompleteDepositOrder() {
         }
       }
 
-      // Get "Customer Trade-In" supplier for PX items
-      let tradeInSupplierId: number | null = null;
-      if (order.deposit_order_part_exchanges && order.deposit_order_part_exchanges.length > 0) {
-        const { data: supplier } = await supabase
-          .from('suppliers')
-          .select('id')
-          .eq('name', 'Customer Trade-In')
-          .single();
-        tradeInSupplierId = supplier?.id || null;
-      }
-
-      // Create a sale from this deposit order
-      const partExchangeTotal = order.part_exchange_total || 0;
-      const netTotal = order.total_amount - partExchangeTotal;
-      
       // Determine payment method from the deposit payments
       // Use the most recent payment's method, or 'cash' as default
       const payments = order.deposit_payments || [];
@@ -509,7 +460,7 @@ export function useCompleteDepositOrder() {
           discount_total: 0,
           tax_total: 0,
           total: order.total_amount,
-          part_exchange_total: partExchangeTotal,
+          part_exchange_total: 0,
           payment: paymentMethod,
           notes: `Converted from Deposit Order #${order.id}`,
           staff_id: order.staff_id,
@@ -596,55 +547,6 @@ export function useCompleteDepositOrder() {
             note: `Sale #${sale.id}`,
             created_by: user.id,
           });
-        }
-      }
-
-      // Create part exchange records and products
-      const pxItems = order.deposit_order_part_exchanges as DepositOrderPartExchange[] | undefined;
-      if (pxItems && pxItems.length > 0) {
-        for (const px of pxItems) {
-          // Create product for the trade-in item
-          // Note: internal_sku is auto-generated by database trigger
-          const { data: newProduct, error: productError } = await supabase
-            .from('products')
-            .insert({
-              name: px.product_name,
-              category: px.category || null,
-              unit_price: 0,
-              unit_cost: px.allowance,
-              supplier_id: tradeInSupplierId,
-              is_trade_in: true,
-              track_stock: true,
-              location_id: order.location_id,
-              // internal_sku omitted - DB trigger auto-generates unique SKU
-            } as any)
-            .select()
-            .single();
-
-          if (productError) throw productError;
-
-          // Create stock movement for receiving the trade-in
-          await supabase.from('stock_movements').insert([{
-            product_id: newProduct.id,
-            quantity: 1,
-            movement_type: 'purchase' as const,
-            unit_cost: px.allowance,
-            note: `Trade-in from Sale #${sale.id}`,
-            created_by: user.id,
-          }]);
-
-          // Create part_exchanges record linked to sale
-          await supabase.from('part_exchanges').insert([{
-            sale_id: sale.id,
-            product_id: newProduct.id,
-            title: px.product_name,
-            category: px.category,
-            serial: px.serial,
-            allowance: px.allowance,
-            notes: px.notes,
-            customer_name: customerName,
-            status: 'pending',
-          }]);
         }
       }
 

@@ -44,7 +44,6 @@ import { format, startOfDay, endOfDay } from 'date-fns';
 import type { DateRange } from '@/types';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { SaleDetailModal } from '@/components/transactions/SaleDetailModal';
-import { TradeInBadge } from '@/components/ui/trade-in-badge';
 
 interface TransactionsFilters {
   dateRange: DateRange;
@@ -351,15 +350,11 @@ export default function Transactions() {
         const capitalizedPayment = row.payment 
           ? row.payment.charAt(0).toUpperCase() + row.payment.slice(1).toLowerCase()
           : 'Unknown';
-        const hasPX = Number(row.part_exchange_total) > 0;
         
         return (
-          <div className="flex items-center gap-1.5">
-            <Badge variant={row.payment === 'cash' ? 'secondary' : 'default'}>
-              {capitalizedPayment}
-            </Badge>
-            {hasPX && <TradeInBadge />}
-          </div>
+          <Badge variant={row.payment === 'cash' ? 'secondary' : 'default'}>
+            {capitalizedPayment}
+          </Badge>
         );
       }
     },

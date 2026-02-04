@@ -44,7 +44,7 @@ export function formatStockQuantity(qty: number): string {
 
 /**
  * Calculate profit and markup from prices
- * Markup = (Profit / Cost) * 100 - standard jewellery industry metric
+ * Markup = (Profit / Cost) * 100 - standard retail industry metric
  */
 export function calculateProfitMetrics(unitPrice: number, unitCost: number) {
   const profit = unitPrice - unitCost;

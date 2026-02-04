@@ -7,8 +7,8 @@ export interface SupplierProduct {
   internal_sku: string;
   sku: string | null;
   category: string | null;
-  metal: string | null;
-  karat: string | null;
+  material: string | null;
+  size: string | null;
   unit_cost: number;
   unit_price: number;
   is_consignment: boolean;
@@ -36,8 +36,8 @@ export function useSupplierProducts(supplierId: number) {
           internal_sku,
           sku,
           category,
-          metal,
-          karat,
+          material,
+          size,
           unit_cost,
           unit_price,
           is_consignment,

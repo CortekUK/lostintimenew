@@ -164,6 +164,7 @@ export const useTodayStats = () => {
       };
     },
     enabled: !!user && !!session,
+    staleTime: 1000 * 60 * 2, // 2 minutes cache
     refetchInterval: 5 * 60 * 1000, // Refresh every 5 minutes
   });
 };
@@ -213,6 +214,7 @@ export const useRecentSales = (limit: number = 5) => {
       return salesWithProducts;
     },
     enabled: !!user && !!session,
+    staleTime: 1000 * 60, // 1 minute cache
     refetchInterval: 2 * 60 * 1000, // Refresh every 2 minutes
   });
 };

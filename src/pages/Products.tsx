@@ -4,7 +4,8 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Package, Archive, Eye, Edit, Image as ImageIcon, Clock, PoundSterling, Award, Repeat, Copy, MapPin, Search, LayoutList, LayoutGrid, Tag } from 'lucide-react';
+import { Plus, Package, Archive, Eye, Edit, Image as ImageIcon, Clock, PoundSterling, Award, Copy, MapPin, Search, LayoutList, LayoutGrid, Tag, ShieldCheck, Star } from 'lucide-react';
+import { useBrands, CONDITION_GRADES } from '@/hooks/useBrands';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { useSuppliers, useCreateProduct, useStockAdjustment } from '@/hooks/useDatabase';
 import { useLocations } from '@/hooks/useLocations';
@@ -38,8 +39,6 @@ import type { EnhancedProductFilters as EnhancedProductFiltersType } from '@/hoo
 import { useStockStatus, getStockBadge } from '@/hooks/useStockStatus';
 import { useConsignmentAgreements } from '@/hooks/useConsignmentAgreements';
 import { ConsignmentBadge } from '@/components/ui/consignment-badge';
-import { TradeInBadge } from '@/components/ui/trade-in-badge';
-import { useProductTradeInStatus } from '@/hooks/useProductTradeInStatus';
 import { DuplicateProductModal } from '@/components/modals/DuplicateProductModal';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { ProductTable } from '@/components/products/ProductTable';
@@ -50,8 +49,7 @@ const ProductCard = ({
   onEdit,
   onDuplicate,
   onImageClick,
-  stockStatus,
-  partExchangeInfo
+  stockStatus
 }: {
   product: any;
   onView: () => void;
@@ -59,7 +57,6 @@ const ProductCard = ({
   onDuplicate: () => void;
   onImageClick?: () => void;
   stockStatus?: { variant: 'destructive' | 'secondary' | 'outline'; text: string };
-  partExchangeInfo?: { customer_name?: string; allowance: number } | null;
 }) => {
   const { user } = useAuth();
   const { canEdit } = usePermissions();
@@ -67,7 +64,7 @@ const ProductCard = ({
   
   const stock = product.qty_on_hand || 0;
   const profit = (Number(product.unit_price) - Number(product.unit_cost)).toFixed(2);
-  // Markup = (Profit / Cost) * 100 - standard jewellery industry metric
+  // Markup = (Profit / Cost) * 100 - standard retail industry metric
   const markup = Number(product.unit_cost) > 0 
     ? (((Number(product.unit_price) - Number(product.unit_cost)) / Number(product.unit_cost)) * 100).toFixed(1)
     : 0;
@@ -146,6 +143,13 @@ const ProductCard = ({
             )}
             
             <div className="flex-1 min-w-0">
+              {/* Brand (if available) */}
+              {product.brand?.name && (
+                <p className="text-xs font-semibold text-primary uppercase tracking-wide mb-0.5 flex items-center gap-1">
+                  <Star className="h-3 w-3" />
+                  {product.brand.name}
+                </p>
+              )}
               {/* Name, Category, Supplier */}
               <CardTitle className="font-luxury text-lg mb-1 leading-tight">{product.name}</CardTitle>
               <p className="text-sm text-muted-foreground mb-1">
@@ -164,14 +168,6 @@ const ProductCard = ({
                   <p className="text-muted-foreground flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
                     {product.location.name}
-                  </p>
-                )}
-                {/* Trade-in origin info */}
-                {partExchangeInfo && (
-                  <p className="text-amber-600 font-medium flex items-center gap-1">
-                    <Repeat className="h-3 w-3" />
-                    From trade-in
-                    {partExchangeInfo.customer_name && `: ${partExchangeInfo.customer_name}`}
                   </p>
                 )}
               </div>
@@ -221,14 +217,20 @@ const ProductCard = ({
             
             {/* Smaller tags below stock badge */}
             <div className="flex flex-col gap-1">
+              {product.authentication_status === 'authenticated' && (
+                <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-auto bg-green-50 text-green-700 border-green-300 dark:bg-green-950 dark:text-green-300">
+                  <ShieldCheck className="h-3 w-3 mr-0.5" />
+                  Auth
+                </Badge>
+              )}
+              {product.condition_grade && (
+                <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-auto">
+                  {CONDITION_GRADES.find(g => g.value === product.condition_grade)?.label?.split(' ')[0] || product.condition_grade}
+                </Badge>
+              )}
               {product.is_consignment && (
                 <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-auto">
                   Consignment
-                </Badge>
-              )}
-              {product.is_trade_in && (
-                <Badge variant="outline" className="text-xs px-1.5 py-0.5 h-auto">
-                  PX
                 </Badge>
               )}
             </div>
@@ -265,11 +267,11 @@ const ProductCard = ({
           </div>
         </div>
         
-        {/* Metal/Gemstone Info */}
-        {product.metal && (
+        {/* Material/Size/Color Info */}
+        {product.material && (
           <div className="text-xs text-muted-foreground mb-4">
-            {product.metal} {product.karat && `(${product.karat})`}
-            {product.gemstone && ` • ${product.gemstone}`}
+            {product.material} {product.size && `(${product.size})`}
+            {product.color && ` • ${product.color}`}
           </div>
         )}
         
@@ -340,17 +342,19 @@ export default function Products() {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState<EnhancedProductFiltersType>({
     categories: [],
-    metals: [],
-    karats: [],
-    gemstones: [],
+    materials: [],
+    sizes: [],
+    colors: [],
+    brands: [],
     suppliers: [],
     locations: [],
     priceRange: { min: 0, max: 50000 },
     marginRange: { min: 0, max: 100 },
-    isTradeIn: 'all',
     inventoryAge: 'all',
     sortBy: 'newest',
-    reservationStatus: 'all'
+    reservationStatus: 'all',
+    conditionGrades: [],
+    authenticationStatus: 'all'
   });
 
   // Initialize price range when filter options load
@@ -463,29 +467,6 @@ export default function Products() {
   const productIds = products.map(p => p.id);
   const { data: stockStatusMap } = useStockStatus(productIds);
 
-  // Get part exchange info for all trade-in products
-  const [partExchangeMap, setPartExchangeMap] = useState<Record<number, any>>({});
-  useEffect(() => {
-    const fetchPartExchangeInfo = async () => {
-      const tradeInProducts = products.filter(p => p.is_trade_in);
-      if (tradeInProducts.length === 0) return;
-      
-      const { data } = await supabase
-        .from('part_exchanges')
-        .select('product_id, customer_name, allowance')
-        .in('product_id', tradeInProducts.map(p => p.id));
-      
-      if (data) {
-        const map: Record<number, any> = {};
-        data.forEach(px => {
-          map[px.product_id] = px;
-        });
-        setPartExchangeMap(map);
-      }
-    };
-    
-    fetchPartExchangeInfo();
-  }, [products]);
   // Filtered products based on search
   const filteredProducts = useMemo(() => {
     if (!products) return [];
@@ -510,11 +491,13 @@ export default function Products() {
     let count = 0;
     if (searchQuery) count++;
     if (filters.categories.length > 0) count++;
-    if (filters.metals.length > 0) count++;
-    if (filters.karats.length > 0) count++;
-    if (filters.gemstones.length > 0) count++;
+    if (filters.materials.length > 0) count++;
+    if (filters.sizes.length > 0) count++;
+    if (filters.colors.length > 0) count++;
+    if (filters.brands && filters.brands.length > 0) count++;
+    if (filters.conditionGrades && filters.conditionGrades.length > 0) count++;
+    if (filters.authenticationStatus && filters.authenticationStatus !== 'all') count++;
     if (filters.suppliers.length > 0) count++;
-    if (filters.isTradeIn && filters.isTradeIn !== 'all') count++;
     if (filters.priceRange.min > (filterOptions?.priceRange.min || 0) || 
         filters.priceRange.max < (filterOptions?.priceRange.max || 50000)) count++;
     if (filters.marginRange.min > 0 || filters.marginRange.max < 100) count++;
@@ -756,15 +739,17 @@ export default function Products() {
                 onClearAll={() => {
                   setFilters({
                     categories: [],
-                    metals: [],
-                    karats: [],
-                    gemstones: [],
+                    materials: [],
+                    sizes: [],
+                    colors: [],
+                    brands: [],
                     suppliers: [],
                     locations: [],
                     priceRange: filterOptions?.priceRange || { min: 0, max: 50000 },
                     marginRange: { min: 0, max: 100 },
-                    isTradeIn: 'all',
-                    inventoryAge: 'all'
+                    inventoryAge: 'all',
+                    conditionGrades: [],
+                    authenticationStatus: 'all'
                   });
                   setSearchQuery('');
                 }}
@@ -795,7 +780,6 @@ export default function Products() {
             onSell={handleSellProduct}
             onImageClick={handleImageClick}
             stockStatusMap={stockStatusMap}
-            partExchangeMap={partExchangeMap}
             highlightedProductId={highlightedProductId}
             externalSort={true}
           />
@@ -804,7 +788,6 @@ export default function Products() {
             {filteredProducts.map((product) => {
               const stockStatus = stockStatusMap?.get(product.id);
               const stockBadge = getStockBadge(stockStatus);
-              const pxInfo = product.is_trade_in ? partExchangeMap[product.id] : null;
               
               return (
                 <div
@@ -815,7 +798,6 @@ export default function Products() {
                   <ProductCard 
                     product={product}
                     stockStatus={stockBadge}
-                    partExchangeInfo={pxInfo}
                     onView={() => handleViewProduct(product)}
                     onEdit={() => handleEditProduct(product)}
                     onDuplicate={() => {
@@ -846,15 +828,17 @@ export default function Products() {
                   setSearchQuery('');
                 setFilters({
                   categories: [],
-                  metals: [],
-                  karats: [],
-                  gemstones: [],
+                  materials: [],
+                  sizes: [],
+                  colors: [],
+                  brands: [],
                   suppliers: [],
                   locations: [],
                   priceRange: filterOptions?.priceRange || { min: 0, max: 50000 },
                   marginRange: { min: 0, max: 100 },
-                  isTradeIn: 'all',
-                  inventoryAge: 'all'
+                  inventoryAge: 'all',
+                  conditionGrades: [],
+                  authenticationStatus: 'all'
                 });
                 }}>
                   Clear All Filters

@@ -14,8 +14,8 @@ interface ReceiptProps {
   data: {
     sale: any;
     saleItems: any[];
-    partExchanges: any[];
-    pxTotal: number;
+    partExchanges?: any[];
+    pxTotal?: number;
     staff: any;
   };
   settings: any;
@@ -28,7 +28,7 @@ export function ReceiptDocument({ data, settings }: ReceiptProps) {
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
 
-  const { sale, saleItems, partExchanges, pxTotal, staff } = data;
+  const { sale, saleItems, partExchanges = [], pxTotal = 0, staff } = data;
 
   // Get customer email if available
   const customerEmail = sale.customer_email;
@@ -36,11 +36,11 @@ export function ReceiptDocument({ data, settings }: ReceiptProps) {
   
   // Get store and branding info from settings
   const store = settings?.store || {
-    name: "Sourced Jewellers",
-    tagline: "Premium Jewelry & Timepieces",
+    name: "Sourced Clothing",
+    tagline: "Premium Fashion & Apparel",
     address: "123 High Street, London SW1A 1AA",
     phone: "020 7123 4567",
-    email: "info@sourcedjewellers.com"
+    email: "info@sourcedclothing.com"
   };
   
   const branding = settings?.branding || {

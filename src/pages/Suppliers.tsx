@@ -880,7 +880,7 @@ function AddSupplierDialog({ open, onOpenChange, presetTags }: AddSupplierDialog
                   value={formData.name}
                   onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                   className={cn(errors.name && "border-destructive")}
-                  placeholder={formData.supplier_type === 'customer' ? 'John Smith' : 'Acme Watches Ltd'}
+                  placeholder={formData.supplier_type === 'customer' ? 'John Smith' : 'Luxury Consignment Co.'}
                 />
                 {errors.name && (
                   <div className="flex items-center gap-1 text-sm text-destructive">

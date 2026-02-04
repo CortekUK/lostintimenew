@@ -21,8 +21,8 @@ interface ProductMixData {
   sku: string;
   name: string;
   category: string;
-  metal: string;
-  karat: string;
+  material: string;
+  size: string;
   units_sold: number;
   revenue: number;
   cogs: number;

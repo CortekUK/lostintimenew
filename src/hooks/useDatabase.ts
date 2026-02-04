@@ -277,13 +277,13 @@ export const useCreateProduct = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products-base'] });
-      queryClient.invalidateQueries({ queryKey: ['enhanced-products'] });
-      queryClient.invalidateQueries({ queryKey: ['stock-data'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory-values'] });
-      queryClient.invalidateQueries({ queryKey: ['filter-options'] });
-      queryClient.invalidateQueries({ queryKey: ['consignment-products'] });
-      queryClient.invalidateQueries({ queryKey: ['consignment-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['products-base'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['enhanced-products'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['stock-data'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['inventory-values'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['filter-options'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['consignment-products'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['consignment-stats'], refetchType: 'all' });
       toast({
         title: "Success",
         description: "Product created successfully"
@@ -315,11 +315,12 @@ export const useUpdateProduct = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products-base'] });
-      queryClient.invalidateQueries({ queryKey: ['enhanced-products'] });
-      queryClient.invalidateQueries({ queryKey: ['filter-options'] });
-      queryClient.invalidateQueries({ queryKey: ['consignment-products'] });
-      queryClient.invalidateQueries({ queryKey: ['consignment-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['products-base'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['enhanced-products'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['filter-options'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['consignment-products'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['consignment-stats'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['stock-data'], refetchType: 'all' });
       toast({
         title: "Success",
         description: "Product updated successfully"
@@ -349,11 +350,11 @@ export const useDeleteProduct = () => {
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['products-base'] });
-      queryClient.invalidateQueries({ queryKey: ['enhanced-products'] });
-      queryClient.invalidateQueries({ queryKey: ['stock-data'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory-values'] });
-      queryClient.invalidateQueries({ queryKey: ['filter-options'] });
+      queryClient.invalidateQueries({ queryKey: ['products-base'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['enhanced-products'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['stock-data'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['inventory-values'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['filter-options'], refetchType: 'all' });
       toast({
         title: "Success",
         description: "Product deleted successfully"
@@ -403,7 +404,7 @@ export const useCreateSupplier = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['suppliers'], refetchType: 'all' });
       toast({
         title: "Success",
         description: "Supplier created successfully"
@@ -435,7 +436,7 @@ export const useUpdateSupplier = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['suppliers'], refetchType: 'all' });
       toast({
         title: "Success",
         description: "Supplier updated successfully"
@@ -465,7 +466,7 @@ export const useDeleteSupplier = () => {
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['suppliers'] });
+      queryClient.invalidateQueries({ queryKey: ['suppliers'], refetchType: 'all' });
       toast({
         title: "Success",
         description: "Supplier deleted successfully"
@@ -495,7 +496,7 @@ export const useSales = () => {
           staff:profiles!sales_staff_id_fkey(full_name),
           items:sale_items(
             *,
-            product:products(name, sku, internal_sku, category, metal)
+            product:products(name, sku, internal_sku, category, material)
           )
         `)
         .order('sold_at', { ascending: false });
@@ -567,7 +568,7 @@ export const useTransactionDetails = (saleId?: number) => {
           id, quantity, unit_price, discount, tax_rate, unit_cost, product_id, sale_id,
           product_name, is_custom_order,
           products:product_id ( 
-            id, name, internal_sku, sku, category, metal, is_trade_in, is_consignment, is_registered,
+            id, name, internal_sku, sku, category, material, is_trade_in, is_consignment, is_registered,
             consignment_supplier_id,
             consignment_supplier:suppliers!products_consignment_supplier_id_fkey ( id, name )
           )
@@ -614,9 +615,7 @@ export const useSoldItemsReport = () => {
   
   return useQuery({
     queryKey: ['sold-items-report'],
-    staleTime: 0,
-    refetchOnMount: 'always',
-    refetchOnWindowFocus: true,
+    staleTime: 1000 * 60 * 2, // 2 minutes cache
     queryFn: async () => {
       const { data, error } = await supabase
         .from('sale_items')
@@ -624,7 +623,7 @@ export const useSoldItemsReport = () => {
           id, sale_id, quantity, unit_price, unit_cost, discount, tax_rate,
           product_id,
           products ( 
-            name, internal_sku, sku, category, metal, karat, is_trade_in, is_consignment, is_registered,
+            name, internal_sku, sku, category, material, size, is_trade_in, is_consignment, is_registered,
             supplier_id, consignment_supplier_id,
             suppliers!products_supplier_id_fkey ( id, name, supplier_type ),
             consignment_supplier:suppliers!products_consignment_supplier_id_fkey ( id, name, supplier_type )
@@ -826,9 +825,9 @@ export const useCreateExpense = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['expenses', 'filtered'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['expenses', 'filtered'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'], refetchType: 'all' });
       toast({
         title: "Success",
         description: "Expense recorded successfully"
@@ -860,9 +859,9 @@ export const useUpdateExpense = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['expenses', 'filtered'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['expenses', 'filtered'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'], refetchType: 'all' });
       toast({
         title: "Success",
         description: "Expense updated successfully"
@@ -892,9 +891,9 @@ export const useDeleteExpense = () => {
       return id;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['expenses'] });
-      queryClient.invalidateQueries({ queryKey: ['expenses', 'filtered'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['expenses'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['expenses', 'filtered'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'], refetchType: 'all' });
       toast({
         title: "Success",
         description: "Expense deleted successfully"
@@ -933,9 +932,10 @@ export const useStockAdjustment = () => {
       return data;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['stock-data'] });
-      queryClient.invalidateQueries({ queryKey: ['inventory-values'] });
-      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['stock-data'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['inventory-values'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'], refetchType: 'all' });
+      queryClient.invalidateQueries({ queryKey: ['enhanced-products'], refetchType: 'all' });
       toast({
         title: "Success",
         description: "Stock adjustment recorded successfully"

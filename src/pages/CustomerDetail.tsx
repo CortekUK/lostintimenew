@@ -10,6 +10,7 @@ import { VIPTierBadge, getNextVIPTier, getVIPTierThreshold } from '@/components/
 import { CustomerPurchaseHistory } from '@/components/customers/CustomerPurchaseHistory';
 import { EditCustomerDialog } from '@/components/customers/EditCustomerDialog';
 import { QuickNotesCard } from '@/components/customers/QuickNotesCard';
+import { CustomerWishlists } from '@/components/customers/CustomerWishlists';
 import { useCustomer, useDeleteCustomer } from '@/hooks/useCustomers';
 import { usePermissions } from '@/hooks/usePermissions';
 import { useSettings } from '@/contexts/SettingsContext';
@@ -28,7 +29,8 @@ import {
   TrendingUp,
   Trash2,
   AlertTriangle,
-  Crown
+  Crown,
+  Star
 } from 'lucide-react';
 import {
   AlertDialog,
@@ -201,6 +203,10 @@ export default function CustomerDetail() {
           <TabsList className="w-full h-auto flex flex-wrap gap-1 p-1">
             <TabsTrigger value="overview" className="flex-1 min-w-[80px] text-xs sm:text-sm">Overview</TabsTrigger>
             <TabsTrigger value="purchases" className="flex-1 min-w-[80px] text-xs sm:text-sm">Purchases</TabsTrigger>
+            <TabsTrigger value="wishlists" className="flex-1 min-w-[80px] text-xs sm:text-sm flex items-center gap-1">
+              <Star className="h-3 w-3 text-amber-500" />
+              Wishlists
+            </TabsTrigger>
             <TabsTrigger value="preferences" className="flex-1 min-w-[80px] text-xs sm:text-sm">Preferences</TabsTrigger>
           </TabsList>
 
@@ -295,35 +301,39 @@ export default function CustomerDetail() {
           </Card>
         </TabsContent>
 
+        <TabsContent value="wishlists">
+          <CustomerWishlists customerId={customer.id} customerName={customer.name} />
+        </TabsContent>
+
         <TabsContent value="preferences">
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Jewellery Preferences</CardTitle>
+              <CardTitle className="text-lg">Clothing Preferences</CardTitle>
             </CardHeader>
             <CardContent>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 <div>
-                  <p className="text-sm font-medium mb-1">Ring Size</p>
-                  <Badge variant={customer.ring_size ? 'secondary' : 'outline'}>
-                    {customer.ring_size || 'Not specified'}
+                  <p className="text-sm font-medium mb-1">Shirt Size</p>
+                  <Badge variant={customer.shirt_size ? 'secondary' : 'outline'}>
+                    {customer.shirt_size || 'Not specified'}
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-sm font-medium mb-1">Bracelet Size</p>
-                  <Badge variant={customer.bracelet_size ? 'secondary' : 'outline'}>
-                    {customer.bracelet_size || 'Not specified'}
+                  <p className="text-sm font-medium mb-1">Pants Size</p>
+                  <Badge variant={customer.pants_size ? 'secondary' : 'outline'}>
+                    {customer.pants_size || 'Not specified'}
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-sm font-medium mb-1">Necklace Length</p>
-                  <Badge variant={customer.necklace_length ? 'secondary' : 'outline'}>
-                    {customer.necklace_length || 'Not specified'}
+                  <p className="text-sm font-medium mb-1">Shoe Size</p>
+                  <Badge variant={customer.shoe_size ? 'secondary' : 'outline'}>
+                    {customer.shoe_size || 'Not specified'}
                   </Badge>
                 </div>
                 <div>
-                  <p className="text-sm font-medium mb-1">Metal Preference</p>
-                  <Badge variant={customer.metal_preference ? 'secondary' : 'outline'}>
-                    {customer.metal_preference || 'Not specified'}
+                  <p className="text-sm font-medium mb-1">Preferred Style</p>
+                  <Badge variant={customer.preferred_style ? 'secondary' : 'outline'}>
+                    {customer.preferred_style || 'Not specified'}
                   </Badge>
                 </div>
                 <div>

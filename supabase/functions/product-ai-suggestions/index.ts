@@ -3,23 +3,29 @@ import { corsHeaders, handleCors, jsonResponse, errorResponse } from "../_shared
 import { chatCompletion } from "../_shared/openai.ts";
 
 const VALID_CATEGORIES = [
-  'Rings',
-  'Necklaces',
-  'Earrings',
-  'Bracelets',
-  'Watches',
-  'Pendants',
-  'Brooches',
-  'Chains',
-  'Charms',
-  'Cufflinks'
+  'Tops',
+  'T-Shirts',
+  'Shirts',
+  'Blouses',
+  'Dresses',
+  'Skirts',
+  'Trousers',
+  'Jeans',
+  'Shorts',
+  'Jackets',
+  'Coats',
+  'Knitwear',
+  'Activewear',
+  'Shoes',
+  'Bags',
+  'Accessories'
 ];
 
 interface ProductSuggestions {
   category: string | null;
-  metal: string | null;
-  karat: string | null;
-  gemstone: string | null;
+  material: string | null;
+  size: string | null;
+  color: string | null;
 }
 
 serve(async (req) => {
@@ -38,25 +44,31 @@ serve(async (req) => {
       return errorResponse('productName must be at least 3 characters', 400);
     }
 
-    const prompt = `Extract jewellery product attributes from this product name: "${productName}"
+    const prompt = `Extract clothing product attributes from this product name: "${productName}"
 
 Return a JSON object with these fields:
 - category: One of these exact values: ${VALID_CATEGORIES.join(', ')}. Return null if not determinable.
-- metal: The metal type (e.g., "Gold", "White Gold", "Yellow Gold", "Rose Gold", "Silver", "Platinum", "Sterling Silver"). Return null if not found.
-- karat: The karat value if mentioned (e.g., "9ct", "14ct", "18ct", "22ct", "24ct"). Return null if not found.
-- gemstone: The primary gemstone if mentioned (e.g., "Diamond", "Ruby", "Sapphire", "Emerald", "Pearl", "Opal"). Return null if not found.
+- material: The fabric/material type (e.g., "Cotton", "Polyester", "Wool", "Silk", "Linen", "Denim", "Leather", "Nylon", "Cashmere"). Return null if not found.
+- size: The size if mentioned (e.g., "XS", "S", "M", "L", "XL", "XXL", or numeric sizes like "10", "12"). Return null if not found.
+- color: The primary color if mentioned (e.g., "Black", "White", "Navy", "Red", "Blue", "Grey", "Brown", "Green"). Return null if not found.
 
 Category hints:
-- "chain", "rope chain", "curb chain", "figaro" = Chains
-- "ring", "engagement", "wedding band", "signet" = Rings
-- "necklace", "choker", "collar" = Necklaces
-- "bracelet", "bangle", "tennis bracelet" = Bracelets
-- "earring", "studs", "hoops", "drops" = Earrings
-- "pendant", "locket" = Pendants
-- "watch", "timepiece" = Watches
-- "brooch", "pin" = Brooches
-- "charm" = Charms
-- "cufflink" = Cufflinks
+- "t-shirt", "tee" = T-Shirts
+- "shirt", "oxford", "button-down" = Shirts
+- "blouse" = Blouses
+- "top", "cami", "tank" = Tops
+- "dress", "gown", "maxi", "midi" = Dresses
+- "skirt", "mini skirt" = Skirts
+- "trousers", "pants", "chinos" = Trousers
+- "jeans", "denim" = Jeans
+- "shorts" = Shorts
+- "jacket", "blazer" = Jackets
+- "coat", "parka", "overcoat" = Coats
+- "sweater", "jumper", "cardigan", "knit" = Knitwear
+- "hoodie", "leggings", "sports" = Activewear
+- "shoe", "boot", "sneaker", "trainer", "heel", "sandal" = Shoes
+- "bag", "handbag", "tote", "backpack" = Bags
+- "scarf", "hat", "belt", "gloves", "watch" = Accessories
 
 Important rules:
 - Only return values that are explicitly mentioned or clearly implied in the product name
@@ -67,7 +79,7 @@ Important rules:
       [
         {
           role: 'system',
-          content: 'You are a jewellery product classification assistant. Extract attributes from product names and return JSON only.'
+          content: 'You are a clothing product classification assistant. Extract attributes from product names and return JSON only.'
         },
         {
           role: 'user',
@@ -92,9 +104,9 @@ Important rules:
     // Validate and normalize the response
     const suggestions: ProductSuggestions = {
       category: VALID_CATEGORIES.includes(parsed.category) ? parsed.category : null,
-      metal: typeof parsed.metal === 'string' ? parsed.metal : null,
-      karat: typeof parsed.karat === 'string' ? parsed.karat : null,
-      gemstone: typeof parsed.gemstone === 'string' ? parsed.gemstone : null
+      material: typeof parsed.material === 'string' ? parsed.material : null,
+      size: typeof parsed.size === 'string' ? parsed.size : null,
+      color: typeof parsed.color === 'string' ? parsed.color : null
     };
 
     return jsonResponse(suggestions);

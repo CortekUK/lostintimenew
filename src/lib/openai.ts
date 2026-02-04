@@ -2,9 +2,9 @@ import { supabase } from '@/integrations/supabase/client';
 
 export interface ProductSuggestions {
   category: string | null;
-  metal: string | null;
-  karat: string | null;
-  gemstone: string | null;
+  material: string | null;
+  size: string | null;
+  color: string | null;
 }
 
 export async function getProductSuggestions(

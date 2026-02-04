@@ -4,7 +4,6 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { FinancialTab } from '@/components/reports/FinancialTab';
 import { ProductsTab } from '@/components/reports/ProductsTab';
 import { SuppliersTab } from '@/components/reports/SuppliersTab';
-import { PxConsignmentTab } from '@/components/reports/PxConsignmentTab';
 import { StaffCommissionTab } from '@/components/reports/StaffCommissionTab';
 import { BarChart3, Building2, PoundSterling, Package, Coins } from 'lucide-react';
 import { usePermissions } from '@/hooks/usePermissions';
@@ -47,11 +46,6 @@ export default function ConsolidatedReports() {
               <Building2 className="h-4 w-4" />
               Suppliers
             </TabsTrigger>
-            <TabsTrigger value="px-consignment" className="flex items-center gap-2 flex-1 min-w-[100px]">
-              <BarChart3 className="h-4 w-4" />
-              <span className="hidden sm:inline">PX & Consignment</span>
-              <span className="sm:hidden">PX</span>
-            </TabsTrigger>
           </TabsList>
 
           {/* Financial reports - Owner only */}
@@ -76,9 +70,6 @@ export default function ConsolidatedReports() {
             <SuppliersTab />
           </TabsContent>
 
-          <TabsContent value="px-consignment">
-            <PxConsignmentTab />
-          </TabsContent>
         </Tabs>
       </div>
     </AppLayout>

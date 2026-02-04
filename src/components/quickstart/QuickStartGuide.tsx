@@ -19,7 +19,7 @@ interface QuickStartStep {
 
 export function QuickStartGuide() {
   const [dismissed, setDismissed] = useState(() => 
-    localStorage.getItem('jc_quickstart_dismissed') === 'true'
+    localStorage.getItem('sc_quickstart_dismissed') === 'true'
   );
   
   const { userRole } = useAuth();
@@ -49,7 +49,7 @@ export function QuickStartGuide() {
     {
       id: 'products',
       title: 'Add Your Products',
-      description: 'Start building your jewelry inventory catalog',
+      description: 'Start building your clothing inventory catalog',
       completed: products.length > 0,
       action: () => window.location.href = '/products',
       actionText: 'Add Products'
@@ -68,7 +68,7 @@ export function QuickStartGuide() {
   const progress = (completedSteps / steps.length) * 100;
 
   const handleDismiss = () => {
-    localStorage.setItem('jc_quickstart_dismissed', 'true');
+    localStorage.setItem('sc_quickstart_dismissed', 'true');
     setDismissed(true);
   };
 
@@ -86,7 +86,7 @@ export function QuickStartGuide() {
           </Button>
         </div>
         <CardDescription>
-          Get your jewelry store POS system set up in just a few steps
+          Get your clothing store POS system set up in just a few steps
         </CardDescription>
         <Progress value={progress} className="mt-2" />
       </CardHeader>
@@ -135,7 +135,7 @@ export function QuickStartGuide() {
           <div className="mt-4 p-3 rounded-lg bg-success/10 border border-success/20 text-center">
             <CheckCircle2 className="h-6 w-6 text-success mx-auto mb-2" />
             <p className="font-medium text-success">Congratulations!</p>
-            <p className="text-sm text-muted-foreground">Your jewelry store POS is ready to use</p>
+            <p className="text-sm text-muted-foreground">Your clothing store POS is ready to use</p>
           </div>
         )}
       </CardContent>

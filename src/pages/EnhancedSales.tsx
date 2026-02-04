@@ -4,8 +4,6 @@ import { AppLayout } from '@/components/layout/AppLayout';
 import { ShoppingCartComponent } from '@/components/pos/ShoppingCart';
 import { CheckoutForm, DiscountType } from '@/components/pos/CheckoutForm';
 import { DepositCheckoutSection } from '@/components/pos/DepositCheckoutSection';
-import { PartExchangeModal } from '@/components/pos/PartExchangeModal';
-import { EditCartPartExchangeModal } from '@/components/pos/EditCartPartExchangeModal';
 import { SaleConfirmationModal } from '@/components/pos/SaleConfirmationModal';
 import { ProductSearch } from '@/components/pos/ProductSearch';
 import { AddCustomItemModal, CustomItemData } from '@/components/pos/AddCustomItemModal';
@@ -23,7 +21,7 @@ import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { matchOrCreateCustomer } from '@/hooks/useCustomerMatchOrCreate';
 import { useRecordCashMovement } from '@/hooks/useCashDrawer';
 import { useCreateDepositOrder, PaymentMethod as DepositPaymentMethod } from '@/hooks/useDepositOrders';
-import type { CartItem, Product, Sale, PartExchangeItem, CustomCartItem } from '@/types';
+import type { CartItem, Product, Sale, CustomCartItem } from '@/types';
 
 export default function EnhancedSales() {
   const { settings } = useSettings();
@@ -40,7 +38,6 @@ export default function EnhancedSales() {
   const [searchParams, setSearchParams] = useSearchParams();
   
   const [cart, setCart] = useState<CartItem[]>([]);
-  const [partExchanges, setPartExchanges] = useState<PartExchangeItem[]>([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [customerName, setCustomerName] = useState('');
   const [customerEmail, setCustomerEmail] = useState('');
@@ -52,11 +49,8 @@ export default function EnhancedSales() {
   const [notes, setNotes] = useState('');
   const [signature, setSignature] = useState<string | null>(null);
   const [staffMember, setStaffMember] = useState('');
-  const [showPartExchangeModal, setShowPartExchangeModal] = useState(false);
-  const [showEditPxModal, setShowEditPxModal] = useState(false);
-  const [editingPartExchange, setEditingPartExchange] = useState<PartExchangeItem | null>(null);
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
-  const [completedSale, setCompletedSale] = useState<{ sale: any; items: any[]; partExchanges: any[]; signature: string | null } | null>(null);
+  const [completedSale, setCompletedSale] = useState<{ sale: any; items: any[]; signature: string | null } | null>(null);
   const [locationId, setLocationId] = useState<number | null>(null);
   const [depositMode, setDepositMode] = useState(false);
   const [customItems, setCustomItems] = useState<CustomCartItem[]>([]);
@@ -131,11 +125,11 @@ export default function EnhancedSales() {
         setLocationId(firstProduct.location_id);
       }
     }
-    // Clear location when cart and part exchanges are empty
-    if (cart.length === 0 && partExchanges.length === 0) {
+    // Clear location when cart is empty
+    if (cart.length === 0) {
       setLocationId(null);
     }
-  }, [cart, partExchanges.length]);
+  }, [cart]);
 
   // Handle productId from URL (coming from Products page)
   useEffect(() => {
@@ -167,21 +161,6 @@ export default function EnhancedSales() {
     }
   }, [searchParams, products]);
 
-  // Get Customer Trade-In supplier ID
-  const { data: tradeInSupplier } = useQuery({
-    queryKey: ['trade-in-supplier'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('suppliers')
-        .select('id')
-        .eq('name', 'Customer Trade-In')
-        .single();
-      
-      if (error) throw error;
-      return data;
-    }
-  });
-
   // Calculate totals (including custom items for deposit mode)
   const regularSubtotal = cart.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
   const customSubtotal = customItems.reduce((sum, item) => sum + (item.unit_price * item.quantity), 0);
@@ -199,54 +178,6 @@ export default function EnhancedSales() {
   }, 0);
   const customTaxAmount = customItems.reduce((sum, item) => sum + (item.unit_price * item.quantity * (item.tax_rate / 100)), 0);
   const total = subtotal - discountAmount + taxAmount + customTaxAmount;
-  const partExchangeTotal = partExchanges.reduce((sum, px) => sum + px.allowance, 0);
-  const netTotal = total - partExchangeTotal;
-
-  // Part Exchange handlers
-  const addPartExchange = (partExchange: PartExchangeItem) => {
-    setPartExchanges([...partExchanges, partExchange]);
-    
-    // Auto-fill customer details from PX if checkout customer is empty
-    if (!customerName.trim()) {
-      if (partExchange.customer_name) {
-        setCustomerName(partExchange.customer_name);
-      }
-      if (partExchange.customer_email) {
-        setCustomerEmail(partExchange.customer_email);
-      }
-      if (partExchange.customer_phone) {
-        setCustomerPhone(partExchange.customer_phone);
-      }
-      if (partExchange.customer_id) {
-        setSelectedCustomerId(partExchange.customer_id);
-      }
-    }
-    
-    toast({
-      title: 'Part exchange added',
-      description: `${partExchange.product_name} trade-in for ${formatCurrency(partExchange.allowance)}`,
-    });
-  };
-
-  const removePartExchange = (id: string) => {
-    setPartExchanges(partExchanges.filter(px => px.id !== id));
-  };
-
-  const editPartExchange = (id: string) => {
-    const px = partExchanges.find(p => p.id === id);
-    if (px) {
-      setEditingPartExchange(px);
-      setShowEditPxModal(true);
-    }
-  };
-
-  const updatePartExchange = (updated: PartExchangeItem) => {
-    setPartExchanges(partExchanges.map(px => px.id === updated.id ? updated : px));
-    toast({
-      title: 'Trade-in updated',
-      description: `${updated.product_name} - ${formatCurrency(updated.allowance)}`,
-    });
-  };
 
   const addToCart = (product: Product & { stock_on_hand?: number }) => {
     // Check if this product is from a different location than items already in cart
@@ -404,7 +335,7 @@ export default function EnhancedSales() {
         tax_total: taxAmount,
         discount_total: discountAmount,
         total,
-        part_exchange_total: partExchangeTotal,
+        part_exchange_total: 0,
         notes: notes || null,
         customer_id: customerId,
         customer_name: customerName || null,
@@ -459,44 +390,20 @@ export default function EnhancedSales() {
         }
       }
 
-      // Store part exchanges as pending (don't create products yet)
-      if (partExchanges.length > 0) {
-        const pxRecords = partExchanges.map(px => ({
-          sale_id: sale.id,
-          title: px.product_name,
-          category: px.category || null,
-          description: px.description || null,
-          serial: px.serial || null,
-          allowance: px.allowance,
-          customer_name: px.customer_name || null,
-          customer_contact: px.customer_contact || null,
-          customer_supplier_id: px.supplier_id || null,
-          notes: px.notes || null,
-          status: 'pending',
-          product_id: null
-        }));
-
-        const { error: pxError } = await supabase
-          .from('part_exchanges')
-          .insert(pxRecords);
-
-        if (pxError) throw pxError;
-      }
-
       // Record cash drawer movement for cash payments
-      if (paymentMethod === 'cash' && locationId && netTotal > 0) {
+      if (paymentMethod === 'cash' && locationId && total > 0) {
         await recordCashMovement.mutateAsync({
           location_id: locationId,
           movement_type: 'sale_cash_in',
-          amount: netTotal,
+          amount: total,
           reference_sale_id: sale.id,
           notes: `Sale #${sale.id}`,
         });
       }
 
-      return { sale, items: cart, partExchanges, signature };
+      return { sale, items: cart, signature };
     },
-    onSuccess: ({ sale, items, partExchanges: pxItems, signature: sig }) => {
+    onSuccess: ({ sale, items, signature: sig }) => {
       // Invalidate all product-related caches for immediate UI updates
       queryClient.invalidateQueries({ queryKey: ['products-base'] });
       queryClient.invalidateQueries({ queryKey: ['products-with-stock'] });
@@ -505,7 +412,6 @@ export default function EnhancedSales() {
       queryClient.invalidateQueries({ queryKey: ['inventory-values'] });
       
       // Invalidate related data
-      queryClient.invalidateQueries({ queryKey: ['part-exchanges'] });
       queryClient.invalidateQueries({ queryKey: ['consignment-settlements'] });
       queryClient.invalidateQueries({ queryKey: ['consignment-products'] });
       queryClient.invalidateQueries({ queryKey: ['customers'] });
@@ -526,13 +432,11 @@ export default function EnhancedSales() {
           quantity: item.quantity,
           unit_price: item.unit_price
         })), 
-        partExchanges: pxItems,
         signature: sig
       });
 
       // Reset form
       setCart([]);
-      setPartExchanges([]);
       setCustomerName('');
       setCustomerEmail('');
       setCustomerPhone('');
@@ -594,13 +498,6 @@ export default function EnhancedSales() {
         notes: notes || undefined,
         location_id: locationId,
         items: [...regularItems, ...customOrderItems],
-        part_exchanges: partExchanges.map(px => ({
-          product_name: px.product_name,
-          category: px.category,
-          serial: px.serial,
-          allowance: px.allowance,
-          notes: px.notes,
-        })),
         initial_payment: {
           amount: initialPayment,
           payment_method: paymentMethod,
@@ -625,7 +522,6 @@ export default function EnhancedSales() {
       // Reset form
       setCart([]);
       setCustomItems([]);
-      setPartExchanges([]);
       setCustomerName('');
       setCustomerEmail('');
       setCustomerPhone('');
@@ -646,7 +542,7 @@ export default function EnhancedSales() {
   return (
     <AppLayout 
       title="Point of Sale"
-      subtitle="Process sales transactions with part exchange support"
+      subtitle="Process sales and deposit transactions"
     >
       <div className="space-y-6">
         {/* Page-level mode switcher */}
@@ -704,14 +600,10 @@ export default function EnhancedSales() {
             <ShoppingCartComponent
               items={cart}
               customItems={depositMode ? customItems : []}
-              partExchanges={partExchanges}
               onUpdateQuantity={updateQuantity}
               onRemoveItem={removeFromCart}
               onUpdateCustomQuantity={updateCustomQuantity}
               onRemoveCustomItem={removeCustomItem}
-              onRemovePartExchange={removePartExchange}
-              onEditPartExchange={editPartExchange}
-              onAddPartExchange={() => setShowPartExchangeModal(true)}
               onAddCustomItem={() => setShowCustomItemModal(true)}
               onUpdateItemPrice={updateItemPrice}
               discount={depositMode ? 0 : discount}
@@ -726,7 +618,6 @@ export default function EnhancedSales() {
               <DepositCheckoutSection
                 items={cart}
                 customItems={customItems}
-                partExchanges={partExchanges}
                 customerName={customerName}
                 onCustomerNameChange={setCustomerName}
                 customerEmail={customerEmail}
@@ -753,7 +644,6 @@ export default function EnhancedSales() {
             ) : (
             <CheckoutForm
                 items={cart}
-                partExchanges={partExchanges}
                 discount={discount}
                 discountType={discountType}
                 onDiscountChange={setDiscount}
@@ -777,7 +667,7 @@ export default function EnhancedSales() {
                 onPaymentMethodChange={setPaymentMethod}
                 onCompleteSale={() => completeSaleMutation.mutate()}
                 isProcessing={completeSaleMutation.isPending}
-                requiresOwnerApproval={netTotal < 0 && !isManagerOrAbove}
+                requiresOwnerApproval={total < 0 && !isManagerOrAbove}
                 signature={signature}
                 onSignatureChange={setSignature}
                 staffMember={staffMember}
@@ -792,19 +682,6 @@ export default function EnhancedSales() {
         </div>
 
         {/* Modals */}
-        <PartExchangeModal
-          isOpen={showPartExchangeModal}
-          onClose={() => setShowPartExchangeModal(false)}
-          onAdd={addPartExchange}
-        />
-
-        <EditCartPartExchangeModal
-          open={showEditPxModal}
-          onOpenChange={setShowEditPxModal}
-          partExchange={editingPartExchange}
-          onSave={updatePartExchange}
-        />
-
         <AddCustomItemModal
           open={showCustomItemModal}
           onOpenChange={setShowCustomItemModal}
@@ -820,7 +697,6 @@ export default function EnhancedSales() {
             }}
             sale={completedSale.sale}
             items={completedSale.items}
-            partExchanges={completedSale.partExchanges}
             signature={completedSale.signature}
             onPrint={() => {}} // Modal handles this internally
             onEmailReceipt={customerEmail ? () => {} : undefined} // Modal handles this internally

@@ -48,9 +48,9 @@ export function SaleReceipt({ sale, items, partExchanges = [], customerName, onC
       <CardContent className="space-y-4">
         {/* Business Header */}
         <div className="text-center">
-          <h2 className="font-bold text-lg">Sourced Jewellers</h2>
+          <h2 className="font-bold text-lg">Sourced Clothing</h2>
           <p className="text-sm text-muted-foreground">
-            Fine Jewelry & Custom Designs
+            Premium Fashion & Apparel
           </p>
         </div>
         

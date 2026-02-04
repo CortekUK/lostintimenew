@@ -145,7 +145,7 @@ function parseCSVLine(line: string): string[] {
 
 // Product-specific CSV utilities
 export const productCSVHeaders = [
-  'sku', 'name', 'category', 'metal', 'karat', 'gemstone', 
+  'sku', 'name', 'category', 'material', 'size', 'color', 
   'supplier_name', 'unit_cost', 'unit_price', 'tax_rate', 'track_stock'
 ];
 
@@ -251,7 +251,7 @@ export function exportSoldItemsCSV(soldItemsData: any[], filename: string = 'sol
     sku: item.products?.sku || '',
     supplier_name: item.products?.supplier?.name || '',
     category: item.products?.category || '',
-    metal: item.products?.metal || '',
+    material: item.products?.material || '',
     qty: item.quantity,
     unit_price: formatCurrency(Number(item.unit_price) || 0),
     discount: formatCurrency(Number(item.discount) || 0),
@@ -265,7 +265,7 @@ export function exportSoldItemsCSV(soldItemsData: any[], filename: string = 'sol
 
   const headers = [
     'sold_at', 'sale_id', 'sale_item_id', 'product_id', 'product_name', 'internal_sku', 'sku', 
-    'supplier_name', 'category', 'metal', 'qty', 'unit_price', 'discount', 'line_revenue', 
+    'supplier_name', 'category', 'material', 'qty', 'unit_price', 'discount', 'line_revenue', 
     'line_cogs', 'line_gross_profit', 'staff_name', 'is_trade_in', 'is_consignment'
   ];
 

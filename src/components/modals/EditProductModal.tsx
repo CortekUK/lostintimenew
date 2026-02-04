@@ -16,9 +16,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { useCreateProduct, useUpdateProduct, useDeleteProduct, useSuppliers, useStockAdjustment } from '@/hooks/useDatabase';
 import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { useLocations } from '@/hooks/useLocations';
+import { useBrands } from '@/hooks/useBrands';
+import { useAllProductCategories, useAddCustomProductCategory } from '@/hooks/useProductCategories';
 import { useDocumentUpload } from '@/hooks/useProductDocuments';
-import { usePartExchangesByProduct } from '@/hooks/usePartExchanges';
-import { useProductTradeInStatus } from '@/hooks/useProductTradeInStatus';
 import { useToast } from '@/hooks/use-toast';
 import { Product, DocumentType } from '@/types';
 import {
@@ -39,7 +39,11 @@ import {
   MapPin,
   Search,
   Check,
-  UserPlus
+  UserPlus,
+  Tag,
+  Star,
+  Shield,
+  X
 } from 'lucide-react';
 import { MultiImageUpload } from '@/components/ui/multi-image-upload';
 import { DocumentUpload } from '@/components/ui/document-upload';
@@ -65,6 +69,11 @@ interface EditProductModalProps {
 export function EditProductModal({ product, open, onOpenChange }: EditProductModalProps) {
   const { data: suppliers } = useSuppliers();
   const { data: locations } = useLocations();
+  const { data: brands } = useBrands();
+  const { all: allCategories } = useAllProductCategories();
+  const addCategoryMutation = useAddCustomProductCategory();
+  const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState('');
   const createProduct = useCreateProduct();
   const updateProduct = useUpdateProduct();
   const deleteProduct = useDeleteProduct();
@@ -93,10 +102,6 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
   const registeredSuppliers = suppliers?.filter(s => s.supplier_type === 'registered') || [];
   const individualSuppliers = suppliers?.filter(s => s.supplier_type === 'customer') || [];
   
-  // Fetch related data for trade-in products
-  const { data: partExchangeData } = usePartExchangesByProduct(product?.id || 0);
-  const { data: isTradeIn } = useProductTradeInStatus(product?.id || 0);
-  
   const isEditMode = !!product;
   
   const [formData, setFormData] = useState({
@@ -104,9 +109,15 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
     barcode: '',
     description: '',
     category: '',
-    metal: '',
-    karat: '',
-    gemstone: '',
+    material: '',
+    size: '',
+    color: '',
+    brand_id: '',
+    condition_grade: '',
+    condition_notes: '',
+    authentication_status: 'not_required' as 'not_required' | 'pending' | 'authenticated' | 'failed',
+    authentication_provider: '',
+    authentication_date: '',
     supplier_type: 'registered' as 'registered' | 'individual',
     supplier_id: '',
     individual_name: '',
@@ -123,7 +134,9 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
     consignment_terms: '',
     consignment_start_date: '',
     consignment_end_date: '',
-    purchase_date: ''
+    purchase_date: '',
+    style_tags: [] as string[],
+    rrp: ''
   });
   
   const [documents, setDocuments] = useState<DocumentUploadItem[]>([]);
@@ -141,9 +154,15 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
         barcode: (product as any).barcode || '',
         description: cleanedDescription || '',
         category: product.category || '',
-        metal: product.metal || '',
-        karat: product.karat || '',
-        gemstone: product.gemstone || '',
+        material: product.material || '',
+        size: product.size || '',
+        color: product.color || '',
+        brand_id: (product as any).brand_id?.toString() || '',
+        condition_grade: (product as any).condition_grade || '',
+        condition_notes: (product as any).condition_notes || '',
+        authentication_status: (product as any).authentication_status || 'not_required',
+        authentication_provider: (product as any).authentication_provider || '',
+        authentication_date: (product as any).authentication_date || '',
         supplier_type: isIndividual ? 'individual' : 'registered',
         supplier_id: product.supplier_id?.toString() || '',
         individual_name: individualName || '',
@@ -160,7 +179,9 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
         consignment_terms: (product as any).consignment_terms || '',
         consignment_start_date: (product as any).consignment_start_date || '',
         consignment_end_date: (product as any).consignment_end_date || '',
-        purchase_date: (product as any).purchase_date || ''
+        purchase_date: (product as any).purchase_date || '',
+        style_tags: (product as any).style_tags || [],
+        rrp: (product as any).rrp?.toString() || ''
       });
       
       // Load images array, falling back to single image_url for backwards compatibility
@@ -179,9 +200,15 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
         barcode: '',
         description: '',
         category: '',
-        metal: '',
-        karat: '',
-        gemstone: '',
+        material: '',
+        size: '',
+        color: '',
+        brand_id: '',
+        condition_grade: '',
+        condition_notes: '',
+        authentication_status: 'not_required',
+        authentication_provider: '',
+        authentication_date: '',
         supplier_type: 'registered',
         supplier_id: '',
         individual_name: '',
@@ -198,7 +225,9 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
         consignment_terms: '',
         consignment_start_date: '',
         consignment_end_date: '',
-        purchase_date: ''
+        purchase_date: '',
+        style_tags: [],
+        rrp: ''
       });
       setDocuments([]);
       setImages([]);
@@ -216,16 +245,6 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
       return;
     }
     
-    // Validate supplier for non-trade-in products
-    if (formData.supplier_type === 'registered' && !formData.supplier_id) {
-      toast({
-        title: "Validation Error",
-        description: "Please select a supplier.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     try {
       // Create new product
       const hasRegistrationDoc = documents.some(doc => doc.doc_type === 'registration');
@@ -237,9 +256,15 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
           `Individual: ${formData.individual_name}${formData.description ? `\n${formData.description.trim()}` : ''}` :
           formData.description.trim() || null,
         category: formData.category || null,
-        metal: formData.metal.trim() || null,
-        karat: formData.karat.trim() || null,
-        gemstone: formData.gemstone.trim() || null,
+        material: formData.material.trim() || null,
+        size: formData.size.trim() || null,
+        color: formData.color.trim() || null,
+        brand_id: formData.brand_id ? parseInt(formData.brand_id) : null,
+        condition_grade: formData.condition_grade && formData.condition_grade.trim() ? formData.condition_grade.trim() : null,
+        condition_notes: formData.condition_notes?.trim() || null,
+        authentication_status: formData.authentication_status || 'not_required',
+        authentication_provider: formData.authentication_provider?.trim() || null,
+        authentication_date: formData.authentication_date || null,
         supplier_id: formData.supplier_type === 'registered' && formData.supplier_id ? parseInt(formData.supplier_id) : null,
         location_id: formData.location_id ? parseInt(formData.location_id) : null,
         unit_cost: parseFloat(formData.unit_cost) || 0,
@@ -253,7 +278,10 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
         consignment_supplier_id: formData.is_consignment ? formData.consignment_supplier_id : null,
         consignment_start_date: formData.is_consignment ? formData.consignment_start_date || null : null,
         consignment_end_date: formData.is_consignment ? formData.consignment_end_date || null : null,
-        consignment_terms: formData.is_consignment ? formData.consignment_terms || null : null
+        consignment_terms: formData.is_consignment ? formData.consignment_terms || null : null,
+        purchase_date: formData.purchase_date || null,
+        style_tags: formData.style_tags.length > 0 ? formData.style_tags : null,
+        rrp: formData.rrp ? parseFloat(formData.rrp) : null
       });
 
       // Upload documents if any
@@ -289,6 +317,7 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
       
       onOpenChange(false);
     } catch (error: any) {
+      console.error('Error creating product:', error);
       let errorMessage = "Failed to create product. Please try again.";
       
       // Check for duplicate constraint errors
@@ -298,6 +327,11 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
         } else if (error?.message?.includes('sku_key')) {
           errorMessage = "This SKU already exists. Please use a different SKU.";
         }
+      }
+      
+      // Show actual error in development
+      if (error?.message) {
+        errorMessage = `${errorMessage}\n\nDetails: ${error.message}`;
       }
       
       toast({
@@ -354,16 +388,6 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
       return;
     }
     
-    // Skip supplier validation for trade-in products
-    if (!isTradeIn && formData.supplier_type === 'registered' && !formData.supplier_id) {
-      toast({
-        title: "Validation Error",
-        description: "Please select a supplier.",
-        variant: "destructive"
-      });
-      return;
-    }
-    
     try {
       if (isEditMode && product) {
         // Update existing product
@@ -376,9 +400,15 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
               `Individual: ${formData.individual_name}${formData.description ? `\n${formData.description.trim()}` : ''}` :
               formData.description.trim() || null,
             category: formData.category || null,
-            metal: formData.metal.trim() || null,
-            karat: formData.karat.trim() || null,
-            gemstone: formData.gemstone.trim() || null,
+            material: formData.material.trim() || null,
+            size: formData.size.trim() || null,
+            color: formData.color.trim() || null,
+            brand_id: formData.brand_id ? parseInt(formData.brand_id) : null,
+            condition_grade: formData.condition_grade && formData.condition_grade.trim() ? formData.condition_grade.trim() : null,
+            condition_notes: formData.condition_notes?.trim() || null,
+            authentication_status: formData.authentication_status || 'not_required',
+            authentication_provider: formData.authentication_provider?.trim() || null,
+            authentication_date: formData.authentication_date || null,
             supplier_id: formData.supplier_type === 'registered' && formData.supplier_id ? parseInt(formData.supplier_id) : null,
             location_id: formData.location_id ? parseInt(formData.location_id) : null,
             unit_cost: parseFloat(formData.unit_cost) || 0,
@@ -392,7 +422,9 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
             consignment_start_date: formData.is_consignment ? formData.consignment_start_date || null : null,
             consignment_end_date: formData.is_consignment ? formData.consignment_end_date || null : null,
             consignment_terms: formData.is_consignment ? formData.consignment_terms || null : null,
-            purchase_date: formData.purchase_date || null
+            purchase_date: formData.purchase_date || null,
+            style_tags: formData.style_tags.length > 0 ? formData.style_tags : null,
+            rrp: formData.rrp ? parseFloat(formData.rrp) : null
           }
         });
         
@@ -484,20 +516,15 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
                   Consignment
                 </Badge>
               )}
-              {isTradeIn && (
-                <Badge variant="outline" className="border-blue-200 text-blue-700 bg-blue-50">
-                  Part Exchange
-                </Badge>
-              )}
             </div>
           </div>
         </DialogHeader>
         
         <form onSubmit={handleSubmit} className="space-y-6">
-          <Accordion type="multiple" defaultValue={["basics", "ownership", "financials"]} className="w-full space-y-4">
+          <Accordion type="multiple" defaultValue={["basics", "brand-condition", "financials", "media"]} className="w-full space-y-4">
             
             {/* Basic Details Section */}
-            <AccordionItem value="basics" className="border border-border rounded-lg px-8">
+            <AccordionItem value="basics" className="border border-border rounded-lg px-3 sm:px-6">
               <AccordionTrigger className="hover:no-underline">
                 <div className="flex items-center space-x-3">
                   <Package className="h-5 w-5 text-primary" />
@@ -505,17 +532,56 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
                 </div>
               </AccordionTrigger>
               <AccordionContent className="space-y-6 pt-4 pb-6 px-1.5">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Product Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    placeholder="Enter product name"
-                    required
-                  />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
+                  <div className="space-y-2">
+                    <Label htmlFor="name" className="text-primary font-medium">Product Name *</Label>
+                    <Input
+                      id="name"
+                      value={formData.name}
+                      onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      placeholder="Chanel Classic Flap Bag..."
+                      required
+                      className="focus:border-primary"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="barcode">Serial Number</Label>
+                    <Input 
+                      id="barcode" 
+                      placeholder="External serial number (optional)"
+                      value={formData.barcode}
+                      onChange={(e) => setFormData({...formData, barcode: e.target.value})}
+                    />
+                    <p className="text-xs text-muted-foreground">
+                      Optional but recommended for tracking
+                    </p>
+                  </div>
                 </div>
                 
+                {/* SKU Display */}
+                <div className="p-4 bg-primary/5 border border-primary/20 rounded-lg">
+                  <p className="text-sm">
+                    <span className="text-muted-foreground">Internal SKU: </span>
+                    <span className="font-luxury text-primary font-medium">{(product as any)?.internal_sku || 'Auto-generated'}</span>
+                  </p>
+                </div>
+                
+                {/* Purchase Date */}
+                <div className="space-y-2">
+                  <Label>Purchase Date</Label>
+                  <Input
+                    type="date"
+                    value={formData.purchase_date}
+                    onChange={(e) => setFormData({...formData, purchase_date: e.target.value})}
+                    max={new Date().toISOString().split('T')[0]}
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Date this item was purchased or acquired
+                  </p>
+                </div>
+                
+                {/* Description */}
                 <div className="space-y-2">
                   <Label htmlFor="description">Description</Label>
                   <Textarea
@@ -530,7 +596,7 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
             </AccordionItem>
             
             {/* Ownership Source Section */}
-            <AccordionItem value="ownership" className="border border-border rounded-lg px-8">
+            <AccordionItem value="ownership" className="border border-border rounded-lg px-3 sm:px-6">
               <AccordionTrigger className="hover:no-underline">
                 <div className="flex items-center space-x-3">
                   <Users className="h-5 w-5 text-primary" />
@@ -538,45 +604,7 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
                 </div>
               </AccordionTrigger>
               <AccordionContent className="space-y-6 pt-4 pb-6 px-1.5">
-                {isTradeIn && partExchangeData ? (
-                  // Part Exchange Customer Details
-                  <div className="p-6 bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg">
-                    <div className="flex items-center gap-3 mb-4">
-                      <User className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                      <h4 className="font-luxury text-lg text-blue-900 dark:text-blue-200">Part Exchange Customer</h4>
-                    </div>
-                    <div className="space-y-3">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-sm font-medium">Customer Name</Label>
-                          <p className="font-medium">{partExchangeData.customer_name || 'Not specified'}</p>
-                        </div>
-                        <div>
-                          <Label className="text-sm font-medium">Contact</Label>
-                          <p>{partExchangeData.customer_contact || 'Not provided'}</p>
-                        </div>
-                      </div>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div>
-                          <Label className="text-sm font-medium">Allowance</Label>
-                          <p className="font-luxury text-lg font-semibold text-primary">
-                            {formatCurrency(partExchangeData.allowance)}
-                          </p>
-                        </div>
-                        <div>
-                          <Label className="text-sm font-medium">Trade-in Date</Label>
-                          <p>{partExchangeData.created_at ? new Date(partExchangeData.created_at).toLocaleDateString() : 'Not recorded'}</p>
-                        </div>
-                      </div>
-                      {partExchangeData.notes && (
-                        <div>
-                          <Label className="text-sm font-medium">Notes</Label>
-                          <p className="text-sm text-muted-foreground">{partExchangeData.notes}</p>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                ) : (product as any).is_consignment ? (
+                {(product as any).is_consignment ? (
                   // Consignment Supplier Details
                   <div className="p-6 bg-warning/5 border border-warning/20 rounded-lg">
                     <div className="flex items-center gap-3 mb-4">
@@ -855,7 +883,7 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
             </AccordionItem>
 
             {/* Specifications */}
-            <AccordionItem value="specifications" className="border border-border rounded-lg px-8">
+            <AccordionItem value="specifications" className="border border-border rounded-lg px-3 sm:px-6">
               <AccordionTrigger className="hover:no-underline">
                 <div className="flex items-center space-x-3">
                   <Settings className="h-5 w-5 text-primary" />
@@ -865,85 +893,150 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
               <AccordionContent className="space-y-6 pt-4 pb-6 px-1.5">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   <div className="space-y-2">
-                    <Label htmlFor="name" className="text-primary font-medium">Product Name *</Label>
-                    <Input 
-                      id="name" 
-                      placeholder="Diamond Solitaire Ring..."
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                      required 
-                      className="focus:border-primary"
-                    />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="barcode">Serial Number</Label>
-                    <Input 
-                      id="barcode" 
-                      placeholder="External serial number (optional)"
-                      value={formData.barcode}
-                      onChange={(e) => setFormData({...formData, barcode: e.target.value})}
-                    />
-                  </div>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
-                  <div className="space-y-2">
                     <Label>Category</Label>
-                    <Select value={formData.category} onValueChange={(value) => setFormData({...formData, category: value})}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Rings">Rings</SelectItem>
-                        <SelectItem value="Necklaces">Necklaces</SelectItem>
-                        <SelectItem value="Earrings">Earrings</SelectItem>
-                        <SelectItem value="Bracelets">Bracelets</SelectItem>
-                        <SelectItem value="Watches">Watches</SelectItem>
-                      </SelectContent>
-                    </Select>
+                    {!showNewCategoryInput ? (
+                      <div className="space-y-2">
+                        <Select value={formData.category} onValueChange={(value) => {
+                          if (value === '__add_new__') {
+                            setShowNewCategoryInput(true);
+                          } else {
+                            setFormData({...formData, category: value});
+                          }
+                        }}>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select category" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {allCategories.map((category) => (
+                              <SelectItem key={category} value={category}>{category}</SelectItem>
+                            ))}
+                            <SelectItem value="__add_new__" className="text-primary font-medium">
+                              <span className="flex items-center gap-1">
+                                <Plus className="h-3 w-3" />
+                                Add new category...
+                              </span>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-2">
+                        <Input
+                          placeholder="Enter new category name"
+                          value={newCategoryName}
+                          onChange={(e) => setNewCategoryName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter') {
+                              e.preventDefault();
+                              if (newCategoryName.trim()) {
+                                addCategoryMutation.mutate(newCategoryName, {
+                                  onSuccess: (category) => {
+                                    setFormData({...formData, category});
+                                    setNewCategoryName('');
+                                    setShowNewCategoryInput(false);
+                                  }
+                                });
+                              }
+                            } else if (e.key === 'Escape') {
+                              setNewCategoryName('');
+                              setShowNewCategoryInput(false);
+                            }
+                          }}
+                          autoFocus
+                        />
+                        <Button
+                          type="button"
+                          size="sm"
+                          disabled={!newCategoryName.trim() || addCategoryMutation.isPending}
+                          onClick={() => {
+                            if (newCategoryName.trim()) {
+                              addCategoryMutation.mutate(newCategoryName, {
+                                onSuccess: (category) => {
+                                  setFormData({...formData, category});
+                                  setNewCategoryName('');
+                                  setShowNewCategoryInput(false);
+                                }
+                              });
+                            }
+                          }}
+                        >
+                          {addCategoryMutation.isPending ? (
+                            <Loader2 className="h-4 w-4 animate-spin" />
+                          ) : (
+                            <Plus className="h-4 w-4" />
+                          )}
+                        </Button>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setNewCategoryName('');
+                            setShowNewCategoryInput(false);
+                          }}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    )}
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>Metal</Label>
+                    <Label>Material</Label>
                     <Input 
-                      placeholder="Gold, Silver, Platinum..." 
-                      value={formData.metal}
-                      onChange={(e) => setFormData({...formData, metal: e.target.value})}
+                      placeholder="Cotton, Polyester, Wool..." 
+                      value={formData.material}
+                      onChange={(e) => setFormData({...formData, material: e.target.value})}
                     />
                   </div>
                 </div>
                 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
                   <div className="space-y-2">
-                    <Label>Karat/Purity</Label>
+                    <Label>Size</Label>
                     <Input 
-                      placeholder="9ct, 18ct, 24ct..." 
-                      value={formData.karat}
-                      onChange={(e) => setFormData({...formData, karat: e.target.value})}
+                      placeholder="XS, S, M, L, XL..." 
+                      value={formData.size}
+                      onChange={(e) => setFormData({...formData, size: e.target.value})}
                     />
                   </div>
                   
                   <div className="space-y-2">
-                    <Label>Gemstone</Label>
+                    <Label>Color</Label>
                     <Input 
-                      placeholder="Diamond, Ruby, Sapphire..." 
-                      value={formData.gemstone}
-                      onChange={(e) => setFormData({...formData, gemstone: e.target.value})}
+                      placeholder="Black, Navy, Red..." 
+                      value={formData.color}
+                      onChange={(e) => setFormData({...formData, color: e.target.value})}
                     />
                   </div>
                 </div>
-                
+
+                {/* Style Tags */}
                 <div className="space-y-2">
-                  <Label>Purchase Date</Label>
-                  <Input
-                    type="date"
-                    value={formData.purchase_date}
-                    onChange={(e) => setFormData({...formData, purchase_date: e.target.value})}
-                    max={new Date().toISOString().split('T')[0]}
-                  />
+                  <Label>Style Tags</Label>
+                  <div className="flex flex-wrap gap-2">
+                    {['Casual', 'Formal', 'Vintage', 'Streetwear', 'Boho', 'Minimalist', 'Classic', 'Avant-garde', 'Athleisure', 'Evening'].map((tag) => (
+                      <Button
+                        key={tag}
+                        type="button"
+                        variant={formData.style_tags.includes(tag) ? "default" : "outline"}
+                        size="sm"
+                        className={formData.style_tags.includes(tag) ? "bg-primary" : ""}
+                        onClick={() => {
+                          setFormData(prev => ({
+                            ...prev,
+                            style_tags: prev.style_tags.includes(tag)
+                              ? prev.style_tags.filter(t => t !== tag)
+                              : [...prev.style_tags, tag]
+                          }));
+                        }}
+                      >
+                        {tag}
+                      </Button>
+                    ))}
+                  </div>
                   <p className="text-xs text-muted-foreground">
-                    Date this item was purchased or acquired
+                    Select style tags that describe this item
                   </p>
                 </div>
 
@@ -967,21 +1060,181 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
                     </Select>
                   </div>
                 )}
+              </AccordionContent>
+            </AccordionItem>
 
+            {/* Brand & Condition */}
+            <AccordionItem value="brand-condition" className="border border-border rounded-lg px-3 sm:px-6">
+              <AccordionTrigger className="hover:no-underline">
+                <div className="flex items-center space-x-3">
+                  <Tag className="h-5 w-5 text-primary" />
+                  <span className="font-luxury text-lg">Brand & Condition</span>
+                </div>
+              </AccordionTrigger>
+              <AccordionContent className="space-y-6 pt-4 pb-6 px-1.5">
+                {/* Brand Selection */}
                 <div className="space-y-2">
-                  <Label>Description</Label>
+                  <Label className="flex items-center gap-2">
+                    <Star className="h-4 w-4 text-amber-500" />
+                    Brand / Designer
+                  </Label>
+                  <Select 
+                    value={formData.brand_id} 
+                    onValueChange={(value) => setFormData({...formData, brand_id: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select brand (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {/* Group brands by tier */}
+                      {brands && brands.filter(b => b.tier === 'luxury').length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">Luxury</div>
+                          {brands.filter(b => b.tier === 'luxury').map((brand) => (
+                            <SelectItem key={brand.id} value={brand.id.toString()}>
+                              {brand.name}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {brands && brands.filter(b => b.tier === 'premium').length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">Premium</div>
+                          {brands.filter(b => b.tier === 'premium').map((brand) => (
+                            <SelectItem key={brand.id} value={brand.id.toString()}>
+                              {brand.name}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {brands && brands.filter(b => b.tier === 'contemporary').length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">Contemporary</div>
+                          {brands.filter(b => b.tier === 'contemporary').map((brand) => (
+                            <SelectItem key={brand.id} value={brand.id.toString()}>
+                              {brand.name}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {brands && brands.filter(b => b.tier === 'high_street').length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">High Street</div>
+                          {brands.filter(b => b.tier === 'high_street').map((brand) => (
+                            <SelectItem key={brand.id} value={brand.id.toString()}>
+                              {brand.name}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                      {brands && brands.filter(b => !b.tier).length > 0 && (
+                        <>
+                          <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">Other</div>
+                          {brands.filter(b => !b.tier).map((brand) => (
+                            <SelectItem key={brand.id} value={brand.id.toString()}>
+                              {brand.name}
+                            </SelectItem>
+                          ))}
+                        </>
+                      )}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {/* Condition Grade */}
+                <div className="space-y-3">
+                  <Label>Condition Grade</Label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: 'new_with_tags', label: 'New with Tags', color: 'border-green-500 bg-green-500/10 text-green-700 dark:text-green-400' },
+                    { value: 'excellent', label: 'Excellent', color: 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' },
+                    { value: 'very_good', label: 'Very Good', color: 'border-blue-500 bg-blue-500/10 text-blue-700 dark:text-blue-400' },
+                    { value: 'good', label: 'Good', color: 'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-400' },
+                    { value: 'fair', label: 'Fair', color: 'border-orange-500 bg-orange-500/10 text-orange-700 dark:text-orange-400' }
+                  ].map((grade) => (
+                      <button
+                        key={grade.value}
+                        type="button"
+                        onClick={() => setFormData({...formData, condition_grade: grade.value})}
+                        className={cn(
+                          "px-3 py-1.5 text-sm rounded-full border-2 transition-all",
+                          formData.condition_grade === grade.value
+                            ? grade.color
+                            : "border-border bg-transparent text-muted-foreground hover:border-muted-foreground/50"
+                        )}
+                      >
+                        {grade.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Condition Notes */}
+                <div className="space-y-2">
+                  <Label>Condition Notes</Label>
                   <Textarea
-                    placeholder="Detailed product description..." 
-                    value={formData.description}
-                    onChange={(e) => setFormData({...formData, description: e.target.value})}
-                    rows={3}
+                    placeholder="Note any flaws, wear, alterations..."
+                    value={formData.condition_notes}
+                    onChange={(e) => setFormData({...formData, condition_notes: e.target.value})}
+                    rows={2}
                   />
+                </div>
+
+                {/* Authentication */}
+                <Separator />
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <Shield className="h-4 w-4 text-primary" />
+                    <Label className="text-base font-medium">Authentication</Label>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label>Authentication Status</Label>
+                    <Select 
+                      value={formData.authentication_status} 
+                      onValueChange={(value: 'not_required' | 'pending' | 'authenticated' | 'failed') => 
+                        setFormData({...formData, authentication_status: value})
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="not_required">Not Required</SelectItem>
+                        <SelectItem value="pending">Pending Verification</SelectItem>
+                        <SelectItem value="authenticated">Authenticated</SelectItem>
+                        <SelectItem value="failed">Failed Authentication</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {formData.authentication_status !== 'not_required' && (
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label>Authentication Provider</Label>
+                        <Input
+                          placeholder="Entrupy, Real Authentication..."
+                          value={formData.authentication_provider}
+                          onChange={(e) => setFormData({...formData, authentication_provider: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label>Authentication Date</Label>
+                        <Input
+                          type="date"
+                          value={formData.authentication_date}
+                          onChange={(e) => setFormData({...formData, authentication_date: e.target.value})}
+                          max={new Date().toISOString().split('T')[0]}
+                        />
+                      </div>
+                    </div>
+                  )}
                 </div>
               </AccordionContent>
             </AccordionItem>
 
             {/* Financials */}
-            <AccordionItem value="financials" className="border border-border rounded-lg px-8">
+            <AccordionItem value="financials" className="border border-border rounded-lg px-3 sm:px-6">
               <AccordionTrigger className="hover:no-underline">
                 <div className="flex items-center space-x-3">
                   <PoundSterling className="h-5 w-5 text-primary" />
@@ -1018,24 +1271,37 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
                     />
                   </div>
                 </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="rrp" className="text-muted-foreground">Original RRP (Optional)</Label>
+                  <Input 
+                    id="rrp"
+                    type="number"
+                    step="1" min="0"
+                    placeholder="Original retail price" 
+                    value={formData.rrp}
+                    onChange={(e) => setFormData({...formData, rrp: e.target.value})}
+                    className="focus:border-primary"
+                  />
+                </div>
                 
                 {/* Profit Display */}
                 {(formData.unit_cost || formData.unit_price) && (
-                  <div className="p-6 bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg">
-                    <div className="flex items-center space-x-3">
-                      <TrendingUp className={cn(
-                        "h-6 w-6",
+                  <div className="flex items-center justify-between py-3 px-4 bg-muted/30 rounded-lg border border-border">
+                    <span className="text-sm text-muted-foreground">Profit</span>
+                    <div className="flex items-center gap-3">
+                      <span className={cn(
+                        "font-medium",
                         profit >= 0 ? "text-green-600" : "text-red-500"
-                      )} />
-                      <div>
-                        <p className="text-sm text-muted-foreground">Calculated Profit</p>
-                        <p className={cn(
-                          "font-luxury text-2xl font-semibold",
-                          profit >= 0 ? "text-green-600" : "text-red-500"
-                        )}>
-                          £{profit.toFixed(2)} ({markup.toFixed(1)}% markup)
-                        </p>
-                      </div>
+                      )}>
+                        £{profit.toFixed(2)}
+                      </span>
+                      <span className={cn(
+                        "text-xs px-2 py-0.5 rounded-full",
+                        profit >= 0 ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-500"
+                      )}>
+                        {markup.toFixed(1)}% markup
+                      </span>
                     </div>
                   </div>
                 )}
@@ -1043,7 +1309,7 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
             </AccordionItem>
 
             {/* Stock Management */}
-            <AccordionItem value="stock" className="border border-border rounded-lg px-8">
+            <AccordionItem value="stock" className="border border-border rounded-lg px-3 sm:px-6">
               <AccordionTrigger className="hover:no-underline">
                 <div className="flex items-center space-x-3">
                   <Archive className="h-5 w-5 text-primary" />
@@ -1085,7 +1351,7 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
             </AccordionItem>
 
             {/* Documents & Media */}
-            <AccordionItem value="media" className="border border-border rounded-lg px-8">
+            <AccordionItem value="media" className="border border-border rounded-lg px-3 sm:px-6">
               <AccordionTrigger className="hover:no-underline">
                 <div className="flex items-center space-x-3">
                   <ImageIcon className="h-5 w-5 text-primary" />
@@ -1106,12 +1372,12 @@ export function EditProductModal({ product, open, onOpenChange }: EditProductMod
 
                 <Separator />
 
-                {/* Registration Document */}
+                {/* Authentication Certificate */}
                 <div className="space-y-4">
                   <div className="flex items-center justify-between">
                     <div>
-                      <Label className="text-base font-medium">Registered Watch</Label>
-                      <p className="text-sm text-muted-foreground">Enable for watches with registration papers</p>
+                      <Label className="text-base font-medium">Authentication Certificate</Label>
+                      <p className="text-sm text-muted-foreground">Enable for items with authentication documents</p>
                     </div>
                     <Switch
                       checked={formData.is_registered}

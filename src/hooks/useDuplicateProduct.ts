@@ -21,7 +21,6 @@ export interface DuplicateProductOptions {
     documents: boolean;
     registration_docs: boolean;
     consignment: boolean;
-    part_exchange: boolean;
   };
   afterAction?: 'stay' | 'open';
 }
@@ -82,9 +81,9 @@ export const useDuplicateProduct = () => {
         
         // Copy specification fields
         category: sourceProduct.category,
-        metal: sourceProduct.metal,
-        karat: sourceProduct.karat,
-        gemstone: sourceProduct.gemstone,
+        material: sourceProduct.material,
+        size: sourceProduct.size,
+        color: sourceProduct.color,
         
         // Copy optional fields based on options
         description: options.copyOptions.description ? sourceProduct.description : null,
@@ -111,8 +110,7 @@ export const useDuplicateProduct = () => {
         consignment_start_date: null, // Always reset dates
         consignment_end_date: null,
         
-        // Part exchange - clear customer info
-        is_trade_in: options.copyOptions.part_exchange ? sourceProduct.is_trade_in : false,
+        is_trade_in: false,
       };
 
       // Handle SKU generation

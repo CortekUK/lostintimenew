@@ -41,7 +41,6 @@ export function DuplicateProductModal({ product, open, onOpenChange, onSuccess }
   const [copyDocuments, setCopyDocuments] = useState(true);
   const [copyRegistrationDocs, setCopyRegistrationDocs] = useState(false);
   const [copyConsignment, setCopyConsignment] = useState(false);
-  const [copyPartExchange, setCopyPartExchange] = useState(false);
 
   const [afterAction, setAfterAction] = useState<'stay' | 'open'>('stay');
 
@@ -84,7 +83,7 @@ export function DuplicateProductModal({ product, open, onOpenChange, onSuccess }
         documents: copyDocuments,
         registration_docs: copyRegistrationDocs,
         consignment: copyConsignment,
-        part_exchange: copyPartExchange,
+        part_exchange: false,
       },
       afterAction,
     };
@@ -328,30 +327,6 @@ export function DuplicateProductModal({ product, open, onOpenChange, onSuccess }
                 </div>
               )}
 
-              {product?.is_trade_in && (
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox
-                      id="copy-px"
-                      checked={copyPartExchange}
-                      onCheckedChange={(checked) => setCopyPartExchange(checked as boolean)}
-                    />
-                    <label htmlFor="copy-px" className="text-sm cursor-pointer">
-                      Part Exchange Info
-                    </label>
-                  </div>
-                  {copyPartExchange && (
-                    <div className="ml-6 p-2 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-900 rounded">
-                      <div className="flex items-start gap-2">
-                        <AlertTriangle className="h-4 w-4 text-amber-600 flex-shrink-0 mt-0.5" />
-                        <p className="text-xs text-amber-800 dark:text-amber-400">
-                          Customer information will not be copied
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              )}
             </div>
           </div>
 

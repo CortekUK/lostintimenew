@@ -98,7 +98,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
   return (
     <CommandDialog open={open} onOpenChange={onOpenChange}>
       <CommandInput
-        placeholder="Search products, serials, suppliers, sales... (try 'sku:' or 'metal:gold')"
+        placeholder="Search products, serials, suppliers, sales... (try 'sku:' or 'material:cotton')"
         value={query}
         onValueChange={setQuery}
         onKeyDown={handleKeyDown}
@@ -118,7 +118,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ open, onOpenChan
               <Search className="mx-auto h-8 w-8 text-muted-foreground mb-2" />
               <p className="text-sm text-muted-foreground">No results found for "{query}"</p>
               <p className="text-xs text-muted-foreground mt-1">
-                Try using operators like sku:, metal:, or cat:
+                Try using operators like sku:, material:, or cat:
               </p>
             </div>
           </CommandEmpty>

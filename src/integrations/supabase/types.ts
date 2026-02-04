@@ -378,23 +378,53 @@ export type Database = {
           },
         ]
       }
+      brands: {
+        Row: {
+          id: number
+          name: string
+          tier: string | null
+          logo_url: string | null
+          average_markup: number | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: never
+          name: string
+          tier?: string | null
+          logo_url?: string | null
+          average_markup?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: never
+          name?: string
+          tier?: string | null
+          logo_url?: string | null
+          average_markup?: number | null
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
           address: string | null
           anniversary: string | null
           birthday: string | null
-          bracelet_size: string | null
+          pants_size: string | null
           created_at: string
           demo_session_id: string | null
           email: string | null
           id: number
           lifetime_spend: number
-          metal_preference: string | null
+          preferred_style: string | null
           name: string
-          necklace_length: string | null
+          shoe_size: string | null
           notes: string | null
           phone: string | null
-          ring_size: string | null
+          shirt_size: string | null
           status: string
           style_preference: string | null
           total_purchases: number
@@ -405,18 +435,18 @@ export type Database = {
           address?: string | null
           anniversary?: string | null
           birthday?: string | null
-          bracelet_size?: string | null
+          pants_size?: string | null
           created_at?: string
           demo_session_id?: string | null
           email?: string | null
           id?: never
           lifetime_spend?: number
-          metal_preference?: string | null
+          preferred_style?: string | null
           name: string
-          necklace_length?: string | null
+          shoe_size?: string | null
           notes?: string | null
           phone?: string | null
-          ring_size?: string | null
+          shirt_size?: string | null
           status?: string
           style_preference?: string | null
           total_purchases?: number
@@ -427,18 +457,18 @@ export type Database = {
           address?: string | null
           anniversary?: string | null
           birthday?: string | null
-          bracelet_size?: string | null
+          pants_size?: string | null
           created_at?: string
           demo_session_id?: string | null
           email?: string | null
           id?: never
           lifetime_spend?: number
-          metal_preference?: string | null
+          preferred_style?: string | null
           name?: string
-          necklace_length?: string | null
+          shoe_size?: string | null
           notes?: string | null
           phone?: string | null
-          ring_size?: string | null
+          shirt_size?: string | null
           status?: string
           style_preference?: string | null
           total_purchases?: number
@@ -446,6 +476,60 @@ export type Database = {
           vip_tier?: string
         }
         Relationships: []
+      }
+      customer_wishlists: {
+        Row: {
+          id: number
+          customer_id: number
+          brand_id: number | null
+          category: string | null
+          size: string | null
+          notes: string | null
+          notify_by: string
+          is_active: boolean
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: never
+          customer_id: number
+          brand_id?: number | null
+          category?: string | null
+          size?: string | null
+          notes?: string | null
+          notify_by?: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: never
+          customer_id?: number
+          brand_id?: number | null
+          category?: string | null
+          size?: string | null
+          notes?: string | null
+          notify_by?: string
+          is_active?: boolean
+          created_at?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "customer_wishlists_customer_id_fkey"
+            columns: ["customer_id"]
+            isOneToOne: false
+            referencedRelation: "customers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "customer_wishlists_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       deposit_order_items: {
         Row: {
@@ -1197,8 +1281,15 @@ export type Database = {
       }
       products: {
         Row: {
+          authentication_certificate_url: string | null
+          authentication_date: string | null
+          authentication_provider: string | null
+          authentication_status: string
           barcode: string | null
+          brand_id: number | null
           category: string | null
+          condition_grade: string | null
+          condition_notes: string | null
           consignment_end_date: string | null
           consignment_start_date: string | null
           consignment_supplier_id: number | null
@@ -1206,7 +1297,7 @@ export type Database = {
           created_at: string
           demo_session_id: string | null
           description: string | null
-          gemstone: string | null
+          color: string | null
           id: number
           image_url: string | null
           images: string[] | null
@@ -1214,9 +1305,9 @@ export type Database = {
           is_consignment: boolean
           is_registered: boolean
           is_trade_in: boolean
-          karat: string | null
+          size: string | null
           location_id: number | null
-          metal: string | null
+          material: string | null
           name: string
           purchase_date: string | null
           registration_doc: string | null
@@ -1231,8 +1322,15 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          authentication_certificate_url?: string | null
+          authentication_date?: string | null
+          authentication_provider?: string | null
+          authentication_status?: string
           barcode?: string | null
+          brand_id?: number | null
           category?: string | null
+          condition_grade?: string | null
+          condition_notes?: string | null
           consignment_end_date?: string | null
           consignment_start_date?: string | null
           consignment_supplier_id?: number | null
@@ -1240,7 +1338,7 @@ export type Database = {
           created_at?: string
           demo_session_id?: string | null
           description?: string | null
-          gemstone?: string | null
+          color?: string | null
           id?: number
           image_url?: string | null
           images?: string[] | null
@@ -1248,9 +1346,9 @@ export type Database = {
           is_consignment?: boolean
           is_registered?: boolean
           is_trade_in?: boolean
-          karat?: string | null
+          size?: string | null
           location_id?: number | null
-          metal?: string | null
+          material?: string | null
           name: string
           purchase_date?: string | null
           registration_doc?: string | null
@@ -1265,8 +1363,15 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          authentication_certificate_url?: string | null
+          authentication_date?: string | null
+          authentication_provider?: string | null
+          authentication_status?: string
           barcode?: string | null
+          brand_id?: number | null
           category?: string | null
+          condition_grade?: string | null
+          condition_notes?: string | null
           consignment_end_date?: string | null
           consignment_start_date?: string | null
           consignment_supplier_id?: number | null
@@ -1274,7 +1379,7 @@ export type Database = {
           created_at?: string
           demo_session_id?: string | null
           description?: string | null
-          gemstone?: string | null
+          color?: string | null
           id?: number
           image_url?: string | null
           images?: string[] | null
@@ -1282,9 +1387,9 @@ export type Database = {
           is_consignment?: boolean
           is_registered?: boolean
           is_trade_in?: boolean
-          karat?: string | null
+          size?: string | null
           location_id?: number | null
-          metal?: string | null
+          material?: string | null
           name?: string
           purchase_date?: string | null
           registration_doc?: string | null
@@ -1299,6 +1404,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "products_brand_id_fkey"
+            columns: ["brand_id"]
+            isOneToOne: false
+            referencedRelation: "brands"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "products_consignment_supplier_id_fkey"
             columns: ["consignment_supplier_id"]
@@ -2267,8 +2379,8 @@ export type Database = {
           category: string | null
           cogs: number | null
           gross_profit: number | null
-          karat: string | null
-          metal: string | null
+          size: string | null
+          material: string | null
           name: string | null
           product_id: number | null
           revenue: number | null

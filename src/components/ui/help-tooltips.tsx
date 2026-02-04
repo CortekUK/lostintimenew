@@ -49,8 +49,8 @@ export const tooltips = {
   unitCost: (
     <HelpTooltip content="The cost you paid for this item. Used to calculate profit margins and COGS." />
   ),
-  karat: (
-    <HelpTooltip content="The purity of gold content (e.g., 14K, 18K, 24K). Higher karat means higher gold purity." />
+  size: (
+    <HelpTooltip content="The size of the clothing item (e.g., XS, S, M, L, XL, or numeric sizes like 10, 12, 14)." />
   ),
   sku: (
     <HelpTooltip content="Stock Keeping Unit - a unique identifier for this product in your inventory system." />

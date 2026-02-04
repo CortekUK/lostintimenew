@@ -9,12 +9,14 @@ import { Switch } from '@/components/ui/switch';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
 import { Separator } from '@/components/ui/separator';
 import { MultiImageUpload } from '@/components/ui/multi-image-upload';
-import { RegisteredWatchSection } from '@/components/forms/RegisteredWatchSection';
 import { ProductCreationDocuments } from '@/components/documents/ProductCreationDocuments';
 import { useSuppliers } from '@/hooks/useSuppliers';
 import { useLocations } from '@/hooks/useLocations';
 import { useAllProductCategories, useAddCustomProductCategory } from '@/hooks/useProductCategories';
 import { useProductAISuggestions } from '@/hooks/useProductAISuggestions';
+import { useBrands, CONDITION_GRADES, AUTHENTICATION_STATUSES } from '@/hooks/useBrands';
+import { useWishlistMatches } from '@/hooks/useCustomerWishlists';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { InlineSupplierAdd } from '@/components/forms/InlineSupplierAdd';
 import { DocumentType } from '@/types';
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from '@/components/ui/command';
@@ -38,7 +40,15 @@ import {
   Search,
   Check,
   UserPlus,
-  Sparkles
+  Sparkles,
+  Tag,
+  Shield,
+  ShieldCheck,
+  ShieldAlert,
+  Clock,
+  Star,
+  Bell,
+  User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -56,9 +66,15 @@ interface FormData {
   barcode: string;
   description: string;
   category: string;
-  metal: string;
-  karat: string;
-  gemstone: string;
+  material: string;
+  size: string;
+  color: string;
+  brand_id: string;
+  condition_grade: string;
+  condition_notes: string;
+  authentication_status: string;
+  authentication_provider: string;
+  authentication_date: string;
   supplier_type: 'registered' | 'individual';
   supplier_id: string;
   individual_name: string;
@@ -75,6 +91,8 @@ interface FormData {
   consignment_end_date: string;
   purchase_date: string;
   purchased_today: boolean;
+  style_tags: string[];
+  rrp: string;
 }
 
 interface AddProductFormProps {
@@ -87,6 +105,7 @@ interface AddProductFormProps {
 export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialData }: AddProductFormProps) {
   const { data: suppliers } = useSuppliers();
   const { data: locations } = useLocations();
+  const { data: brands } = useBrands();
   const { all: allCategories, isLoading: categoriesLoading } = useAllProductCategories();
   const addCategoryMutation = useAddCustomProductCategory();
 
@@ -95,9 +114,15 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
     barcode: initialData?.barcode || '',
     description: initialData?.description || '',
     category: initialData?.category || '',
-    metal: initialData?.metal || '',
-    karat: initialData?.karat || '',
-    gemstone: initialData?.gemstone || '',
+    material: initialData?.material || '',
+    size: initialData?.size || '',
+    color: initialData?.color || '',
+    brand_id: initialData?.brand_id || '',
+    condition_grade: initialData?.condition_grade || '',
+    condition_notes: initialData?.condition_notes || '',
+    authentication_status: initialData?.authentication_status || 'not_required',
+    authentication_provider: initialData?.authentication_provider || '',
+    authentication_date: initialData?.authentication_date || '',
     supplier_type: (initialData?.supplier_type || 'registered') as 'registered' | 'individual',
     supplier_id: initialData?.supplier_id || '',
     individual_name: initialData?.individual_name || '',
@@ -113,8 +138,30 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
     consignment_start_date: initialData?.consignment_start_date || '',
     consignment_end_date: initialData?.consignment_end_date || '',
     purchased_today: true,
-    purchase_date: new Date().toISOString().split('T')[0]
+    purchase_date: new Date().toISOString().split('T')[0],
+    style_tags: initialData?.style_tags || [],
+    rrp: initialData?.rrp || ''
   });
+
+  // Check for customers looking for this brand/category/size combination
+  const brandIdNumber = formData.brand_id ? parseInt(formData.brand_id) : null;
+  const { data: wishlistMatches } = useWishlistMatches(
+    brandIdNumber,
+    formData.category || null,
+    formData.size || null
+  );
+  
+  // Debug wishlist matching
+  useEffect(() => {
+    if (brandIdNumber || formData.category || formData.size) {
+      console.log('Wishlist match criteria:', {
+        brand_id: brandIdNumber,
+        category: formData.category,
+        size: formData.size,
+        matches: wishlistMatches?.length || 0
+      });
+    }
+  }, [brandIdNumber, formData.category, formData.size, wishlistMatches]);
   
   const [documents, setDocuments] = useState<DocumentUploadItem[]>([]);
   const [images, setImages] = useState<string[]>([]);
@@ -147,17 +194,17 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
       updates.category = suggestions.category;
       newAiFields.add('category');
     }
-    if (suggestions.metal && canUpdateField('metal', formData.metal)) {
-      updates.metal = suggestions.metal;
-      newAiFields.add('metal');
+    if (suggestions.material && canUpdateField('material', formData.material)) {
+      updates.material = suggestions.material;
+      newAiFields.add('material');
     }
-    if (suggestions.karat && canUpdateField('karat', formData.karat)) {
-      updates.karat = suggestions.karat;
-      newAiFields.add('karat');
+    if (suggestions.size && canUpdateField('size', formData.size)) {
+      updates.size = suggestions.size;
+      newAiFields.add('size');
     }
-    if (suggestions.gemstone && canUpdateField('gemstone', formData.gemstone)) {
-      updates.gemstone = suggestions.gemstone;
-      newAiFields.add('gemstone');
+    if (suggestions.color && canUpdateField('color', formData.color)) {
+      updates.color = suggestions.color;
+      newAiFields.add('color');
     }
 
     if (Object.keys(updates).length > 0) {
@@ -241,7 +288,7 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                 <div className="relative">
                   <Input
                     id="name"
-                    placeholder="Diamond Solitaire Ring..."
+                    placeholder="Chanel Classic Flap Bag..."
                     value={formData.name}
                     onChange={(e) => {
                       setFormData({...formData, name: e.target.value});
@@ -858,8 +905,8 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
               
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
-                  Metal
-                  {aiFilledFields.has('metal') && (
+                  Material
+                  {aiFilledFields.has('material') && (
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-amber-100 text-amber-700 border-amber-200">
                       <Sparkles className="h-2.5 w-2.5 mr-0.5" />
                       AI
@@ -867,16 +914,16 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                   )}
                 </Label>
                 <Input
-                  placeholder="Gold, Silver, Platinum..."
-                  value={formData.metal}
+                  placeholder="Cotton, Polyester, Wool..."
+                  value={formData.material}
                   onChange={(e) => {
-                    setFormData({...formData, metal: e.target.value});
+                    setFormData({...formData, material: e.target.value});
                     setAiFilledFields(prev => {
                       const next = new Set(prev);
-                      next.delete('metal');
+                      next.delete('material');
                       return next;
                     });
-                    setUserEditedFields(prev => new Set([...prev, 'metal']));
+                    setUserEditedFields(prev => new Set([...prev, 'material']));
                   }}
                 />
               </div>
@@ -884,8 +931,8 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-6">
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
-                  Karat
-                  {aiFilledFields.has('karat') && (
+                  Size
+                  {aiFilledFields.has('size') && (
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-amber-100 text-amber-700 border-amber-200">
                       <Sparkles className="h-2.5 w-2.5 mr-0.5" />
                       AI
@@ -893,24 +940,24 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                   )}
                 </Label>
                 <Input
-                  placeholder="9ct, 18ct, 24ct..."
-                  value={formData.karat}
+                  placeholder="XS, S, M, L, XL..."
+                  value={formData.size}
                   onChange={(e) => {
-                    setFormData({...formData, karat: e.target.value});
+                    setFormData({...formData, size: e.target.value});
                     setAiFilledFields(prev => {
                       const next = new Set(prev);
-                      next.delete('karat');
+                      next.delete('size');
                       return next;
                     });
-                    setUserEditedFields(prev => new Set([...prev, 'karat']));
+                    setUserEditedFields(prev => new Set([...prev, 'size']));
                   }}
                 />
               </div>
 
               <div className="space-y-2">
                 <Label className="flex items-center gap-2">
-                  Gemstone
-                  {aiFilledFields.has('gemstone') && (
+                  Color
+                  {aiFilledFields.has('color') && (
                     <Badge variant="secondary" className="text-[10px] px-1.5 py-0 h-4 bg-amber-100 text-amber-700 border-amber-200">
                       <Sparkles className="h-2.5 w-2.5 mr-0.5" />
                       AI
@@ -918,19 +965,261 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                   )}
                 </Label>
                 <Input
-                  placeholder="Diamond, Ruby, Sapphire..."
-                  value={formData.gemstone}
+                  placeholder="Black, Navy, Red..."
+                  value={formData.color}
                   onChange={(e) => {
-                    setFormData({...formData, gemstone: e.target.value});
+                    setFormData({...formData, color: e.target.value});
                     setAiFilledFields(prev => {
                       const next = new Set(prev);
-                      next.delete('gemstone');
+                      next.delete('color');
                       return next;
                     });
-                    setUserEditedFields(prev => new Set([...prev, 'gemstone']));
+                    setUserEditedFields(prev => new Set([...prev, 'color']));
                   }}
                 />
               </div>
+            </div>
+
+            {/* Style Tags */}
+            <div className="space-y-2">
+              <Label>Style Tags</Label>
+              <div className="flex flex-wrap gap-2">
+                {['Casual', 'Formal', 'Vintage', 'Streetwear', 'Boho', 'Minimalist', 'Classic', 'Avant-garde', 'Athleisure', 'Evening'].map((tag) => (
+                  <Button
+                    key={tag}
+                    type="button"
+                    variant={formData.style_tags.includes(tag) ? "default" : "outline"}
+                    size="sm"
+                    className={formData.style_tags.includes(tag) ? "bg-primary" : ""}
+                    onClick={() => {
+                      setFormData(prev => ({
+                        ...prev,
+                        style_tags: prev.style_tags.includes(tag)
+                          ? prev.style_tags.filter(t => t !== tag)
+                          : [...prev.style_tags, tag]
+                      }));
+                    }}
+                  >
+                    {tag}
+                  </Button>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Select style tags that describe this item
+              </p>
+            </div>
+          </AccordionContent>
+        </AccordionItem>
+
+        {/* Brand & Condition */}
+        <AccordionItem value="brand-condition" className="border border-border rounded-lg px-3 sm:px-6">
+          <AccordionTrigger className="hover:no-underline">
+            <div className="flex items-center space-x-3">
+              <Tag className="h-5 w-5 text-primary" />
+              <span className="font-luxury text-lg">Brand & Condition</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent className="space-y-6 pt-4 pb-6 px-1.5">
+            {/* Brand Selection */}
+            <div className="space-y-2">
+              <Label className="flex items-center gap-2">
+                <Star className="h-4 w-4 text-amber-500" />
+                Brand / Designer
+              </Label>
+              <Select 
+                value={formData.brand_id} 
+                onValueChange={(value) => setFormData({...formData, brand_id: value})}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select brand (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  {/* Group brands by tier */}
+                  {brands && brands.filter(b => b.tier === 'luxury').length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">Luxury</div>
+                      {brands.filter(b => b.tier === 'luxury').map((brand) => (
+                        <SelectItem key={brand.id} value={brand.id.toString()}>
+                          {brand.name}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {brands && brands.filter(b => b.tier === 'premium').length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">Premium</div>
+                      {brands.filter(b => b.tier === 'premium').map((brand) => (
+                        <SelectItem key={brand.id} value={brand.id.toString()}>
+                          {brand.name}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {brands && brands.filter(b => b.tier === 'contemporary').length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">Contemporary</div>
+                      {brands.filter(b => b.tier === 'contemporary').map((brand) => (
+                        <SelectItem key={brand.id} value={brand.id.toString()}>
+                          {brand.name}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {brands && brands.filter(b => b.tier === 'high_street').length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">High Street</div>
+                      {brands.filter(b => b.tier === 'high_street').map((brand) => (
+                        <SelectItem key={brand.id} value={brand.id.toString()}>
+                          {brand.name}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                  {brands && brands.filter(b => !b.tier).length > 0 && (
+                    <>
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground bg-muted/50">Other</div>
+                      {brands.filter(b => !b.tier).map((brand) => (
+                        <SelectItem key={brand.id} value={brand.id.toString()}>
+                          {brand.name}
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                </SelectContent>
+              </Select>
+              <p className="text-xs text-muted-foreground">
+                The designer or brand name of this item
+              </p>
+              
+              {/* Wishlist Matches Alert */}
+              {wishlistMatches && wishlistMatches.length > 0 && (
+                <Alert className="mt-3 border-amber-300 bg-amber-50 dark:bg-amber-950">
+                  <Bell className="h-4 w-4 text-amber-600" />
+                  <AlertTitle className="text-amber-800 dark:text-amber-200">
+                    {wishlistMatches.length} customer{wishlistMatches.length > 1 ? 's' : ''} looking for this!
+                  </AlertTitle>
+                  <AlertDescription className="text-amber-700 dark:text-amber-300">
+                    <div className="mt-2 space-y-1">
+                      {wishlistMatches.slice(0, 3).map((match) => (
+                        <div key={match.wishlist_id} className="flex items-center gap-2 text-sm">
+                          <User className="h-3 w-3" />
+                          <span className="font-medium">{match.customer_name}</span>
+                          {match.brand_name && <Badge variant="outline" className="text-xs">{match.brand_name}</Badge>}
+                          {match.category && <Badge variant="secondary" className="text-xs">{match.category}</Badge>}
+                        </div>
+                      ))}
+                      {wishlistMatches.length > 3 && (
+                        <p className="text-xs">...and {wishlistMatches.length - 3} more</p>
+                      )}
+                    </div>
+                  </AlertDescription>
+                </Alert>
+              )}
+            </div>
+
+            <Separator />
+
+            {/* Condition Grading */}
+            <div className="space-y-4">
+              <div className="space-y-3">
+                <Label>Condition Grade</Label>
+                <div className="flex flex-wrap gap-2">
+                  {[
+                    { value: 'new_with_tags', label: 'New with Tags', color: 'border-green-500 bg-green-500/10 text-green-700 dark:text-green-400' },
+                    { value: 'excellent', label: 'Excellent', color: 'border-emerald-500 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400' },
+                    { value: 'very_good', label: 'Very Good', color: 'border-blue-500 bg-blue-500/10 text-blue-700 dark:text-blue-400' },
+                    { value: 'good', label: 'Good', color: 'border-amber-500 bg-amber-500/10 text-amber-700 dark:text-amber-400' },
+                    { value: 'fair', label: 'Fair', color: 'border-orange-500 bg-orange-500/10 text-orange-700 dark:text-orange-400' }
+                  ].map((grade) => (
+                    <button
+                      key={grade.value}
+                      type="button"
+                      onClick={() => setFormData({...formData, condition_grade: grade.value})}
+                      className={cn(
+                        "px-3 py-1.5 text-sm rounded-full border-2 transition-all",
+                        formData.condition_grade === grade.value
+                          ? grade.color
+                          : "border-border bg-transparent text-muted-foreground hover:border-muted-foreground/50"
+                      )}
+                    >
+                      {grade.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label>Condition Notes</Label>
+                <Textarea
+                  placeholder="Note any flaws, wear, alterations..."
+                  value={formData.condition_notes}
+                  onChange={(e) => setFormData({...formData, condition_notes: e.target.value})}
+                  rows={2}
+                />
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Authentication Tracking */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" />
+                <Label className="text-base font-medium">Authentication</Label>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Authentication Status</Label>
+                  <Select 
+                    value={formData.authentication_status} 
+                    onValueChange={(value) => setFormData({...formData, authentication_status: value})}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {AUTHENTICATION_STATUSES.map((status) => (
+                        <SelectItem key={status.value} value={status.value}>
+                          <div className="flex items-center gap-2">
+                            {status.value === 'authenticated' && <ShieldCheck className="h-4 w-4 text-green-600" />}
+                            {status.value === 'pending' && <Clock className="h-4 w-4 text-amber-600" />}
+                            {status.value === 'failed' && <ShieldAlert className="h-4 w-4 text-red-600" />}
+                            {status.value === 'not_required' && <Shield className="h-4 w-4 text-muted-foreground" />}
+                            <span>{status.label}</span>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                {formData.authentication_status !== 'not_required' && (
+                  <div className="space-y-2">
+                    <Label>Authentication Provider</Label>
+                    <Input
+                      placeholder="e.g., Entrupy, Real Authentication..."
+                      value={formData.authentication_provider}
+                      onChange={(e) => setFormData({...formData, authentication_provider: e.target.value})}
+                    />
+                  </div>
+                )}
+              </div>
+
+              {formData.authentication_status === 'authenticated' && (
+                <div className="space-y-2">
+                  <Label>Authentication Date</Label>
+                  <div className="flex items-center gap-2">
+                    <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+                    <Input
+                      type="date"
+                      value={formData.authentication_date}
+                      onChange={(e) => setFormData({...formData, authentication_date: e.target.value})}
+                      max={new Date().toISOString().split('T')[0]}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </AccordionContent>
         </AccordionItem>
@@ -973,24 +1262,37 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                 />
               </div>
             </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="rrp" className="text-muted-foreground">Original RRP (Optional)</Label>
+              <Input 
+                id="rrp"
+                type="number"
+                step="1" min="0"
+                placeholder="Original retail price" 
+                value={formData.rrp}
+                onChange={(e) => setFormData({...formData, rrp: e.target.value})}
+                className="focus:border-primary"
+              />
+            </div>
             
-            {/* Dynamic Profit Display */}
+            {/* Profit Display */}
             {(formData.unit_cost || formData.unit_price) && (
-              <div className="p-6 bg-gradient-to-r from-primary/5 to-primary/10 border border-primary/20 rounded-lg">
-                <div className="flex items-center space-x-3">
-                  <TrendingUp className={cn(
-                    "h-6 w-6",
+              <div className="flex items-center justify-between py-3 px-4 bg-muted/30 rounded-lg border border-border">
+                <span className="text-sm text-muted-foreground">Profit</span>
+                <div className="flex items-center gap-3">
+                  <span className={cn(
+                    "font-medium",
                     profit >= 0 ? "text-green-600" : "text-red-500"
-                  )} />
-                  <div>
-                    <p className="text-sm text-muted-foreground">Calculated Profit</p>
-                    <p className={cn(
-                      "font-luxury text-2xl font-semibold",
-                      profit >= 0 ? "text-green-600" : "text-red-500"
-                    )}>
-                      £{profit.toFixed(2)} ({markup.toFixed(1)}% markup)
-                    </p>
-                  </div>
+                  )}>
+                    £{profit.toFixed(2)}
+                  </span>
+                  <span className={cn(
+                    "text-xs px-2 py-0.5 rounded-full",
+                    profit >= 0 ? "bg-green-500/10 text-green-600" : "bg-red-500/10 text-red-500"
+                  )}>
+                    {markup.toFixed(1)}% markup
+                  </span>
                 </div>
               </div>
             )}
@@ -1064,16 +1366,6 @@ export function AddProductForm({ onSubmit, onCancel, isLoading = false, initialD
                 maxImages={5}
               />
             </div>
-            
-            <Separator />
-            
-            {/* Registered Watch Section */}
-            <RegisteredWatchSection
-              isRegistered={formData.is_registered}
-              onRegisteredChange={(checked) => setFormData({...formData, is_registered: checked})}
-              documents={documents}
-              onDocumentsChange={setDocuments}
-            />
             
             <Separator />
             

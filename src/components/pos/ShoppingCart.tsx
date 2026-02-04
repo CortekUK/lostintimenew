@@ -4,8 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { formatCurrency, calculateCartTotals } from '@/lib/utils';
-import type { CartItem, PartExchangeItem, CustomCartItem } from '@/types';
-import { PartExchangeItem as PartExchangeItemComponent } from './PartExchangeItem';
+import type { CartItem, CustomCartItem } from '@/types';
 import { ConsignmentBadge } from '@/components/ui/consignment-badge';
 import { 
   ShoppingCart, 
@@ -14,7 +13,6 @@ import {
   Trash2,
   Package,
   Hash,
-  Repeat,
   Sparkles,
   Pencil,
   Check,
@@ -26,14 +24,10 @@ export type DiscountType = 'percentage' | 'fixed';
 interface ShoppingCartProps {
   items: CartItem[];
   customItems?: CustomCartItem[];
-  partExchanges: PartExchangeItem[];
   onUpdateQuantity: (productId: number, quantity: number) => void;
   onRemoveItem: (productId: number) => void;
   onUpdateCustomQuantity?: (id: string, quantity: number) => void;
   onRemoveCustomItem?: (id: string) => void;
-  onRemovePartExchange: (id: string) => void;
-  onEditPartExchange: (id: string) => void;
-  onAddPartExchange: () => void;
   onAddCustomItem?: () => void;
   onUpdateItemPrice?: (productId: number, newPrice: number) => void;
   discount: number;
@@ -45,14 +39,10 @@ interface ShoppingCartProps {
 export function ShoppingCartComponent({ 
   items,
   customItems = [],
-  partExchanges,
   onUpdateQuantity, 
   onRemoveItem,
   onUpdateCustomQuantity,
   onRemoveCustomItem,
-  onRemovePartExchange,
-  onEditPartExchange,
-  onAddPartExchange,
   onAddCustomItem,
   onUpdateItemPrice,
   discount,
@@ -95,10 +85,7 @@ export function ShoppingCartComponent({
     total: regularTotals.total + customSubtotal + customTax
   };
 
-  const partExchangeTotal = partExchanges.reduce((sum, px) => sum + px.allowance, 0);
-  const netTotal = totals.total - partExchangeTotal;
-
-  const hasItems = items.length > 0 || customItems.length > 0 || partExchanges.length > 0;
+  const hasItems = items.length > 0 || customItems.length > 0;
 
   return (
     <Card className="shadow-card">
@@ -326,40 +313,6 @@ export function ShoppingCartComponent({
             )}
 
 
-            {/* Part Exchange Section */}
-            {partExchanges.length > 0 && (
-              <div className="pt-3 border-t">
-                <div className="flex items-center gap-2 mb-3">
-                  <Badge className="bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-950 dark:text-amber-300 dark:border-amber-800">
-                    Trade-In
-                  </Badge>
-                  <span className="text-sm text-muted-foreground">{partExchanges.length} items</span>
-                </div>
-                <div className="space-y-2">
-                  {partExchanges.map(px => (
-                    <PartExchangeItemComponent
-                      key={px.id}
-                      item={px}
-                      onEdit={() => onEditPartExchange(px.id)}
-                      onRemove={() => onRemovePartExchange(px.id)}
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            {/* Add Part Exchange Button */}
-            <div className="pt-2">
-              <Button
-                variant="outline"
-                onClick={onAddPartExchange}
-                className="w-full border-amber-200 text-amber-700 hover:bg-amber-50 dark:border-amber-800 dark:text-amber-400 dark:hover:bg-amber-950/20"
-              >
-                <Repeat className="h-4 w-4 mr-2" />
-                Add Part Exchange
-              </Button>
-            </div>
-            
             {/* Cart Summary */}
             <div className="pt-3 border-t space-y-2">
               <h5 className="font-semibold text-sm mb-2">Summary</h5>
@@ -381,15 +334,9 @@ export function ShoppingCartComponent({
                   <span className="text-primary font-medium">{formatCurrency(totals.tax_total)}</span>
                 </div>
               )}
-              {partExchangeTotal > 0 && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Trade-In Allowance:</span>
-                  <span className="text-success font-medium">-{formatCurrency(partExchangeTotal)}</span>
-                </div>
-              )}
-              <div className={`flex justify-between font-bold text-base pt-2 border-t ${netTotal < 0 ? 'text-destructive' : 'text-primary'}`}>
-                <span>{netTotal < 0 ? 'Owed to Customer:' : 'Net Total:'}</span>
-                <span>{formatCurrency(Math.abs(netTotal))}</span>
+              <div className="flex justify-between font-bold text-base pt-2 border-t text-primary">
+                <span>Total:</span>
+                <span>{formatCurrency(totals.total)}</span>
               </div>
             </div>
           </div>

@@ -103,7 +103,7 @@ export default function Customers() {
     if (filters.purchaseCount !== 'all') count++;
     if (filters.upcomingBirthday) count++;
     if (filters.upcomingAnniversary) count++;
-    count += filters.metalPreference.length;
+    count += filters.stylePreference.length;
     if (filters.hasEmail) count++;
     if (filters.hasPhone) count++;
     return count;
@@ -127,11 +127,11 @@ export default function Customers() {
       // Upcoming anniversary filter
       if (filters.upcomingAnniversary && !isWithinNextDays(customer.anniversary, 30)) return false;
       
-      // Metal preference filter
-      if (filters.metalPreference.length > 0) {
-        const customerMetal = customer.metal_preference?.toLowerCase() || '';
-        const hasMatchingMetal = filters.metalPreference.some(
-          metal => customerMetal.includes(metal.toLowerCase())
+      // Style preference filter
+      if (filters.stylePreference.length > 0) {
+        const customerStyle = customer.preferred_style?.toLowerCase() || '';
+        const hasMatchingStyle = filters.stylePreference.some(
+          style => customerStyle.includes(style.toLowerCase())
         );
         if (!hasMatchingMetal) return false;
       }

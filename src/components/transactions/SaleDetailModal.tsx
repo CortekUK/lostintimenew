@@ -10,12 +10,11 @@ import { useToast } from '@/hooks/use-toast';
 import { useNavigate } from 'react-router-dom';
 import { useSettings } from '@/contexts/SettingsContext';
 import { useTheme } from 'next-themes';
-import { Printer, Mail, X, AlertCircle, Eye, Ban, Edit, Coins, Repeat, MapPin, User } from 'lucide-react';
+import { Printer, Mail, X, AlertCircle, Eye, Ban, Edit, Coins, MapPin, User } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { format } from 'date-fns';
 import { QuickSettlementModal } from '@/components/consignments/QuickSettlementModal';
 import { ConsignmentBadge } from '@/components/ui/consignment-badge';
-import { TradeInBadge } from '@/components/ui/trade-in-badge';
 import { buildReceiptHtml } from '@/utils/receiptHtmlBuilder';
 import { printHtml } from '@/utils/printUtils';
 import { EmailService } from '@/components/integrations/EmailService';
@@ -24,7 +23,6 @@ import { EditSaleModal } from './EditSaleModal';
 import { EditSaleCommissionModal } from '@/components/reports/EditSaleCommissionModal';
 import { usePermissions, CRM_MODULES } from '@/hooks/usePermissions';
 import { useStaffCommissionOverride } from '@/hooks/useStaffCommissionOverrides';
-import { AddPartExchangeToSaleModal } from './AddPartExchangeToSaleModal';
 import { ProductDetailModal } from '@/components/modals/ProductDetailModal';
 
 interface SaleDetailModalProps {
@@ -51,7 +49,6 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
   const [voidModalOpen, setVoidModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [commissionModalOpen, setCommissionModalOpen] = useState(false);
-  const [addPxModalOpen, setAddPxModalOpen] = useState(false);
   const [productDetailOpen, setProductDetailOpen] = useState(false);
   const [selectedProduct, setSelectedProduct] = useState<any>(null);
 
@@ -384,7 +381,6 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                         {isCustomOrder && (
                           <Badge variant="secondary" className="text-xs">Custom Order</Badge>
                         )}
-                        {product?.is_trade_in && <TradeInBadge />}
                         {product?.is_consignment && <ConsignmentBadge />}
                         {product?.is_registered && (
                           <Badge variant="outline" className="border-purple-500/50 text-purple-700 dark:text-purple-400 bg-purple-50 dark:bg-purple-950/30">
@@ -415,10 +411,10 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                               <span>{product.category}</span>
                             </>
                           )}
-                          {product.metal && (
+                          {product.material && (
                             <>
                               <span>•</span>
-                              <span>{product.metal}</span>
+                              <span>{product.material}</span>
                             </>
                           )}
                         </div>
@@ -508,7 +504,6 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                         <div className="flex-1 space-y-1">
                           <div className="flex items-center gap-2 flex-wrap">
                             <span className="font-medium">{px.title || 'Part Exchange Item'}</span>
-                            <TradeInBadge />
                             {statusBadge()}
                           </div>
                           {px.description && (
@@ -664,16 +659,6 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
                   Void
                 </Button>
               )}
-              {isAtLeast('manager') && !sale?.is_voided && (
-                <Button
-                  variant="outline"
-                  onClick={() => setAddPxModalOpen(true)}
-                  aria-label="Add part exchange to sale"
-                >
-                  <Repeat className="h-4 w-4 mr-2" />
-                  Add Trade-In
-                </Button>
-              )}
             </div>
             <div className="flex gap-2 flex-wrap">
               {focusLineItemId && (
@@ -784,20 +769,6 @@ export function SaleDetailModal({ saleId, open, onClose, focusLineItemId }: Sale
         />
       )}
 
-      {/* Add Part Exchange Modal */}
-      {saleId && (
-        <AddPartExchangeToSaleModal
-          open={addPxModalOpen}
-          onOpenChange={setAddPxModalOpen}
-          saleId={saleId}
-          onSuccess={async () => {
-            await refetch();
-            await queryClient.invalidateQueries({ queryKey: ['transactions'] });
-            await queryClient.invalidateQueries({ queryKey: ['part-exchanges'] });
-          }}
-        />
-      )}
-      
       {selectedProduct && (
         <ProductDetailModal
           product={selectedProduct}

@@ -108,7 +108,7 @@ export default function Receipt() {
     );
   }
 
-  const storeName = 'Sourced Jewellers';
+  const storeName = 'Sourced Clothing';
   const receiptTitle = `Receipt #${data.sale.id} - ${storeName}`;
   const receiptDescription = `Sales receipt for transaction #${data.sale.id} dated ${formatDateTime(data.sale.sold_at)}. Total: ${formatCurrency(data.sale.total - data.pxTotal)}.`;
 

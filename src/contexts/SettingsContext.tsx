@@ -9,12 +9,11 @@ export interface CustomFilter {
   icon?: string;
   filters: {
     categories?: string[];
-    metals?: string[];
-    karats?: string[];
-    gemstones?: string[];
+    materials?: string[];
+    sizes?: string[];
+    colors?: string[];
     stockLevel?: 'all' | 'in' | 'risk' | 'out';
     priceRange?: { min: number; max: number };
-    isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
   };
 }
 
@@ -77,7 +76,7 @@ const defaultSettings: AppSettings = {
   timezone: 'Europe/London',
   reorderPointDefault: 5,
   digitalReceiptDefault: 'none',
-  quickFilterPresets: ['watches', 'rings', 'gold', 'white-gold', 'rose-gold', 'silver', 'in-stock', 'low-stock'],
+  quickFilterPresets: ['bags', 'shoes', 'dresses', 'leather', 'new-with-tags', 'excellent', 'luxury', 'in-stock'],
   customFilters: [],
   vipTierThresholds: {
     silver: 500,

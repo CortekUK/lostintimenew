@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { SimpleTable, Column } from '@/components/ui/simple-table';
 import { RecordPayoutDialog } from '@/components/consignments/RecordPayoutDialog';
-import { useSupplierConsignments } from '@/hooks/useSupplierTradeInsConsignments';
+import { useSupplierConsignments } from '@/hooks/useConsignments';
 import { useOwnerGuard } from '@/hooks/useOwnerGuard';
 import { useSupplier } from '@/hooks/useSuppliers';
 import { Download, Package, AlertCircle, CheckCircle2 } from 'lucide-react';

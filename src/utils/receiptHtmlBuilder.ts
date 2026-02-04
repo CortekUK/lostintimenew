@@ -45,11 +45,11 @@ export function buildReceiptHtml(data: ReceiptData, settings: SettingsData, isDa
   
   // Get store and branding info from settings
   const store = settings?.store || {
-    name: "Sourced Jewellers",
-    tagline: "Premium Jewelry & Timepieces",
+    name: "Sourced Clothing",
+    tagline: "Premium Fashion & Apparel",
     address: "123 High Street, London SW1A 1AA",
     phone: "020 7123 4567",
-    email: "info@sourcedjewellers.com"
+    email: "info@sourcedclothing.com"
   };
   
   const contactInfo = [store.address, store.phone].filter(Boolean).join(' | ') || '123 High Street | 020 7123 4567';

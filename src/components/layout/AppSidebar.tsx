@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Repeat, Users, User, ReceiptPoundSterling, Coins, KeyRound, ChevronUp, Wallet, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Users, User, ReceiptPoundSterling, Coins, KeyRound, ChevronUp, Wallet, type LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from 'next-themes';
@@ -14,7 +14,19 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { FlyoutSubmenu } from './FlyoutSubmenu';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
+import { routePreloadMap } from '@/App';
+
+// Preload a route's component on hover
+const usePreloadOnHover = () => {
+  const preload = useCallback((url: string) => {
+    const component = routePreloadMap[url];
+    if (component?.preload) {
+      component.preload();
+    }
+  }, []);
+  return preload;
+};
 interface SubNavigationItem {
   title: string;
   url: string;
@@ -41,11 +53,7 @@ const coreOperationsItems: NavigationItem[] = [
     title: 'Products',
     url: '/products',
     icon: Package,
-    module: CRM_MODULES.PRODUCTS,
-    subItems: [
-      { title: 'All Products', url: '/products', icon: Package },
-      { title: 'PX Intake', url: '/products/intake', icon: Repeat }
-    ]
+    module: CRM_MODULES.PRODUCTS
   },
   {
     title: 'Suppliers',
@@ -140,6 +148,7 @@ export function AppSidebar() {
   const [salesExpanded, setSalesExpanded] = useState(currentPath.startsWith('/sales'));
   const [productsExpanded, setProductsExpanded] = useState(currentPath.startsWith('/products'));
   const [showChangePassword, setShowChangePassword] = useState(false);
+  const preloadRoute = usePreloadOnHover();
   const isActive = (path: string) => currentPath === path;
   const getNavClass = ({
     isActive
@@ -163,13 +172,13 @@ export function AppSidebar() {
         <SidebarHeader className="header-divider flex items-center justify-center px-2 py-3">
           {isCollapsed ? <Tooltip>
               <TooltipTrigger asChild>
-                <img src="/new-logo.png" alt="Sourced Jewellers" className="w-10 object-contain cursor-pointer" />
+                <img src="/new-logo.png" alt="Sourced Clothing" className="w-10 object-contain cursor-pointer" />
               </TooltipTrigger>
               <TooltipContent side="right">
-                <p>Sourced Jewellers</p>
+                <p>Sourced Clothing</p>
               </TooltipContent>
             </Tooltip> :
-            <img src="/new-logo.png" alt="Sourced Jewellers" className="max-h-[40px] w-[47%] object-cover" />
+            <img src="/new-logo.png" alt="Sourced Clothing" className="max-h-[40px] w-[47%] object-cover" />
           }
         </SidebarHeader>
 
@@ -207,7 +216,7 @@ export function AppSidebar() {
                           <CollapsibleContent>
                             <SidebarMenuSub className="ml-0 border-0">
                               {visibleSubItems.map(subItem => <SidebarMenuSubItem key={subItem.title}>
-                                  <NavLink to={subItem.url} end className={getNavClass}>
+                                  <NavLink to={subItem.url} end className={getNavClass} onMouseEnter={() => preloadRoute(subItem.url)}>
                                     {({
                                 isActive
                               }) => <>
@@ -227,7 +236,7 @@ export function AppSidebar() {
                 return <SidebarMenuItem key={item.title} className={isCollapsed ? "flex justify-center" : ""}>
                       {isCollapsed ? <Tooltip>
                           <TooltipTrigger asChild>
-                            <NavLink to={item.url} end className={({
+                            <NavLink to={item.url} end onMouseEnter={() => preloadRoute(item.url)} className={({
                         isActive
                       }) => `relative flex items-center justify-center w-11 h-11 rounded-lg transition-all duration-[160ms] outline-none border-0 ${isActive ? "bg-[hsl(var(--sidebar-accent))] text-[hsl(var(--sidebar-accent-foreground))]" : "bg-transparent text-[hsl(var(--sidebar-muted))] hover:bg-[hsl(var(--sidebar-accent))] hover:text-[hsl(var(--sidebar-accent-foreground))]"} focus-visible:shadow-[0_0_0_2px_hsl(var(--sidebar-ring))]`} aria-label={item.title}>
                               {({
@@ -241,7 +250,7 @@ export function AppSidebar() {
                           <TooltipContent side="right">
                             <p>{item.title}</p>
                           </TooltipContent>
-                        </Tooltip> : <NavLink to={item.url} end className={getNavClass}>
+                        </Tooltip> : <NavLink to={item.url} end className={getNavClass} onMouseEnter={() => preloadRoute(item.url)}>
                           <item.icon className="h-4 w-4" />
                           <span>{item.title}</span>
                         </NavLink>}

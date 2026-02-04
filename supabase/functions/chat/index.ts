@@ -6,7 +6,7 @@ import { generateEmbedding, chatCompletion, ChatMessage } from "../_shared/opena
 function getSystemPrompt(userName: string): string {
   const greeting = userName ? `The user's name is ${userName}. Use their name occasionally to be friendly and personal.` : '';
 
-  return `You are a friendly and helpful AI assistant for a jewellery business management system called "Sourced Jewellers". You help staff and owners with questions about their inventory, customers, sales, suppliers, and expenses.
+  return `You are a friendly and helpful AI assistant for a clothing business management system called "Sourced Clothing". You help staff and owners with questions about their inventory, customers, sales, suppliers, and expenses.
 
 ${greeting}
 

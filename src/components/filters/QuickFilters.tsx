@@ -29,20 +29,24 @@ import { useNavigate } from 'react-router-dom';
 interface QuickFiltersProps {
   filters: {
     categories: string[];
-    metals: string[];
-    karats: string[];
-    gemstones: string[];
+    materials: string[];
+    sizes: string[];
+    colors: string[];
+    brands: string[];
+    conditionGrades: string[];
+    authenticationStatus: string[];
     suppliers: string[];
     priceRange: { min: number; max: number };
     marginRange: { min: number; max: number };
-    isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
+    stockLevel?: 'all' | 'in_stock' | 'low_stock' | 'out_of_stock';
   };
   onFiltersChange: (filters: any) => void;
   filterOptions: {
     categories: string[];
-    metals: string[];
-    karats: string[];
-    gemstones: string[];
+    materials: string[];
+    sizes: string[];
+    colors: string[];
+    brands: { id: number; name: string; tier: string | null }[];
     priceRange: { min: number; max: number };
   };
   onOpenFullFilters: () => void;
@@ -54,34 +58,46 @@ interface PresetConfig {
   id: string;
   label: string;
   icon: React.ComponentType<{ className?: string }>;
-  type: 'category' | 'metal' | 'stock' | 'price';
+  type: 'category' | 'material' | 'condition' | 'brand-tier' | 'stock' | 'price';
   filterValue: any;
 }
 
-// All available presets
+// All available presets - must match IDs in Settings.tsx availablePresets
 const allPresets: PresetConfig[] = [
-  // Most popular categories
-  { id: 'watches', label: 'Watches', icon: Watch, type: 'category', filterValue: { categories: ['Watches'] } },
-  { id: 'rings', label: 'Rings', icon: CircleDot, type: 'category', filterValue: { categories: ['Rings'] } },
-  { id: 'necklaces', label: 'Necklaces', icon: Gem, type: 'category', filterValue: { categories: ['Necklaces'] } },
-  { id: 'bracelets', label: 'Bracelets', icon: Heart, type: 'category', filterValue: { categories: ['Bracelets'] } },
-  { id: 'earrings', label: 'Earrings', icon: Star, type: 'category', filterValue: { categories: ['Earrings'] } },
+  // Categories
+  { id: 'bags', label: 'Bags', icon: Package, type: 'category', filterValue: { categories: ['Bags', 'Handbags', 'Clutches'] } },
+  { id: 'shoes', label: 'Shoes', icon: Sparkles, type: 'category', filterValue: { categories: ['Shoes', 'Boots', 'Heels', 'Sneakers'] } },
+  { id: 'dresses', label: 'Dresses', icon: Heart, type: 'category', filterValue: { categories: ['Dresses'] } },
+  { id: 'coats', label: 'Coats & Jackets', icon: Gem, type: 'category', filterValue: { categories: ['Coats', 'Jackets', 'Blazers'] } },
+  { id: 'tops', label: 'Tops', icon: Star, type: 'category', filterValue: { categories: ['Tops', 'T-Shirts', 'Shirts', 'Blouses'] } },
+  { id: 'accessories', label: 'Accessories', icon: Crown, type: 'category', filterValue: { categories: ['Accessories', 'Scarves', 'Belts', 'Hats'] } },
   
-  // Most popular metals
-  { id: 'gold', label: 'Gold', icon: Coins, type: 'metal', filterValue: { metals: ['Gold', 'Yellow Gold'] } },
-  { id: 'white-gold', label: 'White Gold', icon: Sparkles, type: 'metal', filterValue: { metals: ['White Gold'] } },
-  { id: 'rose-gold', label: 'Rose Gold', icon: Crown, type: 'metal', filterValue: { metals: ['Rose Gold'] } },
-  { id: 'silver', label: 'Silver', icon: Diamond, type: 'metal', filterValue: { metals: ['Silver'] } },
-  { id: 'platinum', label: 'Platinum', icon: Zap, type: 'metal', filterValue: { metals: ['Platinum'] } },
+  // Materials
+  { id: 'leather', label: 'Leather', icon: Zap, type: 'material', filterValue: { materials: ['Leather'] } },
+  { id: 'silk', label: 'Silk', icon: Sparkles, type: 'material', filterValue: { materials: ['Silk'] } },
+  { id: 'cashmere', label: 'Cashmere', icon: Diamond, type: 'material', filterValue: { materials: ['Cashmere'] } },
+  { id: 'cotton', label: 'Cotton', icon: Coins, type: 'material', filterValue: { materials: ['Cotton'] } },
+  { id: 'wool', label: 'Wool', icon: Crown, type: 'material', filterValue: { materials: ['Wool'] } },
   
-  // Part Exchange filter
-  { id: 'part-exchange', label: 'Part Exchange', icon: Repeat, type: 'stock', filterValue: { isTradeIn: 'trade_in_only' } },
+  // Condition (maps to condition_grade filter)
+  { id: 'new-with-tags', label: 'New with Tags', icon: Tag, type: 'condition', filterValue: { conditionGrades: ['new_with_tags'] } },
+  { id: 'excellent', label: 'Excellent', icon: Star, type: 'condition', filterValue: { conditionGrades: ['excellent'] } },
+  { id: 'very-good', label: 'Very Good', icon: CircleDot, type: 'condition', filterValue: { conditionGrades: ['very_good'] } },
+  
+  // Brand Tier
+  { id: 'luxury', label: 'Luxury', icon: Crown, type: 'brand-tier', filterValue: { brandTiers: ['luxury'] } },
+  { id: 'premium', label: 'Premium', icon: Diamond, type: 'brand-tier', filterValue: { brandTiers: ['premium'] } },
+  
+  // Stock
+  { id: 'in-stock', label: 'In Stock', icon: Package, type: 'stock', filterValue: { stockLevel: 'in_stock' } },
+  { id: 'low-stock', label: 'Low Stock', icon: AlertTriangle, type: 'stock', filterValue: { stockLevel: 'low_stock' } },
+  { id: 'out-of-stock', label: 'Out of Stock', icon: X, type: 'stock', filterValue: { stockLevel: 'out_of_stock' } },
   
   // Price presets
-  { id: 'under-1k', label: '< £1k', icon: PoundSterling, type: 'price', filterValue: { priceRange: { min: 0, max: 1000 } } },
+  { id: 'under-500', label: '< £500', icon: PoundSterling, type: 'price', filterValue: { priceRange: { min: 0, max: 500 } } },
+  { id: '500-1k', label: '£500–£1k', icon: PoundSterling, type: 'price', filterValue: { priceRange: { min: 500, max: 1000 } } },
   { id: '1k-5k', label: '£1k–£5k', icon: PoundSterling, type: 'price', filterValue: { priceRange: { min: 1000, max: 5000 } } },
-  { id: '5k-10k', label: '£5k–£10k', icon: PoundSterling, type: 'price', filterValue: { priceRange: { min: 5000, max: 10000 } } },
-  { id: 'over-10k', label: '> £10k', icon: PoundSterling, type: 'price', filterValue: { priceRange: { min: 10000, max: 50000 } } },
+  { id: 'over-5k', label: '> £5k', icon: PoundSterling, type: 'price', filterValue: { priceRange: { min: 5000, max: 100000 } } },
 ];
 
 export function QuickFilters({
@@ -104,7 +120,7 @@ export function QuickFilters({
     filter: Filter,
     tag: Tag,
     watch: Watch,
-    ring: CircleDot,
+    bag: CircleDot,
     gem: Gem,
     star: Star,
     sparkles: Sparkles,
@@ -124,15 +140,10 @@ export function QuickFilters({
       if (!allCategoriesActive) return false;
     }
     
-    // Check metals
-    if (cf.metals?.length) {
-      const allMetalsActive = cf.metals.every(metal => filters.metals.includes(metal));
-      if (!allMetalsActive) return false;
-    }
-    
-    // Check trade-in
-    if (cf.isTradeIn === 'trade_in_only') {
-      if (filters.isTradeIn !== 'trade_in_only') return false;
+    // Check materials
+    if (cf.materials?.length) {
+      const allMaterialsActive = cf.materials.every(material => filters.materials.includes(material));
+      if (!allMaterialsActive) return false;
     }
     
     // Check price range
@@ -145,8 +156,7 @@ export function QuickFilters({
     // If we have criteria and all matched, it's active
     const hasCriteria = 
       (cf.categories?.length || 0) > 0 ||
-      (cf.metals?.length || 0) > 0 ||
-      cf.isTradeIn === 'trade_in_only' ||
+      (cf.materials?.length || 0) > 0 ||
       !!cf.priceRange;
     
     return !!hasCriteria;
@@ -164,11 +174,8 @@ export function QuickFilters({
       if (cf.categories?.length) {
         newFilters.categories = filters.categories.filter(cat => !cf.categories!.includes(cat));
       }
-      if (cf.metals?.length) {
-        newFilters.metals = filters.metals.filter(metal => !cf.metals!.includes(metal));
-      }
-      if (cf.isTradeIn === 'trade_in_only') {
-        newFilters.isTradeIn = 'all';
+      if (cf.materials?.length) {
+        newFilters.materials = filters.materials.filter(material => !cf.materials!.includes(material));
       }
       if (cf.priceRange) {
         newFilters.priceRange = {
@@ -185,11 +192,8 @@ export function QuickFilters({
       if (cf.categories?.length) {
         newFilters.categories = [...new Set([...filters.categories, ...cf.categories])];
       }
-      if (cf.metals?.length) {
-        newFilters.metals = [...new Set([...filters.metals, ...cf.metals])];
-      }
-      if (cf.isTradeIn === 'trade_in_only') {
-        newFilters.isTradeIn = 'trade_in_only';
+      if (cf.materials?.length) {
+        newFilters.materials = [...new Set([...filters.materials, ...cf.materials])];
       }
       if (cf.priceRange) {
         newFilters.priceRange = cf.priceRange;
@@ -203,14 +207,18 @@ export function QuickFilters({
     switch (preset.type) {
       case 'category':
         return preset.filterValue.categories.some((cat: string) => filters.categories.includes(cat));
-      case 'metal':
-        return preset.filterValue.metals.some((metal: string) => filters.metals.includes(metal));
+      case 'material':
+        return preset.filterValue.materials.some((material: string) => filters.materials.includes(material));
+      case 'condition':
+        return preset.filterValue.conditionGrades.some((grade: string) => filters.conditionGrades?.includes(grade));
+      case 'brand-tier':
+        // Check if any brands with this tier are selected
+        const tierBrands = filterOptions.brands?.filter(b => 
+          preset.filterValue.brandTiers.includes(b.tier)
+        ).map(b => b.id.toString()) || [];
+        return tierBrands.some(brandId => filters.brands?.includes(brandId));
       case 'stock':
-        // Handle trade-in filter only
-        if (preset.filterValue.isTradeIn) {
-          return filters.isTradeIn === preset.filterValue.isTradeIn;
-        }
-        return false;
+        return filters.stockLevel === preset.filterValue.stockLevel;
       case 'price':
         const { min, max } = preset.filterValue.priceRange;
         return filters.priceRange.min === min && filters.priceRange.max === max;
@@ -230,19 +238,34 @@ export function QuickFilters({
         onFiltersChange({ ...filters, categories: newCategories });
         break;
         
-      case 'metal':
-        const newMetals = isActive
-          ? filters.metals.filter(metal => !preset.filterValue.metals.includes(metal))
-          : [...new Set([...filters.metals, ...preset.filterValue.metals])];
-        onFiltersChange({ ...filters, metals: newMetals });
+      case 'material':
+        const newMaterials = isActive
+          ? filters.materials.filter(material => !preset.filterValue.materials.includes(material))
+          : [...new Set([...filters.materials, ...preset.filterValue.materials])];
+        onFiltersChange({ ...filters, materials: newMaterials });
+        break;
+        
+      case 'condition':
+        const newConditionGrades = isActive
+          ? (filters.conditionGrades || []).filter(grade => !preset.filterValue.conditionGrades.includes(grade))
+          : [...new Set([...(filters.conditionGrades || []), ...preset.filterValue.conditionGrades])];
+        onFiltersChange({ ...filters, conditionGrades: newConditionGrades });
+        break;
+        
+      case 'brand-tier':
+        // Add/remove all brands of this tier
+        const tierBrandIds = filterOptions.brands?.filter(b => 
+          preset.filterValue.brandTiers.includes(b.tier)
+        ).map(b => b.id.toString()) || [];
+        const newBrands = isActive
+          ? (filters.brands || []).filter(brandId => !tierBrandIds.includes(brandId))
+          : [...new Set([...(filters.brands || []), ...tierBrandIds])];
+        onFiltersChange({ ...filters, brands: newBrands });
         break;
         
       case 'stock':
-        // Handle trade-in filter only
-        if (preset.filterValue.isTradeIn) {
-          const newTradeIn = isActive ? 'all' : preset.filterValue.isTradeIn;
-          onFiltersChange({ ...filters, isTradeIn: newTradeIn });
-        }
+        const newStockLevel = isActive ? 'all' : preset.filterValue.stockLevel;
+        onFiltersChange({ ...filters, stockLevel: newStockLevel });
         break;
         
       case 'price':
@@ -334,7 +357,7 @@ export function QuickFilters({
         
         {/* Clear All Button */}
         {(filters.categories.length > 0 || 
-          filters.metals.length > 0 || 
+          filters.materials.length > 0 || 
           filters.priceRange.min > filterOptions.priceRange.min ||
           filters.priceRange.max < filterOptions.priceRange.max) && (
           <Button
@@ -351,7 +374,7 @@ export function QuickFilters({
 
       {/* Active Filter Summary */}
       {(filters.categories.length > 0 || 
-        filters.metals.length > 0 || 
+        filters.materials.length > 0 || 
         filters.priceRange.min > filterOptions.priceRange.min ||
         filters.priceRange.max < filterOptions.priceRange.max) && (
         <div className="flex flex-wrap gap-2">
@@ -372,18 +395,18 @@ export function QuickFilters({
             </Badge>
           ))}
           
-          {filters.metals.map((metal) => (
+          {filters.materials.map((material) => (
             <Badge 
-              key={metal} 
+              key={material} 
               variant="secondary" 
               className="flex items-center gap-1"
             >
-              {metal}
+              {material}
               <X 
                 className="h-3 w-3 cursor-pointer hover:text-destructive" 
                 onClick={() => {
-                  const newMetals = filters.metals.filter(m => m !== metal);
-                  onFiltersChange({ ...filters, metals: newMetals });
+                  const newMaterials = filters.materials.filter(m => m !== material);
+                  onFiltersChange({ ...filters, materials: newMaterials });
                 }}
               />
             </Badge>

@@ -4,16 +4,22 @@ import { toast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
 
 export const PREDEFINED_PRODUCT_CATEGORIES = [
-  'Rings',
-  'Necklaces',
-  'Earrings',
-  'Bracelets',
-  'Watches',
-  'Pendants',
-  'Brooches',
-  'Chains',
-  'Charms',
-  'Cufflinks'
+  'Tops',
+  'T-Shirts',
+  'Shirts',
+  'Blouses',
+  'Dresses',
+  'Skirts',
+  'Trousers',
+  'Jeans',
+  'Shorts',
+  'Jackets',
+  'Coats',
+  'Knitwear',
+  'Activewear',
+  'Shoes',
+  'Bags',
+  'Accessories'
 ] as const;
 
 export const useCustomProductCategories = () => {

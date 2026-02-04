@@ -32,7 +32,7 @@ interface ReceiptExportData {
   };
 }
 
-export function exportReceiptCSV(data: ReceiptExportData, storeName: string = 'Sourced Jewellers') {
+export function exportReceiptCSV(data: ReceiptExportData, storeName: string = 'Sourced Clothing') {
   const { sale, items, partExchanges, staff } = data;
   
   // Create CSV header
@@ -135,7 +135,7 @@ export function exportReceiptCSV(data: ReceiptExportData, storeName: string = 'S
 
 export function exportMultipleReceiptsCSV(
   receipts: ReceiptExportData[],
-  storeName: string = 'Sourced Jewellers',
+  storeName: string = 'Sourced Clothing',
   startDate?: string,
   endDate?: string
 ) {

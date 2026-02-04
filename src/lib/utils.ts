@@ -268,7 +268,7 @@ export function getSupplierDisplayName(product: any): string {
 }
 
 // Calculate markup percentage (profit / cost * 100)
-// This is the standard jewellery industry metric
+// This is the standard retail industry metric
 export function calculateMarkup(sellPrice: number, cost: number): number {
   if (cost <= 0) return 0;
   return ((sellPrice - cost) / cost) * 100;

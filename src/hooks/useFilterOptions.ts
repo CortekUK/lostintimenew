@@ -3,11 +3,18 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { PREDEFINED_PRODUCT_CATEGORIES } from '@/hooks/useProductCategories';
 
+export interface Brand {
+  id: number;
+  name: string;
+  tier: string | null;
+}
+
 export interface FilterOptions {
   categories: string[];
-  metals: string[];
-  karats: string[];
-  gemstones: string[];
+  materials: string[];
+  sizes: string[];
+  colors: string[];
+  brands: Brand[];
   priceRange: { min: number; max: number };
 }
 
@@ -18,28 +25,34 @@ export const useFilterOptions = () => {
     queryKey: ['filter-options'],
     queryFn: async (): Promise<FilterOptions> => {
       // Get distinct values for each filter field and custom categories from settings
-      const [productsResult, settingsResult] = await Promise.all([
+      const [productsResult, settingsResult, brandsResult] = await Promise.all([
         supabase
           .from('products')
-          .select('category, metal, karat, gemstone, unit_price')
+          .select('category, material, size, color, unit_price')
           .not('unit_price', 'is', null),
         supabase
           .from('app_settings')
           .select('values')
-          .single()
+          .single(),
+        supabase
+          .from('brands')
+          .select('id, name, tier')
+          .order('tier')
+          .order('name')
       ]);
 
       if (productsResult.error) throw productsResult.error;
       const products = productsResult.data;
+      const brands = brandsResult.data || [];
       
       // Get custom categories from settings
       const customCategories = (settingsResult.data?.values as any)?.product_categories || [];
 
       // Extract unique values and filter out nulls/empty strings
       const categoriesFromProducts = [...new Set(products.map(p => p.category).filter(Boolean))];
-      const metals = [...new Set(products.map(p => p.metal).filter(Boolean))].sort();
-      const karats = [...new Set(products.map(p => p.karat).filter(Boolean))].sort();
-      const gemstones = [...new Set(products.map(p => p.gemstone).filter(Boolean))].sort();
+      const materials = [...new Set(products.map(p => p.material).filter(Boolean))].sort();
+      const sizes = [...new Set(products.map(p => p.size).filter(Boolean))].sort();
+      const colors = [...new Set(products.map(p => p.color).filter(Boolean))].sort();
       
       // Combine predefined + custom + from products
       const allCategories = [...new Set([
@@ -48,19 +61,19 @@ export const useFilterOptions = () => {
         ...categoriesFromProducts
       ])].sort();
 
-      const allMetals = [...new Set([
-        ...metals,
-        'Gold', 'Silver', 'Platinum', 'Rose Gold', 'White Gold', 'Yellow Gold', 'Titanium'
+      const allMaterials = [...new Set([
+        ...materials,
+        'Cotton', 'Polyester', 'Wool', 'Silk', 'Linen', 'Denim', 'Leather', 'Nylon'
       ])].sort();
 
-      const allKarats = [...new Set([
-        ...karats,
-        '9K', '14K', '18K', '22K', '24K'
+      const allSizes = [...new Set([
+        ...sizes,
+        'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'
       ])].sort();
 
-      const allGemstones = [...new Set([
-        ...gemstones,
-        'Diamond', 'Ruby', 'Sapphire', 'Emerald', 'Pearl', 'Amethyst', 'Topaz', 'None'
+      const allColors = [...new Set([
+        ...colors,
+        'Black', 'White', 'Navy', 'Grey', 'Red', 'Blue', 'Green', 'Brown', 'Beige', 'None'
       ])].sort();
 
       // Calculate price range
@@ -70,12 +83,13 @@ export const useFilterOptions = () => {
 
       return {
         categories: allCategories,
-        metals: allMetals,
-        karats: allKarats,
-        gemstones: allGemstones,
+        materials: allMaterials,
+        sizes: allSizes,
+        colors: allColors,
+        brands: brands as Brand[],
         priceRange: { 
           min: minPrice || 0, 
-          max: maxPrice || 50000 
+          max: maxPrice || 5000 
         }
       };
     },

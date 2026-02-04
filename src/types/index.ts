@@ -1,4 +1,4 @@
-// Core Types for Sourced Jewellers CRM
+// Core Types for Sourced Clothing CRM
 
 import { Database } from '@/integrations/supabase/types';
 
@@ -103,23 +103,6 @@ export interface CustomCartItem {
   is_custom: true; // discriminator
 }
 
-// Part Exchange Types for POS
-export interface PartExchangeItem {
-  id: string; // temporary ID for cart management
-  product_name: string;
-  category?: string;
-  description?: string;
-  serial?: string;
-  allowance: number;
-  notes?: string;
-  customer_name?: string;
-  customer_contact?: string;
-  customer_email?: string;
-  customer_phone?: string;
-  customer_id?: number; // ID from customers table (for sales FK)
-  supplier_id?: number; // Legacy - ID from suppliers table
-}
-
 // For creating sale items without sale_id (added in mutation)
 export interface SaleItemCreate {
   product_id: number;
@@ -203,7 +186,7 @@ export interface SoldItemsFilters {
   dateRange: DateRange;
   productSearch: string;
   category: string;
-  metal: string;
+  material: string;
   staffId: string;
   hasSerial: string;
 }

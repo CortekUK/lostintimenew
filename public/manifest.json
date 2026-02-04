@@ -1,7 +1,7 @@
 {
-  "name": "Sourced Jewellers CRM",
+  "name": "Sourced Clothing CRM",
   "short_name": "Sourced CRM",
-  "description": "Professional jewelry store management system",
+  "description": "Professional clothing store management system",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#2D2D2D",

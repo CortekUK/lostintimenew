@@ -15,14 +15,13 @@ import { cn } from '@/lib/utils';
 
 interface FilterState {
   categories: string[];
-  metals: string[];
-  karats: string[];
-  gemstones: string[];
+  materials: string[];
+  sizes: string[];
+  colors: string[];
   suppliers: string[];
   locations: string[];
   priceRange: { min: number; max: number };
   marginRange: { min: number; max: number };
-  isTradeIn?: 'all' | 'trade_in_only' | 'non_trade_in';
   inventoryAge?: 'all' | '30' | '60' | '90';
   reservationStatus?: 'all' | 'reserved_only' | 'available_only' | 'fully_reserved';
 }
@@ -36,9 +35,9 @@ interface EnhancedProductFiltersProps {
   locations: Array<{ id: number; name: string }>;
   filterOptions: {
     categories: string[];
-    metals: string[];
-    karats: string[];
-    gemstones: string[];
+    materials: string[];
+    sizes: string[];
+    colors: string[];
     priceRange: { min: number; max: number };
   };
   activeFilters: number;
@@ -72,14 +71,13 @@ export function EnhancedProductFilters({
   const clearAllFilters = () => {
     const clearedFilters = {
       categories: [],
-      metals: [],
-      karats: [],
-      gemstones: [],
+      materials: [],
+      sizes: [],
+      colors: [],
       suppliers: [],
       locations: [],
       priceRange: { min: filterOptions.priceRange.min, max: filterOptions.priceRange.max },
       marginRange: { min: 0, max: 100 },
-      isTradeIn: 'all' as const,
       inventoryAge: 'all' as const,
       reservationStatus: 'all' as const
     };
@@ -120,14 +118,13 @@ export function EnhancedProductFilters({
   const handleClearAndApply = () => {
     const clearedFilters = {
       categories: [],
-      metals: [],
-      karats: [],
-      gemstones: [],
+      materials: [],
+      sizes: [],
+      colors: [],
       suppliers: [],
       locations: [],
       priceRange: { min: filterOptions.priceRange.min, max: filterOptions.priceRange.max },
       marginRange: { min: 0, max: 100 },
-      isTradeIn: 'all' as const,
       inventoryAge: 'all' as const,
       reservationStatus: 'all' as const
     };
@@ -140,14 +137,13 @@ export function EnhancedProductFilters({
   const countDraftFilters = () => {
     let count = 0;
     if (draftFilters.categories.length > 0) count++;
-    if (draftFilters.metals.length > 0) count++;
-    if (draftFilters.karats.length > 0) count++;
-    if (draftFilters.gemstones.length > 0) count++;
+    if (draftFilters.materials.length > 0) count++;
+    if (draftFilters.sizes.length > 0) count++;
+    if (draftFilters.colors.length > 0) count++;
     if (draftFilters.suppliers.length > 0) count++;
     if (draftFilters.locations.length > 0) count++;
     if (draftFilters.priceRange.min !== filterOptions.priceRange.min || draftFilters.priceRange.max !== filterOptions.priceRange.max) count++;
     if (draftFilters.marginRange.min !== 0 || draftFilters.marginRange.max !== 100) count++;
-    if (draftFilters.isTradeIn && draftFilters.isTradeIn !== 'all') count++;
     if (draftFilters.inventoryAge && draftFilters.inventoryAge !== 'all') count++;
     if (draftFilters.reservationStatus && draftFilters.reservationStatus !== 'all') count++;
     return count;
@@ -193,9 +189,9 @@ export function EnhancedProductFilters({
               <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Product Attributes</h4>
               
               <div className="space-y-4 rounded-lg border border-border/50 p-4 bg-muted/30">
-                {/* Jewellery Type */}
+                {/* Clothing Type */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Jewellery Type</Label>
+                  <Label className="text-sm font-medium">Clothing Type</Label>
                   <div className="flex flex-wrap gap-1.5">
                     {filterOptions.categories.map((category) => (
                       <ToggleChip
@@ -209,49 +205,49 @@ export function EnhancedProductFilters({
                   </div>
                 </div>
 
-                {/* Metal */}
+                {/* Material */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Metal</Label>
+                  <Label className="text-sm font-medium">Material</Label>
                   <div className="flex flex-wrap gap-1.5">
-                    {filterOptions.metals.map((metal) => (
+                    {filterOptions.materials.map((material) => (
                       <ToggleChip
-                        key={metal}
-                        selected={draftFilters.metals.includes(metal)}
-                        onToggle={() => toggleArrayFilter('metals', metal)}
+                        key={material}
+                        selected={draftFilters.materials.includes(material)}
+                        onToggle={() => toggleArrayFilter('materials', material)}
                       >
-                        {metal}
+                        {material}
                       </ToggleChip>
                     ))}
                   </div>
                 </div>
 
-                {/* Karat - now toggle chips */}
+                {/* Size */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Karat / Purity</Label>
+                  <Label className="text-sm font-medium">Size</Label>
                   <div className="flex flex-wrap gap-1.5">
-                    {filterOptions.karats.map((karat) => (
+                    {filterOptions.sizes.map((size) => (
                       <ToggleChip
-                        key={karat}
-                        selected={draftFilters.karats.includes(karat)}
-                        onToggle={() => toggleArrayFilter('karats', karat)}
+                        key={size}
+                        selected={draftFilters.sizes.includes(size)}
+                        onToggle={() => toggleArrayFilter('sizes', size)}
                       >
-                        {karat}
+                        {size}
                       </ToggleChip>
                     ))}
                   </div>
                 </div>
 
-                {/* Gemstone - now toggle chips */}
+                {/* Color */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Gemstone</Label>
+                  <Label className="text-sm font-medium">Color</Label>
                   <div className="flex flex-wrap gap-1.5">
-                    {filterOptions.gemstones.map((gemstone) => (
+                    {filterOptions.colors.map((color) => (
                       <ToggleChip
-                        key={gemstone}
-                        selected={draftFilters.gemstones.includes(gemstone)}
-                        onToggle={() => toggleArrayFilter('gemstones', gemstone)}
+                        key={color}
+                        selected={draftFilters.colors.includes(color)}
+                        onToggle={() => toggleArrayFilter('colors', color)}
                       >
-                        {gemstone}
+                        {color}
                       </ToggleChip>
                     ))}
                   </div>
@@ -355,26 +351,6 @@ export function EnhancedProductFilters({
                     </Select>
                   </div>
                 )}
-
-                {/* Source Type (Part Exchange) */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">Source Type</Label>
-                  <Select 
-                    value={draftFilters.isTradeIn || 'all'} 
-                    onValueChange={(value: 'all' | 'trade_in_only' | 'non_trade_in') => 
-                      setDraftFilters({...draftFilters, isTradeIn: value})
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Products" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Products</SelectItem>
-                      <SelectItem value="trade_in_only">Part Exchanges Only</SelectItem>
-                      <SelectItem value="non_trade_in">Standard Stock Only</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
 
                 {/* Stock Availability */}
                 <div className="space-y-2">

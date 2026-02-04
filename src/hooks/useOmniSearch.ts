@@ -39,7 +39,7 @@ const parseQuery = (input: string): SearchQuery => {
 
   // Check for field operators
   const operators: Record<string, string> = {};
-  const operatorPattern = /(sku|internal|serial|supplier|metal|cat|category|karat|price):([^\s]+)/g;
+  const operatorPattern = /(sku|internal|serial|supplier|material|cat|category|size|color|price):([^\s]+)/g;
   let match;
   let cleanQuery = query;
   

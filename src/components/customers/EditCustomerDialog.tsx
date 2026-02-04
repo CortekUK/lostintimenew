@@ -30,10 +30,10 @@ export function EditCustomerDialog({ customer, open, onOpenChange }: EditCustome
         birthday: customer.birthday,
         anniversary: customer.anniversary,
         notes: customer.notes,
-        ring_size: customer.ring_size,
-        bracelet_size: customer.bracelet_size,
-        necklace_length: customer.necklace_length,
-        metal_preference: customer.metal_preference,
+        shirt_size: customer.shirt_size,
+        pants_size: customer.pants_size,
+        shoe_size: customer.shoe_size,
+        preferred_style: customer.preferred_style,
         style_preference: customer.style_preference,
       });
     }
@@ -170,10 +170,10 @@ export function EditCustomerDialog({ customer, open, onOpenChange }: EditCustome
               </p>
               <CustomerPreferencesForm
                 preferences={{
-                  ring_size: formData.ring_size || null,
-                  bracelet_size: formData.bracelet_size || null,
-                  necklace_length: formData.necklace_length || null,
-                  metal_preference: formData.metal_preference || null,
+                  shirt_size: formData.shirt_size || null,
+                  pants_size: formData.pants_size || null,
+                  shoe_size: formData.shoe_size || null,
+                  preferred_style: formData.preferred_style || null,
                   style_preference: formData.style_preference || null,
                 }}
                 onChange={handlePreferencesChange}

@@ -103,7 +103,7 @@ export function AddCustomItemModal({ open, onOpenChange, onAdd }: AddCustomItemM
               </Label>
               <Input
                 id="item-name"
-                placeholder="e.g., Custom 18K Gold Ring with Sapphire"
+                placeholder="e.g., Vintage Hermès Birkin 35"
                 value={productName}
                 onChange={(e) => setProductName(e.target.value)}
                 autoFocus

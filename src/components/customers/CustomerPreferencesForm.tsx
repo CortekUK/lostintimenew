@@ -3,10 +3,10 @@ import { Input } from '@/components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 
 export interface CustomerPreferences {
-  ring_size: string | null;
-  bracelet_size: string | null;
-  necklace_length: string | null;
-  metal_preference: string | null;
+  shirt_size: string | null;
+  pants_size: string | null;
+  shoe_size: string | null;
+  preferred_style: string | null;
   style_preference: string | null;
 }
 
@@ -16,11 +16,11 @@ interface CustomerPreferencesFormProps {
   disabled?: boolean;
 }
 
-const RING_SIZES = ['E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z'];
-const BRACELET_SIZES = ['Small (6.5")', 'Medium (7")', 'Large (7.5")', 'XL (8")', 'XXL (8.5")'];
-const NECKLACE_LENGTHS = ['14"', '16"', '18"', '20"', '22"', '24"', '30"'];
-const METAL_PREFERENCES = ['Yellow Gold', 'White Gold', 'Rose Gold', 'Platinum', 'Silver', 'Mixed Metals'];
-const STYLE_PREFERENCES = ['Classic', 'Modern', 'Vintage', 'Minimalist', 'Bold/Statement', 'Bohemian', 'Art Deco'];
+const SHIRT_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', '6', '8', '10', '12', '14', '16', '18', '20'];
+const PANTS_SIZES = ['XS', 'S', 'M', 'L', 'XL', 'XXL', '26', '28', '30', '32', '34', '36', '38', '40', '42'];
+const SHOE_SIZES = ['UK 3', 'UK 4', 'UK 5', 'UK 6', 'UK 7', 'UK 8', 'UK 9', 'UK 10', 'UK 11', 'UK 12', 'UK 13'];
+const PREFERRED_STYLES = ['Casual', 'Formal', 'Smart Casual', 'Streetwear', 'Bohemian', 'Minimalist', 'Classic', 'Sporty'];
+const STYLE_PREFERENCES = ['Classic', 'Modern', 'Vintage', 'Minimalist', 'Bold/Statement', 'Bohemian', 'Preppy'];
 
 export function CustomerPreferencesForm({ preferences, onChange, disabled }: CustomerPreferencesFormProps) {
   const updatePreference = (key: keyof CustomerPreferences, value: string | null) => {
@@ -30,18 +30,18 @@ export function CustomerPreferencesForm({ preferences, onChange, disabled }: Cus
   return (
     <div className="grid gap-4 sm:grid-cols-2">
       <div className="space-y-2">
-        <Label htmlFor="ring_size">Ring Size</Label>
+        <Label htmlFor="shirt_size">Shirt/Top Size</Label>
         <Select
-          value={preferences.ring_size || 'none'}
-          onValueChange={(value) => updatePreference('ring_size', value)}
+          value={preferences.shirt_size || 'none'}
+          onValueChange={(value) => updatePreference('shirt_size', value)}
           disabled={disabled}
         >
-          <SelectTrigger id="ring_size">
+          <SelectTrigger id="shirt_size">
             <SelectValue placeholder="Select size" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Not specified</SelectItem>
-            {RING_SIZES.map((size) => (
+            {SHIRT_SIZES.map((size) => (
               <SelectItem key={size} value={size}>{size}</SelectItem>
             ))}
           </SelectContent>
@@ -49,18 +49,18 @@ export function CustomerPreferencesForm({ preferences, onChange, disabled }: Cus
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="bracelet_size">Bracelet Size</Label>
+        <Label htmlFor="pants_size">Pants/Bottom Size</Label>
         <Select
-          value={preferences.bracelet_size || 'none'}
-          onValueChange={(value) => updatePreference('bracelet_size', value)}
+          value={preferences.pants_size || 'none'}
+          onValueChange={(value) => updatePreference('pants_size', value)}
           disabled={disabled}
         >
-          <SelectTrigger id="bracelet_size">
+          <SelectTrigger id="pants_size">
             <SelectValue placeholder="Select size" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Not specified</SelectItem>
-            {BRACELET_SIZES.map((size) => (
+            {PANTS_SIZES.map((size) => (
               <SelectItem key={size} value={size}>{size}</SelectItem>
             ))}
           </SelectContent>
@@ -68,52 +68,52 @@ export function CustomerPreferencesForm({ preferences, onChange, disabled }: Cus
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="necklace_length">Necklace Length</Label>
+        <Label htmlFor="shoe_size">Shoe Size</Label>
         <Select
-          value={preferences.necklace_length || 'none'}
-          onValueChange={(value) => updatePreference('necklace_length', value)}
+          value={preferences.shoe_size || 'none'}
+          onValueChange={(value) => updatePreference('shoe_size', value)}
           disabled={disabled}
         >
-          <SelectTrigger id="necklace_length">
-            <SelectValue placeholder="Select length" />
+          <SelectTrigger id="shoe_size">
+            <SelectValue placeholder="Select size" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Not specified</SelectItem>
-            {NECKLACE_LENGTHS.map((length) => (
-              <SelectItem key={length} value={length}>{length}</SelectItem>
+            {SHOE_SIZES.map((size) => (
+              <SelectItem key={size} value={size}>{size}</SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="metal_preference">Metal Preference</Label>
+        <Label htmlFor="preferred_style">Preferred Style</Label>
         <Select
-          value={preferences.metal_preference || 'none'}
-          onValueChange={(value) => updatePreference('metal_preference', value)}
+          value={preferences.preferred_style || 'none'}
+          onValueChange={(value) => updatePreference('preferred_style', value)}
           disabled={disabled}
         >
-          <SelectTrigger id="metal_preference">
-            <SelectValue placeholder="Select metal" />
+          <SelectTrigger id="preferred_style">
+            <SelectValue placeholder="Select style" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Not specified</SelectItem>
-            {METAL_PREFERENCES.map((metal) => (
-              <SelectItem key={metal} value={metal}>{metal}</SelectItem>
+            {PREFERRED_STYLES.map((style) => (
+              <SelectItem key={style} value={style}>{style}</SelectItem>
             ))}
           </SelectContent>
         </Select>
       </div>
 
       <div className="space-y-2 sm:col-span-2">
-        <Label htmlFor="style_preference">Style Preference</Label>
+        <Label htmlFor="style_preference">Fashion Preference</Label>
         <Select
           value={preferences.style_preference || 'none'}
           onValueChange={(value) => updatePreference('style_preference', value)}
           disabled={disabled}
         >
           <SelectTrigger id="style_preference">
-            <SelectValue placeholder="Select style" />
+            <SelectValue placeholder="Select preference" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="none">Not specified</SelectItem>

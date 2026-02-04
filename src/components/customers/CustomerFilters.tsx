@@ -15,7 +15,7 @@ export interface CustomerFilters {
   purchaseCount: string;
   upcomingBirthday: boolean;
   upcomingAnniversary: boolean;
-  metalPreference: string[];
+  stylePreference: string[];
   hasEmail: boolean;
   hasPhone: boolean;
 }
@@ -25,7 +25,7 @@ export const defaultCustomerFilters: CustomerFilters = {
   purchaseCount: 'all',
   upcomingBirthday: false,
   upcomingAnniversary: false,
-  metalPreference: [],
+  stylePreference: [],
   hasEmail: false,
   hasPhone: false,
 };
@@ -52,7 +52,7 @@ const PURCHASE_COUNTS = [
   { value: '6+', label: '6+ Purchases' },
 ];
 
-const METAL_OPTIONS = ['Gold', 'Silver', 'Platinum', 'Rose Gold', 'White Gold'];
+const STYLE_OPTIONS = ['Casual', 'Formal', 'Smart Casual', 'Streetwear', 'Bohemian', 'Minimalist', 'Classic', 'Sporty'];
 
 export function CustomerFiltersComponent({
   filters,
@@ -69,12 +69,12 @@ export function CustomerFiltersComponent({
     onFiltersChange({ ...filters, [key]: value });
   };
 
-  const toggleMetalPreference = (metal: string) => {
-    const current = filters.metalPreference;
-    const updated = current.includes(metal)
-      ? current.filter((m) => m !== metal)
-      : [...current, metal];
-    updateFilter('metalPreference', updated);
+  const toggleStylePreference = (style: string) => {
+    const current = filters.stylePreference;
+    const updated = current.includes(style)
+      ? current.filter((s) => s !== style)
+      : [...current, style];
+    updateFilter('stylePreference', updated);
   };
 
   const clearAllFilters = () => {
@@ -95,9 +95,9 @@ export function CustomerFiltersComponent({
       case 'upcomingAnniversary':
         updateFilter('upcomingAnniversary', false);
         break;
-      case 'metalPreference':
+      case 'stylePreference':
         if (subKey) {
-          toggleMetalPreference(subKey);
+          toggleStylePreference(subKey);
         }
         break;
       case 'hasEmail':
@@ -131,8 +131,8 @@ export function CustomerFiltersComponent({
       badges.push({ key: 'upcomingAnniversary', label: 'Anniversary in 30d' });
     }
 
-    filters.metalPreference.forEach((metal) => {
-      badges.push({ key: 'metalPreference', subKey: metal, label: `Metal: ${metal}` });
+    filters.stylePreference.forEach((style) => {
+      badges.push({ key: 'stylePreference', subKey: style, label: `Style: ${style}` });
     });
 
     if (filters.hasEmail) {
@@ -243,15 +243,15 @@ export function CustomerFiltersComponent({
                 <div className="space-y-4 rounded-lg border border-border/50 p-4 bg-muted/30">
                   {/* Metal Preference - toggle chips */}
                   <div className="space-y-2">
-                    <Label className="text-sm font-medium">Metal Preference</Label>
+                    <Label className="text-sm font-medium">Style Preference</Label>
                     <div className="flex flex-wrap gap-1.5">
-                      {METAL_OPTIONS.map((metal) => (
+                      {STYLE_OPTIONS.map((style) => (
                         <ToggleChip
-                          key={metal}
-                          selected={filters.metalPreference.includes(metal)}
-                          onToggle={() => toggleMetalPreference(metal)}
+                          key={style}
+                          selected={filters.stylePreference.includes(style)}
+                          onToggle={() => toggleStylePreference(style)}
                         >
-                          {metal}
+                          {style}
                         </ToggleChip>
                       ))}
                     </div>

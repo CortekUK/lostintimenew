@@ -8,7 +8,7 @@ import { CurrencyInput } from '@/components/ui/currency-input';
 import { Input } from '@/components/ui/input';
 import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 import { formatCurrency, calculateCartTotals } from '@/lib/utils';
-import type { CartItem, PaymentMethod, PartExchangeItem } from '@/types';
+import type { CartItem, PaymentMethod } from '@/types';
 import { CreditCard, Banknote, Smartphone, Building, Loader2, PenTool, ChevronDown, MapPin } from 'lucide-react';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { SignaturePad, SignaturePadRef } from './SignaturePad';
@@ -22,7 +22,6 @@ export type DiscountType = 'percentage' | 'fixed';
 
 interface CheckoutFormProps {
   items: CartItem[];
-  partExchanges: PartExchangeItem[];
   discount: number;
   discountType: DiscountType;
   onDiscountChange: (discount: number) => void;
@@ -71,7 +70,6 @@ const paymentMethods = [{
 }];
 export function CheckoutForm({
   items,
-  partExchanges,
   discount,
   discountType,
   onDiscountChange,
@@ -121,8 +119,6 @@ export function CheckoutForm({
       discount: itemSubtotal * itemDiscountRatio
     };
   }));
-  const partExchangeTotal = partExchanges.reduce((sum, px) => sum + px.allowance, 0);
-  const netTotal = totals.total - partExchangeTotal;
   const handleDiscountChange = (value: string) => {
     const numValue = parseFloat(value) || 0;
     const clampedValue = Math.max(0, discountType === 'percentage' 
@@ -132,7 +128,7 @@ export function CheckoutForm({
     setDiscountInput(clampedValue.toString());
     onDiscountChange(clampedValue);
   };
-  const canCompleteSale = (items.length > 0 || partExchanges.length > 0) && paymentMethod && staffMember && locationId && customerName.trim() && !isProcessing && (!requiresOwnerApproval || netTotal >= 0) && !disabled;
+  const canCompleteSale = items.length > 0 && paymentMethod && staffMember && locationId && customerName.trim() && !isProcessing && !requiresOwnerApproval && !disabled;
   return <Card className="shadow-card">
       <CardHeader className="pb-3">
         <CardTitle className="font-luxury">Checkout</CardTitle>
@@ -254,20 +250,11 @@ export function CheckoutForm({
                 <span className="text-muted-foreground">Tax:</span>
                 <span className="text-[#D4AF37] font-medium">{formatCurrency(totals.tax_total)}</span>
               </div>}
-            {partExchangeTotal > 0 && <div className="flex justify-between">
-                <span className="text-muted-foreground">Trade-In ({partExchanges.length} items):</span>
-                <span className="text-green-600 font-medium">-{formatCurrency(partExchangeTotal)}</span>
-              </div>}
           </div>
-          <div className={`flex justify-between text-lg font-bold pt-2 border-t ${netTotal < 0 ? 'text-red-600' : 'text-[#D4AF37]'}`}>
-            <span>{netTotal < 0 ? 'Owed to Customer:' : 'Net Total:'}</span>
-            <span>{formatCurrency(Math.abs(netTotal))}</span>
+          <div className="flex justify-between text-lg font-bold pt-2 border-t text-[#D4AF37]">
+            <span>Total:</span>
+            <span>{formatCurrency(totals.total)}</span>
           </div>
-          {netTotal < 0 && <div className="bg-red-50 dark:bg-red-950/20 border border-red-200 dark:border-red-800 rounded-lg p-3 mt-2">
-              <p className="text-sm text-red-700 dark:text-red-400 font-medium">
-                ⚠️ Manager or Owner approval required for negative balance
-              </p>
-            </div>}
         </div>
 
         {/* Signature Section */}
@@ -332,7 +319,7 @@ export function CheckoutForm({
               <Loader2 className="h-5 w-5 mr-2 animate-spin" />
               Processing Sale...
             </> : <>
-              {netTotal < 0 ? 'Process Refund' : 'Complete Sale'} — {formatCurrency(Math.abs(netTotal))}
+              {totals.total < 0 ? 'Process Refund' : 'Complete Sale'} — {formatCurrency(Math.abs(totals.total))}
             </>}
         </Button>
         
@@ -340,27 +327,27 @@ export function CheckoutForm({
             You don't have permission to create sales
           </p>}
 
-        {!disabled && items.length === 0 && partExchanges.length === 0 && <p className="text-center text-sm text-muted-foreground">
+        {!disabled && items.length === 0 && <p className="text-center text-sm text-muted-foreground">
             Add items to cart or part exchanges to enable checkout
           </p>}
         
-        {(items.length > 0 || partExchanges.length > 0) && !staffMember && <p className="text-center text-sm text-muted-foreground">
+        {items.length > 0 && !staffMember && <p className="text-center text-sm text-muted-foreground">
             Select staff member to complete sale
           </p>}
         
-        {(items.length > 0 || partExchanges.length > 0) && !paymentMethod && staffMember && locationId && customerName.trim() && <p className="text-center text-sm text-muted-foreground">
+        {items.length > 0 && !paymentMethod && staffMember && locationId && customerName.trim() && <p className="text-center text-sm text-muted-foreground">
             Select a payment method to complete sale
           </p>}
 
-        {(items.length > 0 || partExchanges.length > 0) && staffMember && !locationId && <p className="text-center text-sm text-muted-foreground">
+        {items.length > 0 && staffMember && !locationId && <p className="text-center text-sm text-muted-foreground">
             Select a shop location to complete sale
           </p>}
 
-        {(items.length > 0 || partExchanges.length > 0) && staffMember && locationId && !customerName.trim() && <p className="text-center text-sm text-muted-foreground">
+        {items.length > 0 && staffMember && locationId && !customerName.trim() && <p className="text-center text-sm text-muted-foreground">
             Enter customer name to complete sale
           </p>}
 
-        {requiresOwnerApproval && netTotal < 0 && <p className="text-center text-sm text-red-600">
+        {requiresOwnerApproval && totals.total < 0 && <p className="text-center text-sm text-red-600">
             Manager or Owner approval required for transactions where customer is owed money
           </p>}
       </CardContent>

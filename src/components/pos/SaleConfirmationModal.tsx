@@ -5,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { formatCurrency, formatDateTime, formatPaymentMethod } from '@/lib/utils';
 import { CheckCircle2, Printer, Mail, Download, ShoppingCart, ExternalLink, Eye, Loader2 } from 'lucide-react';
-import type { Sale, SaleItem, Product, PartExchangeItem } from '@/types';
+import type { Sale, SaleItem, Product } from '@/types';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { SaleDetailModal } from '@/components/transactions/SaleDetailModal';
@@ -18,7 +18,6 @@ interface SaleConfirmationModalProps {
   onClose: () => void;
   sale: Sale;
   items: Array<{ product: Product; quantity: number; unit_price: number }>;
-  partExchanges: PartExchangeItem[];
   signature?: string | null;
   onPrint: () => void;
   onEmailReceipt?: () => void;
@@ -30,7 +29,6 @@ export function SaleConfirmationModal({
   onClose,
   sale,
   items,
-  partExchanges,
   signature,
   onPrint,
   onEmailReceipt,
@@ -39,8 +37,6 @@ export function SaleConfirmationModal({
   const navigate = useNavigate();
   const { toast } = useToast();
   const { settings } = useSettings();
-  const partExchangeTotal = partExchanges.reduce((sum, px) => sum + px.allowance, 0);
-  const netTotal = sale.total - partExchangeTotal;
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [showEmailDialog, setShowEmailDialog] = useState(false);
   const [isSendingEmail, setIsSendingEmail] = useState(false);
@@ -82,10 +78,6 @@ export function SaleConfirmationModal({
             quantity: item.quantity,
             unitPrice: item.unit_price,
             discount: 0
-          })),
-          partExchanges: partExchanges.map(px => ({
-            title: px.product_name,
-            allowance: px.allowance
           })),
           subtotal: sale.subtotal,
           discountTotal: sale.discount_total,
@@ -182,20 +174,6 @@ export function SaleConfirmationModal({
                 </div>
               ))}
 
-              {/* Part Exchanges */}
-              {partExchanges.map((px, index) => (
-                <div key={`px-${index}`} className="flex justify-between items-start text-sm border-t pt-2">
-                  <div className="flex-1">
-                    <p className="font-medium">Part Exchange — {px.product_name}</p>
-                    <p className="text-muted-foreground text-xs">
-                      Trade-in allowance
-                    </p>
-                  </div>
-                  <p className="font-medium text-destructive">
-                    -{formatCurrency(px.allowance)}
-                  </p>
-                </div>
-              ))}
             </div>
           </div>
 
@@ -219,16 +197,10 @@ export function SaleConfirmationModal({
                 <span>{formatCurrency(sale.tax_total)}</span>
               </div>
             )}
-            {partExchangeTotal > 0 && (
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Part Exchange:</span>
-                <span className="text-destructive">-{formatCurrency(partExchangeTotal)}</span>
-              </div>
-            )}
             <Separator />
             <div className="flex justify-between font-bold text-lg">
-              <span>Net Total:</span>
-              <span className="text-primary">{formatCurrency(netTotal)}</span>
+              <span>Total:</span>
+              <span className="text-primary">{formatCurrency(sale.total)}</span>
               </div>
             </div>
 
@@ -242,28 +214,6 @@ export function SaleConfirmationModal({
               </div>
             )}
 
-            {/* Trade-In Notice */}
-          {partExchanges.length > 0 && (
-            <div className="bg-blue-50 dark:bg-blue-950/30 border border-blue-200 dark:border-blue-800 rounded-lg p-3">
-              <div className="flex items-center justify-between gap-3">
-                <p className="text-sm text-muted-foreground flex-1">
-                  ✅ <strong>{partExchanges.length}</strong> trade-in(s) added to intake queue. 
-                  Convert to inventory from the <strong>Intake Queue</strong>.
-                </p>
-                <Button
-                  variant="link"
-                  size="sm"
-                  onClick={() => {
-                    onClose();
-                    navigate('/products/intake');
-                  }}
-                  className="text-blue-600 dark:text-blue-400 h-auto p-0 whitespace-nowrap"
-                >
-                  Go to Queue →
-                </Button>
-              </div>
-            </div>
-          )}
 
           {/* Action Buttons */}
           <div className="grid grid-cols-2 gap-3 pt-4">

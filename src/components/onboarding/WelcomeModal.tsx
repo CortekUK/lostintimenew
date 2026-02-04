@@ -17,12 +17,12 @@ const features = [
   {
     icon: ShoppingCart,
     title: 'Point of Sale',
-    description: 'Fast checkout with part-exchange support & receipt printing'
+    description: 'Fast checkout with receipt printing & customer tracking'
   },
   {
     icon: Package,
     title: 'Inventory Management',
-    description: 'Track stock, consignments & trade-ins'
+    description: 'Track stock, sizes, colors & consignments'
   },
   {
     icon: PoundSterling,
@@ -50,7 +50,7 @@ export function WelcomeModal() {
     const checkWelcome = async () => {
       const { data: { user } } = await supabase.auth.getUser();
       if (user) {
-        const userWelcomeKey = `jc_welcome_seen_${user.id}`;
+        const userWelcomeKey = `sc_welcome_seen_${user.id}`;
         const hasSeenWelcome = localStorage.getItem(userWelcomeKey);
         
         if (!hasSeenWelcome) {
@@ -67,7 +67,7 @@ export function WelcomeModal() {
       // Mark as seen when closing
       const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) {
-        const userWelcomeKey = `jc_welcome_seen_${currentUser.id}`;
+        const userWelcomeKey = `sc_welcome_seen_${currentUser.id}`;
         localStorage.setItem(userWelcomeKey, 'true');
       }
     }
@@ -81,10 +81,10 @@ export function WelcomeModal() {
           <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-xl">
           <Sparkles className="h-6 w-6 text-primary" />
-          👋 Welcome to Sourced Jewellers CRM
+          👋 Welcome to Sourced Clothing CRM
         </DialogTitle>
         <DialogDescription>
-          A complete POS and inventory management system designed for jewellers
+          A complete POS and inventory management system designed for clothing retailers
         </DialogDescription>
           </DialogHeader>
           
@@ -135,7 +135,7 @@ export function WelcomeModal() {
                 Add Your Products
               </CardTitle>
               <CardDescription className="text-sm">
-                Upload watches, rings, or other jewellery to your inventory
+                Upload shirts, dresses, or other clothing to your inventory
               </CardDescription>
             </CardHeader>
           </Card>
@@ -159,7 +159,7 @@ export function WelcomeModal() {
                 Make Your First Sale
               </CardTitle>
               <CardDescription className="text-sm">
-                Use POS to process a transaction or part-exchange
+                Use POS to process a transaction with your customers
               </CardDescription>
             </CardHeader>
           </Card>

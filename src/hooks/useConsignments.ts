@@ -101,7 +101,7 @@ export const useConsignmentSettlements = (filter?: ConsignmentFilter) => {
           product:products(
             id, name, sku, internal_sku, consignment_terms, 
             unit_cost, unit_price, tax_rate, category, description,
-            image_url, metal, karat, gemstone, barcode,
+            image_url, material, size, color, barcode,
             is_consignment, is_trade_in, is_registered,
             consignment_start_date, consignment_end_date,
             consignment_supplier_id, supplier_id, location_id,
@@ -259,4 +259,86 @@ export const isPaymentOverdue = (soldAt: string | null): boolean => {
   const saleDate = new Date(soldAt);
   const diffDays = Math.ceil((now.getTime() - saleDate.getTime()) / (1000 * 60 * 60 * 24));
   return diffDays > 30;
+};
+
+// Supplier consignments - get consignment items for a specific supplier
+export const useSupplierConsignments = (supplierId: number) => {
+  const { user, session } = useAuth();
+  
+  return useQuery({
+    queryKey: ['supplier-consignments', supplierId],
+    queryFn: async () => {
+      if (!supplierId) return [];
+      
+      // Get products consigned by this supplier
+      const { data: products, error: productsError } = await supabase
+        .from('products')
+        .select(`
+          id,
+          name,
+          sku,
+          internal_sku,
+          unit_price,
+          unit_cost,
+          created_at,
+          consignment_start_date,
+          consignment_end_date,
+          consignment_terms
+        `)
+        .eq('is_consignment', true)
+        .eq('consignment_supplier_id', supplierId);
+      
+      if (productsError) throw productsError;
+      if (!products || products.length === 0) return [];
+      
+      const productIds = products.map(p => p.id);
+      
+      // Get stock data
+      const { data: stockData } = await supabase
+        .from('v_stock_on_hand')
+        .select('product_id, qty_on_hand')
+        .in('product_id', productIds);
+      
+      const stockMap = new Map(stockData?.map(s => [s.product_id, s.qty_on_hand]) || []);
+      
+      // Get settlement data
+      const { data: settlements } = await supabase
+        .from('consignment_settlements')
+        .select('product_id, payout_amount, paid_at, sale_id')
+        .in('product_id', productIds);
+      
+      const settlementMap = new Map(settlements?.map(s => [s.product_id, s]) || []);
+      
+      // Map products to consignment items
+      return products.map(product => {
+        const stockOnHand = stockMap.get(product.id) || 0;
+        const settlement = settlementMap.get(product.id);
+        
+        let status: 'active' | 'sold' | 'settled' = 'active';
+        if (settlement?.paid_at) {
+          status = 'settled';
+        } else if (settlement || stockOnHand === 0) {
+          status = 'sold';
+        }
+        
+        return {
+          id: product.id,
+          product_id: product.id,
+          product_name: product.name,
+          sku: product.sku,
+          internal_sku: product.internal_sku,
+          agreed_payout: product.unit_cost,
+          sale_price: product.unit_price,
+          status,
+          stock_on_hand: stockOnHand,
+          consignment_start_date: product.consignment_start_date,
+          consignment_end_date: product.consignment_end_date,
+          consignment_terms: product.consignment_terms,
+          settlement: settlement || null,
+          created_at: product.created_at,
+        };
+      });
+    },
+    enabled: !!user && !!session && !!supplierId
+  });
 };

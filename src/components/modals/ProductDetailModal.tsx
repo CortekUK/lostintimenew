@@ -7,20 +7,17 @@ import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from '@/components/ui/carousel';
 import { Product } from '@/types';
-import { Package, PoundSterling, TrendingUp, Calendar, Truck, Tag, Gem, Award, FileText, Eye, Download, Repeat, User, Phone, Copy, ExternalLink, MapPin, Clock, Percent, CalendarClock, X, AlertTriangle, Video, Image as ImageIcon } from 'lucide-react';
+import { Package, PoundSterling, TrendingUp, Calendar, Truck, Tag, Gem, Award, FileText, Eye, Download, User, Phone, Copy, ExternalLink, MapPin, Clock, Percent, CalendarClock, X, AlertTriangle, Video, Image as ImageIcon } from 'lucide-react';
 import { format, differenceInDays, parseISO } from 'date-fns';
 import { ConsignmentAgreementSection } from '@/components/consignments/ConsignmentAgreementSection';
 import { StockAdjustmentModal } from '@/components/products/StockAdjustmentModal';
 import { ImageModal } from '@/components/ui/image-modal';
 import { ProductDocumentsTab } from '@/components/documents/ProductDocumentsTab';
-import { PartExchangeInfoTab } from '@/components/products/PartExchangeInfoTab';
 import { isVideoUrl } from '@/components/ui/multi-image-upload';
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useOwnerGuard } from '@/hooks/useOwnerGuard';
 import { useToast } from '@/hooks/use-toast';
-import { useProductTradeInStatus } from '@/hooks/useProductTradeInStatus';
-import { usePartExchangesByProduct } from '@/hooks/usePartExchanges';
 import { useKeyboardShortcuts } from '@/hooks/useKeyboardShortcuts';
 import { getSupplierDisplayName, getCleanedDescription, formatCurrency } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
@@ -52,9 +49,6 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Check product type status
-  const { data: isTradeIn } = useProductTradeInStatus(product?.id || 0);
-  const { data: partExchange } = usePartExchangesByProduct(product?.id || 0);
 
   // Fetch product reservations
   const { data: reservations = [] } = useQuery({
@@ -166,7 +160,7 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
   const stock = (product as any).qty_on_hand || 0;
   const inventoryValue = (product as any).inventory_value || 0;
   const profit = (Number(product.unit_price) - Number(product.unit_cost)).toFixed(2);
-  // Markup = (Profit / Cost) * 100 - standard jewellery industry metric
+  // Markup = (Profit / Cost) * 100 - standard retail industry metric
   const markup = Number(product.unit_cost) > 0 
     ? (((Number(product.unit_price) - Number(product.unit_cost)) / Number(product.unit_cost)) * 100).toFixed(1)
     : 0;
@@ -295,12 +289,6 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
                       <Badge variant="outline" className="border-amber-500/50 text-amber-700 bg-amber-50 dark:bg-amber-900/20 font-medium px-2.5 py-0.5">
                         <FileText className="h-3 w-3 mr-1.5" />
                         Consignment
-                      </Badge>
-                    )}
-                    {isTradeIn && (
-                      <Badge variant="outline" className="border-blue-500/50 text-blue-700 bg-blue-50 dark:bg-blue-900/20 font-medium px-2.5 py-0.5">
-                        <Repeat className="h-3 w-3 mr-1.5" />
-                        Part Exchange
                       </Badge>
                     )}
                   </div>
@@ -609,7 +597,7 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
               </Card>
             )}
 
-            {((product as any).is_consignment || isTradeIn || getSupplierDisplayName(product) !== 'Unknown Supplier') && (
+            {((product as any).is_consignment || getSupplierDisplayName(product) !== 'Unknown Supplier') && (
               <Card className="shadow-sm border-border/50 overflow-hidden">
                 <CardHeader className="bg-muted/30 py-4 px-5 border-b border-border/50">
                   <div className="flex items-center gap-3">
@@ -621,9 +609,7 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
                       <CardDescription className="text-xs mt-0.5">
                         {(product as any).is_consignment 
                           ? "Consignment product details"
-                          : isTradeIn 
-                            ? "Part exchange customer information"
-                            : "Supplier information"
+                          : "Supplier information"
                         }
                       </CardDescription>
                     </div>
@@ -663,66 +649,6 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
                         </div>
                       )}
                     </div>
-                  ) : isTradeIn && partExchange ? (
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                      <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
-                        <div className="flex items-center gap-2 mb-3">
-                          <User className="h-4 w-4 text-muted-foreground" />
-                          <h4 className="font-medium text-sm">Customer Details</h4>
-                        </div>
-                        <div className="divide-y divide-border/50">
-                          <div className="flex justify-between py-2 first:pt-0">
-                            <span className="text-muted-foreground text-sm">Name</span>
-                            <span className="font-medium text-sm">
-                              {partExchange.customer_name || 'Not recorded'}
-                            </span>
-                          </div>
-                          <div className="flex justify-between py-2 last:pb-0">
-                            <span className="text-muted-foreground text-sm">Contact</span>
-                            <span className="font-medium font-mono text-sm">
-                              {partExchange.customer_contact || 'Not recorded'}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      <div className="p-4 bg-muted/20 rounded-lg border border-border/30">
-                        <div className="flex items-center gap-2 mb-3">
-                          <PoundSterling className="h-4 w-4 text-muted-foreground" />
-                          <h4 className="font-medium text-sm">Trade-In Details</h4>
-                        </div>
-                        <div className="divide-y divide-border/50">
-                          <div className="flex justify-between py-2 first:pt-0">
-                            <span className="text-muted-foreground text-sm">Allowance</span>
-                            <span className="font-medium text-success text-sm">
-                              {formatCurrency(Number(partExchange.allowance))}
-                            </span>
-                          </div>
-                          {partExchange.sale?.sold_at && (
-                            <div className="flex justify-between py-2 last:pb-0">
-                              <span className="text-muted-foreground text-sm">Date</span>
-                              <span className="font-medium text-sm">
-                                {new Date(partExchange.sale.sold_at).toLocaleDateString('en-GB')}
-                              </span>
-                            </div>
-                          )}
-                        </div>
-                        {partExchange.sale_id && (
-                          <Button
-                            variant="link"
-                            size="sm"
-                            className="h-auto p-0 text-xs mt-3"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              navigate(`/sales/${partExchange.sale_id}`);
-                              onOpenChange(false);
-                            }}
-                          >
-                            <Eye className="h-3 w-3 mr-1" />
-                            View Original Sale
-                          </Button>
-                        )}
-                      </div>
-                    </div>
                   ) : (
                     <div className="flex justify-between items-center py-1">
                       <span className="text-muted-foreground text-sm">Supplier</span>
@@ -736,191 +662,153 @@ export function ProductDetailModal({ product, open, onOpenChange, onEditClick, o
             )}
 
             {/* Collapsible Sections */}
-            <Accordion type="multiple" defaultValue={["pricing", "specifications"]} className="space-y-3">
+            {/* Pricing & Details Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               
-              {/* Pricing & Financials */}
-              <AccordionItem value="pricing" className="border border-border/50 rounded-xl overflow-hidden shadow-sm">
-                <AccordionTrigger className="hover:no-underline px-5 py-4 hover:bg-muted/30 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <PoundSterling className="h-4 w-4 text-primary" />
-                    </div>
-                    <span className="font-medium text-base">Pricing & Financials</span>
+              {/* Pricing Card */}
+              <Card className="shadow-sm border-border/50">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <PoundSterling className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-sm font-medium">Pricing</CardTitle>
                   </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-5 pb-5 bg-muted/10">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 divide-border/50">
-                    <div className="divide-y divide-border/50 sm:pr-5">
-                      <div className="flex justify-between py-3 first:pt-0">
-                        <span className="text-muted-foreground text-sm">Cost Price</span>
-                        <span className="font-medium">£{Number(product.unit_cost).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between py-3">
-                        <span className="text-muted-foreground text-sm">Sell Price</span>
-                        <span className="font-medium">£{Number(product.unit_price).toFixed(2)}</span>
-                      </div>
-                      <div className="flex justify-between py-3 last:pb-0">
-                        <span className="text-muted-foreground text-sm">Tax Rate</span>
-                        <span className="font-medium">{Number(product.tax_rate || 0).toFixed(1)}%</span>
-                      </div>
-                    </div>
-                    <div className="divide-y divide-border/50 sm:pl-5 sm:border-l border-border/50">
-                      <div className="flex justify-between py-3 sm:first:pt-0">
-                        <span className="text-muted-foreground text-sm">Profit per Unit</span>
-                        <span className={`font-medium ${Number(profit) >= 0 ? 'text-success' : 'text-destructive'}`}>£{profit}</span>
-                      </div>
-                      <div className="flex justify-between py-3 last:pb-0">
-                        <span className="text-muted-foreground text-sm">Markup</span>
-                        <span className={`font-medium ${Number(markup) >= 50 ? 'text-success' : Number(markup) >= 25 ? '' : 'text-warning'}`}>{markup}%</span>
-                      </div>
-                    </div>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Cost</span>
+                    <span className="font-medium">£{Number(product.unit_cost).toFixed(2)}</span>
                   </div>
-                </AccordionContent>
-              </AccordionItem>
-
-              {/* Specifications */}
-              <AccordionItem value="specifications" className="border border-border/50 rounded-xl overflow-hidden shadow-sm">
-                <AccordionTrigger className="hover:no-underline px-5 py-4 hover:bg-muted/30 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <Gem className="h-4 w-4 text-primary" />
-                    </div>
-                    <span className="font-medium text-base">Specifications</span>
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">Sell Price</span>
+                    <span className="font-medium">£{Number(product.unit_price).toFixed(2)}</span>
                   </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-5 pb-5 bg-muted/10">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 divide-y sm:divide-y-0 divide-border/50">
-                    <div className="divide-y divide-border/50 sm:pr-5">
-                      <div className="flex justify-between py-3 first:pt-0">
-                        <span className="text-muted-foreground text-sm">Internal SKU</span>
-                        <span className="font-medium font-mono text-sm">{product.internal_sku}</span>
-                      </div>
-                      {product.sku && (
-                        <div className="flex justify-between py-3">
-                          <span className="text-muted-foreground text-sm">SKU</span>
-                          <span className="font-medium font-mono text-sm">{product.sku}</span>
-                        </div>
-                      )}
-                      <div className="flex justify-between py-3">
-                        <span className="text-muted-foreground text-sm">Category</span>
-                        <span className="font-medium">{product.category || 'N/A'}</span>
-                      </div>
-                      {(product as any).location && (
-                        <div className="flex justify-between py-3 last:pb-0">
-                          <span className="text-muted-foreground text-sm flex items-center gap-1">
-                            <MapPin className="h-3 w-3" />
-                            Location
-                          </span>
-                          <span className="font-medium">{(product as any).location.name}</span>
-                        </div>
-                      )}
-                    </div>
-                    <div className="divide-y divide-border/50 sm:pl-5 sm:border-l border-border/50">
-                      {product.metal && (
-                        <div className="flex justify-between py-3 sm:first:pt-0">
-                          <span className="text-muted-foreground text-sm">Metal</span>
-                          <span className="font-medium">{product.metal}</span>
-                        </div>
-                      )}
-                      {product.karat && (
-                        <div className="flex justify-between py-3">
-                          <span className="text-muted-foreground text-sm">Karat/Purity</span>
-                          <span className="font-medium">{product.karat}</span>
-                        </div>
-                      )}
-                      {product.gemstone && (
-                        <div className="flex justify-between py-3 last:pb-0">
-                          <span className="text-muted-foreground text-sm">Gemstone</span>
-                          <span className="font-medium">{product.gemstone}</span>
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  {getCleanedDescription(product.description) && (
-                    <div className="mt-4 pt-4 border-t border-border/50">
-                      <span className="text-muted-foreground text-sm">Description</span>
-                      <p className="mt-2 text-sm leading-relaxed">{getCleanedDescription(product.description)}</p>
+                  {(product as any).rrp && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Original RRP</span>
+                      <span className="font-medium text-muted-foreground">£{Number((product as any).rrp).toFixed(2)}</span>
                     </div>
                   )}
-                </AccordionContent>
-              </AccordionItem>
+                  <div className="pt-2 border-t flex justify-between">
+                    <span className="text-muted-foreground">Profit</span>
+                    <span className={`font-medium ${Number(profit) >= 0 ? 'text-success' : 'text-destructive'}`}>
+                      £{profit} ({markup}%)
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
 
-              {/* Stock Management - Owner only */}
-              {isOwner && (
-                <AccordionItem value="stock" className="border border-border/50 rounded-xl overflow-hidden shadow-sm">
-                  <AccordionTrigger className="hover:no-underline px-5 py-4 hover:bg-muted/30 transition-colors">
-                    <div className="flex items-center gap-3">
-                      <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                        <Package className="h-4 w-4 text-primary" />
+              {/* Specifications Card */}
+              <Card className="shadow-sm border-border/50">
+                <CardHeader className="pb-3">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4 text-primary" />
+                    <CardTitle className="text-sm font-medium">Details</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-2 text-sm">
+                  <div className="flex justify-between">
+                    <span className="text-muted-foreground">SKU</span>
+                    <span className="font-medium font-mono text-xs">{product.internal_sku}</span>
+                  </div>
+                  {product.category && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Category</span>
+                      <span className="font-medium">{product.category}</span>
+                    </div>
+                  )}
+                  {product.material && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Material</span>
+                      <span className="font-medium">{product.material}</span>
+                    </div>
+                  )}
+                  {product.size && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Size</span>
+                      <span className="font-medium">{product.size}</span>
+                    </div>
+                  )}
+                  {product.color && (
+                    <div className="flex justify-between">
+                      <span className="text-muted-foreground">Color</span>
+                      <span className="font-medium">{product.color}</span>
+                    </div>
+                  )}
+                  {(product as any).style_tags && (product as any).style_tags.length > 0 && (
+                    <div className="flex justify-between items-start">
+                      <span className="text-muted-foreground">Style</span>
+                      <div className="flex flex-wrap gap-1 justify-end max-w-[60%]">
+                        {(product as any).style_tags.map((tag: string) => (
+                          <span key={tag} className="text-xs bg-primary/10 text-primary px-2 py-0.5 rounded-full">
+                            {tag}
+                          </span>
+                        ))}
                       </div>
-                      <span className="font-medium text-base">Stock Management</span>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Description */}
+            {getCleanedDescription(product.description) && (
+              <Card className="shadow-sm border-border/50">
+                <CardContent className="pt-4 pb-4">
+                  <p className="text-sm text-muted-foreground leading-relaxed">{getCleanedDescription(product.description)}</p>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Stock Management - Owner only */}
+            {isOwner && stock > 0 && !soldInfo && (
+              <Card className="shadow-sm border-border/50">
+                <CardContent className="pt-4 pb-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-1">
+                      <p className="text-sm text-muted-foreground">Current Stock</p>
+                      <p className="text-xl font-semibold">
+                        <span className={stockStatus.color}>{stock}</span> units
+                        <span className="text-sm text-muted-foreground font-normal ml-2">
+                          (£{inventoryValue.toFixed(2)} value)
+                        </span>
+                      </p>
+                    </div>
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setStockModalOpen(true)}
+                    >
+                      Adjust Stock
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Documents - Collapsible when needed */}
+            {(product.id && (
+              <Accordion type="single" collapsible className="space-y-3">
+                <AccordionItem value="documents" className="border border-border/50 rounded-lg overflow-hidden">
+                  <AccordionTrigger className="hover:no-underline px-4 py-3 hover:bg-muted/30 transition-colors">
+                    <div className="flex items-center gap-2">
+                      <FileText className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">Documents</span>
                     </div>
                   </AccordionTrigger>
-                  <AccordionContent className="px-5 pb-5 bg-muted/10">
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <p className="font-medium">
-                          Current Stock: <span className={stockStatus.color}>{stock} units</span>
-                        </p>
-                        <p className="text-sm text-muted-foreground">
-                          Inventory Value: £{inventoryValue.toFixed(2)}
-                        </p>
-                      </div>
-                      <Button 
-                        variant="outline" 
-                        onClick={() => setStockModalOpen(true)}
-                        className="shrink-0"
-                      >
-                        Adjust Stock
-                      </Button>
-                    </div>
-                  </AccordionContent>
-                </AccordionItem>
-              )}
-
-              {/* Documents & Media */}
-              <AccordionItem value="documents" className="border border-border/50 rounded-xl overflow-hidden shadow-sm">
-                <AccordionTrigger className="hover:no-underline px-5 py-4 hover:bg-muted/30 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className="h-8 w-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                      <FileText className="h-4 w-4 text-primary" />
-                    </div>
-                    <span className="font-medium text-base">Documents & Media</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-5 pb-5 bg-muted/10">
-                  <div>
+                  <AccordionContent className="px-4 pb-4">
                     <ProductDocumentsTab productId={product.id} />
-                    
-                    {/* Consignment Agreements - if applicable */}
                     {(product as any).is_consignment && (
-                      <div className="mt-6">
+                      <div className="mt-4">
                         <ConsignmentAgreementSection 
                           productId={product.id} 
                           isConsignment={true}
                         />
                       </div>
                     )}
-
-                    {/* Trade-in Notes - if applicable */}
-                    {isTradeIn && partExchange?.notes && (
-                      <Card className="mt-6 border-blue-200 bg-blue-50/50 dark:bg-blue-900/20 dark:border-blue-800/50">
-                        <CardHeader className="pb-2">
-                          <CardTitle className="flex items-center gap-2 text-sm font-medium text-blue-800 dark:text-blue-200">
-                            <Repeat className="h-4 w-4" />
-                            Trade-In Notes
-                          </CardTitle>
-                        </CardHeader>
-                        <CardContent className="pt-0">
-                          <p className="text-sm">{partExchange.notes}</p>
-                        </CardContent>
-                      </Card>
-                    )}
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
-              
-            </Accordion>
+                  </AccordionContent>
+                </AccordionItem>
+              </Accordion>
+            ))}
           </div>
 
           {/* Action Buttons - Hide when viewing sold items */}

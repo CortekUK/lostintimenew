@@ -26,10 +26,10 @@ export function AddCustomerDialog({ open, onOpenChange, onSuccess }: AddCustomer
     birthday: '',
     anniversary: '',
     notes: '',
-    ring_size: null,
-    bracelet_size: null,
-    necklace_length: null,
-    metal_preference: null,
+    shirt_size: null,
+    pants_size: null,
+    shoe_size: null,
+    preferred_style: null,
     style_preference: null,
   });
 
@@ -186,10 +186,10 @@ export function AddCustomerDialog({ open, onOpenChange, onSuccess }: AddCustomer
               </p>
               <CustomerPreferencesForm
                 preferences={{
-                  ring_size: formData.ring_size || null,
-                  bracelet_size: formData.bracelet_size || null,
-                  necklace_length: formData.necklace_length || null,
-                  metal_preference: formData.metal_preference || null,
+                  shirt_size: formData.shirt_size || null,
+                  pants_size: formData.pants_size || null,
+                  shoe_size: formData.shoe_size || null,
+                  preferred_style: formData.preferred_style || null,
                   style_preference: formData.style_preference || null,
                 }}
                 onChange={handlePreferencesChange}

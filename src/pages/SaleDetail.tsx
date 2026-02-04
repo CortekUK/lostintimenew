@@ -18,7 +18,6 @@ import { ReceiptDocument } from '@/components/receipt/ReceiptDocument';
 import { buildReceiptHtml } from '@/utils/receiptHtmlBuilder';
 import { printHtml } from '@/utils/printUtils';
 import { EmailService } from '@/components/integrations/EmailService';
-import { AddPartExchangeToSaleModal } from '@/components/transactions/AddPartExchangeToSaleModal';
 import { ProductDetailModal } from '@/components/modals/ProductDetailModal';
 import { usePermissions } from '@/hooks/usePermissions';
 import { 
@@ -49,7 +48,6 @@ export default function SaleDetail() {
   const { data: salesData = [], isLoading } = useSales();
   const { data: products = [] } = useProducts();
   const [showReceiptModal, setShowReceiptModal] = useState(false);
-  const [showAddPxModal, setShowAddPxModal] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
   const [productDetailOpen, setProductDetailOpen] = useState(false);
   
@@ -219,12 +217,6 @@ export default function SaleDetail() {
           </Button>
           
           <div className="flex gap-2">
-            {isAtLeast('manager') && !sale.is_voided && (
-              <Button variant="outline" onClick={() => setShowAddPxModal(true)}>
-                <Repeat className="h-4 w-4 mr-2" />
-                Add Part Exchange
-              </Button>
-            )}
             <Button variant="outline" onClick={handleViewReceipt}>
               <PoundSterling className="h-4 w-4 mr-2" />
               View Receipt
@@ -417,7 +409,7 @@ export default function SaleDetail() {
                         <div className="flex flex-wrap gap-x-3 gap-y-1 text-xs text-muted-foreground">
                           {item.product?.internal_sku && <span>INT: {item.product.internal_sku}</span>}
                           {item.product?.category && <span>{item.product.category}</span>}
-                          {item.product?.metal && <span>{item.product.metal}</span>}
+                          {item.product?.material && <span>{item.product.material}</span>}
                         </div>
                       </div>
                     )}
@@ -509,15 +501,6 @@ export default function SaleDetail() {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Add Part Exchange Modal */}
-      {id && (
-        <AddPartExchangeToSaleModal
-          isOpen={showAddPxModal}
-          onClose={() => setShowAddPxModal(false)}
-          saleId={parseInt(id)}
-        />
-      )}
 
       {/* Product Detail Modal */}
       <ProductDetailModal

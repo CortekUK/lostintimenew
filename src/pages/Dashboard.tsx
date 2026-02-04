@@ -14,8 +14,6 @@ import { format } from 'date-fns';
 import { useState } from 'react';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
-import { usePendingPartExchangesStats } from '@/hooks/usePartExchanges';
-import { PendingTradeInsCard } from '@/components/dashboard/PendingTradeInsCard';
 import { ReservedItemsCard } from '@/components/dashboard/ReservedItemsCard';
 import { CashDrawerPanel } from '@/components/cash-drawer/CashDrawerPanel';
 import { PurchasingSnapshotCards } from '@/components/dashboard/PurchasingSnapshotCards';
@@ -694,11 +692,10 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Weekly Expenses, Reserved Items & Pending Trade-Ins */}
-      <div className="grid gap-4 sm:gap-6 md:gap-8 grid-cols-1 lg:grid-cols-3 mb-6 md:mb-8">
+      {/* Weekly Expenses & Reserved Items */}
+      <div className="grid gap-4 sm:gap-6 md:gap-8 grid-cols-1 lg:grid-cols-2 mb-6 md:mb-8">
         <WeeklyExpensesCard />
         <ReservedItemsCard />
-        <PendingTradeInsCard />
       </div>
       
       {/* Staff Activity if multi-staff */}

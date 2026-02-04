@@ -40,7 +40,6 @@ import { SaleDetailModal } from '@/components/transactions/SaleDetailModal';
 import { ProductDetailModal } from '@/components/modals/ProductDetailModal';
 import { format, startOfDay, endOfDay } from 'date-fns';
 import { ConsignmentBadge } from '@/components/ui/consignment-badge';
-import { TradeInBadge } from '@/components/ui/trade-in-badge';
 import { MonthPicker } from '@/components/reports/MonthPicker';
 import type { DateRange } from '@/types';
 
@@ -48,7 +47,7 @@ interface SoldItemsFilters {
   dateRange: DateRange;
   productSearch: string;
   category: string;
-  metal: string;
+  material: string;
   staffId: string;
   supplierId: string;
   flags: {
@@ -103,7 +102,7 @@ export default function SoldItemsReport() {
     },
     productSearch: '',
     category: 'all',
-    metal: 'all',
+    material: 'all',
     staffId: searchParams.get('staff') || 'all',
     supplierId: 'all',
     flags: {
@@ -132,13 +131,13 @@ export default function SoldItemsReport() {
   // Get unique options from data
   const filterOptions = useMemo(() => {
     const categories = new Set();
-    const metals = new Set();
+    const materials = new Set();
     const staff = new Set();
     const suppliers = new Map();
 
     soldItemsData.forEach((item: any) => {
       if (item?.products?.category) categories.add(item.products.category);
-      if (item?.products?.metal) metals.add(item.products.metal);
+      if (item?.products?.material) materials.add(item.products.material);
       const staffName = (item?.sales as any)?.staff_member_name || item?.sales?.profiles?.full_name;
       if (staffName) {
         staff.add(JSON.stringify({
@@ -159,7 +158,7 @@ export default function SoldItemsReport() {
 
     return {
       categories: Array.from(categories) as string[],
-      metals: Array.from(metals) as string[],
+      materials: Array.from(materials) as string[],
       staff: Array.from(staff).map(s => JSON.parse(s as string)),
       suppliers: Array.from(suppliers.values()).sort((a, b) => a.name.localeCompare(b.name))
     };
@@ -193,9 +192,9 @@ export default function SoldItemsReport() {
         (item?.products?.internal_sku && item.products.internal_sku.toLowerCase().includes(filters.productSearch.toLowerCase())) ||
         (item?.products?.sku && item.products.sku.toLowerCase().includes(filters.productSearch.toLowerCase()));
       
-      // Category and metal filters
+      // Category and material filters
       const matchesCategory = !filters.category || filters.category === 'all' || filters.category === '' || item?.products?.category === filters.category;
-      const matchesMetal = !filters.metal || filters.metal === 'all' || filters.metal === '' || item?.products?.metal === filters.metal;
+      const matchesMaterial = !filters.material || filters.material === 'all' || filters.material === '' || item?.products?.material === filters.material;
       
       // Staff filter
       const matchesStaff = !filters.staffId || filters.staffId === 'all' || filters.staffId === '' || item?.sales?.staff_id === filters.staffId;
@@ -215,7 +214,7 @@ export default function SoldItemsReport() {
         (!filters.flags.registered || item?.products?.is_registered)
       );
       
-      return matchesDateRange && matchesProductSearch && matchesCategory && matchesMetal && matchesStaff && matchesSupplier && matchesSale && matchesFlags;
+      return matchesDateRange && matchesProductSearch && matchesCategory && matchesMaterial && matchesStaff && matchesSupplier && matchesSale && matchesFlags;
     });
   }, [soldItemsData, filters]);
 
@@ -311,7 +310,6 @@ export default function SoldItemsReport() {
           </div>
           <div className="flex gap-1 mt-1.5 flex-wrap">
             {row?.products?.is_consignment && <ConsignmentBadge className="text-xs" />}
-            {row?.products?.is_trade_in && <TradeInBadge className="text-xs" />}
             {row?.products?.is_registered && (
               <Badge variant="outline" className="text-xs bg-green-500/10 text-green-700 dark:text-green-400 border-green-500/20">
                 Reg
@@ -729,19 +727,19 @@ export default function SoldItemsReport() {
                 </SelectContent>
               </Select>
               
-              {/* Metal */}
+              {/* Material */}
               <Select
-                value={filters.metal}
-                onValueChange={(value) => setFilters(prev => ({ ...prev, metal: value }))}
+                value={filters.material}
+                onValueChange={(value) => setFilters(prev => ({ ...prev, material: value }))}
               >
                 <SelectTrigger className="h-8 text-sm">
-                  <SelectValue placeholder="Metal" />
+                  <SelectValue placeholder="Material" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Metals</SelectItem>
-                  {filterOptions.metals.map(metal => (
-                    <SelectItem key={metal} value={metal}>
-                      {metal}
+                  <SelectItem value="all">All Materials</SelectItem>
+                  {filterOptions.materials.map(material => (
+                    <SelectItem key={material} value={material}>
+                      {material}
                     </SelectItem>
                   ))}
                 </SelectContent>

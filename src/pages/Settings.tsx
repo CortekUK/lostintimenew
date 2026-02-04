@@ -28,6 +28,7 @@ import { CommissionSettingsModal } from '@/components/reports/CommissionSettings
 import { useStaffCommissionOverrides } from '@/hooks/useStaffCommissionOverrides';
 import { ChangePasswordModal } from '@/components/settings/ChangePasswordModal';
 import { SupplierTagsCard } from '@/components/settings/SupplierTagsCard';
+import { BrandManagement } from '@/components/settings/BrandManagement';
 
 // Section header component for consistent styling
 interface SettingsSectionProps {
@@ -125,23 +126,35 @@ export default function Settings() {
 
   // Available quick filter presets
   const availablePresets = [
-    { id: 'watches', label: 'Watches', category: 'Categories' },
-    { id: 'rings', label: 'Rings', category: 'Categories' },
-    { id: 'necklaces', label: 'Necklaces', category: 'Categories' },
-    { id: 'bracelets', label: 'Bracelets', category: 'Categories' },
-    { id: 'earrings', label: 'Earrings', category: 'Categories' },
-    { id: 'gold', label: 'Gold', category: 'Metals' },
-    { id: 'white-gold', label: 'White Gold', category: 'Metals' },
-    { id: 'rose-gold', label: 'Rose Gold', category: 'Metals' },
-    { id: 'silver', label: 'Silver', category: 'Metals' },
-    { id: 'platinum', label: 'Platinum', category: 'Metals' },
+    // Categories (clothing/accessories)
+    { id: 'bags', label: 'Bags', category: 'Categories' },
+    { id: 'shoes', label: 'Shoes', category: 'Categories' },
+    { id: 'dresses', label: 'Dresses', category: 'Categories' },
+    { id: 'coats', label: 'Coats & Jackets', category: 'Categories' },
+    { id: 'tops', label: 'Tops', category: 'Categories' },
+    { id: 'accessories', label: 'Accessories', category: 'Categories' },
+    // Materials
+    { id: 'leather', label: 'Leather', category: 'Materials' },
+    { id: 'silk', label: 'Silk', category: 'Materials' },
+    { id: 'cashmere', label: 'Cashmere', category: 'Materials' },
+    { id: 'cotton', label: 'Cotton', category: 'Materials' },
+    { id: 'wool', label: 'Wool', category: 'Materials' },
+    // Condition
+    { id: 'new-with-tags', label: 'New with Tags', category: 'Condition' },
+    { id: 'excellent', label: 'Excellent', category: 'Condition' },
+    { id: 'very-good', label: 'Very Good', category: 'Condition' },
+    // Brand Tier
+    { id: 'luxury', label: 'Luxury', category: 'Brand Tier' },
+    { id: 'premium', label: 'Premium', category: 'Brand Tier' },
+    // Stock
     { id: 'in-stock', label: 'In Stock', category: 'Stock' },
     { id: 'low-stock', label: 'Low Stock', category: 'Stock' },
     { id: 'out-of-stock', label: 'Out of Stock', category: 'Stock' },
-    { id: 'under-1k', label: '< £1k', category: 'Price' },
+    // Price
+    { id: 'under-500', label: '< £500', category: 'Price' },
+    { id: '500-1k', label: '£500–£1k', category: 'Price' },
     { id: '1k-5k', label: '£1k–£5k', category: 'Price' },
-    { id: '5k-10k', label: '£5k–£10k', category: 'Price' },
-    { id: 'over-10k', label: '> £10k', category: 'Price' },
+    { id: 'over-5k', label: '> £5k', category: 'Price' },
   ];
 
   // Load profile data
@@ -428,9 +441,9 @@ export default function Settings() {
         name: product.name,
         sku: product.sku,
         category: product.category,
-        metal: product.metal,
-        karat: product.karat,
-        gemstone: product.gemstone,
+        material: product.material,
+        size: product.size,
+        color: product.color,
         unit_cost: product.unit_cost,
         unit_price: product.unit_price,
         tax_rate: product.tax_rate,
@@ -494,8 +507,8 @@ export default function Settings() {
   };
 
   const handleReplayWelcome = () => {
-    localStorage.removeItem('jc_welcome_seen');
-    localStorage.removeItem('jc_welcome_never_show');
+    localStorage.removeItem('sc_welcome_seen');
+    localStorage.removeItem('sc_welcome_never_show');
     toast({
       title: 'Welcome tour reset',
       description: 'The welcome modal will appear on your next page reload.',
@@ -504,7 +517,7 @@ export default function Settings() {
   };
 
   const handleReplayQuickStart = () => {
-    localStorage.removeItem('jc_quickstart_dismissed');
+    localStorage.removeItem('sc_quickstart_dismissed');
     toast({
       title: 'Quick start guide reset',
       description: 'Navigate to the dashboard to see the guide.',
@@ -529,7 +542,7 @@ export default function Settings() {
       if (outcome === 'accepted') {
         toast({
           title: 'App installed',
-          description: 'Sourced Jewellers CRM has been installed successfully!',
+          description: 'Sourced Clothing CRM has been installed successfully!',
         });
         setShowInstallPrompt(false);
       } else {
@@ -1325,7 +1338,7 @@ export default function Settings() {
                   </div>
                   
                   <div className="grid gap-4">
-                    {['Categories', 'Metals', 'Stock', 'Price'].map(category => (
+                    {['Categories', 'Materials', 'Condition', 'Brand Tier', 'Stock', 'Price'].map(category => (
                       <div key={category} className="space-y-3">
                         <h4 className="text-sm font-medium text-muted-foreground">{category}</h4>
                         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
@@ -1363,7 +1376,7 @@ export default function Settings() {
                       <Button
                         variant="outline"
                         size="sm"
-                        onClick={() => handleSettingChange('quickFilterPresets', ['watches', 'rings', 'gold', 'white-gold', 'rose-gold', 'silver', 'in-stock', 'low-stock'])}
+                        onClick={() => handleSettingChange('quickFilterPresets', ['bags', 'shoes', 'dresses', 'leather', 'new-with-tags', 'excellent', 'luxury', 'in-stock'])}
                         disabled={settingsLoading || userRole !== 'owner'}
                       >
                         Reset to Defaults
@@ -1418,7 +1431,7 @@ export default function Settings() {
                         const getFilterSummary = (f: CustomFilter) => {
                           const parts: string[] = [];
                           if (f.filters.categories?.length) parts.push(`${f.filters.categories.length} categories`);
-                          if (f.filters.metals?.length) parts.push(`${f.filters.metals.length} metals`);
+                          if (f.filters.materials?.length) parts.push(`${f.filters.materials.length} materials`);
                           if (f.filters.stockLevel && f.filters.stockLevel !== 'all') parts.push('stock filter');
                           if (f.filters.priceRange) parts.push('price range');
                           if (f.filters.isTradeIn === 'trade_in_only') parts.push('part exchange');
@@ -1429,7 +1442,7 @@ export default function Settings() {
                           filter: Filter,
                           tag: Tag,
                           watch: Watch,
-                          ring: CircleDot,
+                          bag: CircleDot,
                           gem: Gem,
                           star: Star,
                           sparkles: Sparkles,
@@ -1496,6 +1509,9 @@ export default function Settings() {
                 </p>
               </CardContent>
             </Card>
+
+            {/* Brand Management */}
+            <BrandManagement userRole={userRole} />
 
             {/* Supplier Tags Settings */}
             <SupplierTagsCard userRole={userRole} />
@@ -1598,7 +1614,7 @@ export default function Settings() {
                     Install App
                   </CardTitle>
                   <CardDescription>
-                    Install Sourced Jewellers CRM as a Progressive Web App for better performance.
+                    Install Sourced Clothing CRM as a Progressive Web App for better performance.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
