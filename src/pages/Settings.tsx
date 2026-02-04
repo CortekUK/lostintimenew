@@ -11,7 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Settings as SettingsIcon, User, Building, ShoppingCart, Download, Upload, Smartphone, Sparkles, Filter, Clock, Package, Store, Plus, Pencil, Trash2, Watch, CircleDot, Gem, Star, Heart, Crown, Diamond, Zap, Tag, Percent, Users, ExternalLink, KeyRound, Shield, MapPin, Database, Play } from 'lucide-react';
+import { Settings as SettingsIcon, User, Building, ShoppingCart, Download, Upload, Smartphone, Sparkles, Filter, Clock, Package, Store, Plus, Pencil, Trash2, Watch, CircleDot, Gem, Star, Heart, Crown, Diamond, Zap, Tag, Percent, Users, ExternalLink, KeyRound, Shield, MapPin, Database, Play, X, Footprints, Shirt } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useSettings, CustomFilter } from '@/contexts/SettingsContext';
 import { CustomFilterDialog } from '@/components/settings/CustomFilterDialog';
@@ -99,6 +99,8 @@ export default function Settings() {
   // Custom filter dialog state
   const [showCustomFilterDialog, setShowCustomFilterDialog] = useState(false);
   const [editingFilter, setEditingFilter] = useState<CustomFilter | undefined>(undefined);
+  const [newQuickFilterName, setNewQuickFilterName] = useState('');
+  const [newQuickFilterIcon, setNewQuickFilterIcon] = useState('tag');
   
   // Commission modal state
   const [showCommissionModal, setShowCommissionModal] = useState(false);
@@ -1395,109 +1397,125 @@ export default function Settings() {
 
                 <Separator />
 
-                {/* Custom Filters Section */}
+                {/* Custom Quick Filters Section */}
                 <div className="space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                    <div>
-                      <Label className="text-base font-medium">Custom Filters ({(localSettings.customFilters || []).length})</Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        Create your own filter shortcuts with custom criteria
-                      </p>
-                    </div>
-                    {userRole === 'owner' && (
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          setEditingFilter(undefined);
-                          setShowCustomFilterDialog(true);
-                        }}
-                      >
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Filter
-                      </Button>
-                    )}
+                  <div>
+                    <Label className="text-base font-medium">Custom Quick Filters</Label>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      Add your own quick filter buttons (e.g., Trainers, Jackets, Watches)
+                    </p>
                   </div>
 
-                  {(localSettings.customFilters || []).length === 0 ? (
-                    <div className="text-center py-8 border rounded-lg bg-muted/30">
-                      <Filter className="h-10 w-10 mx-auto text-muted-foreground mb-3" />
-                      <p className="text-sm text-muted-foreground">
-                        No custom filters yet. Create one to quickly filter products.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-2">
-                      {(localSettings.customFilters || []).map((filter) => {
-                        const getFilterSummary = (f: CustomFilter) => {
-                          const parts: string[] = [];
-                          if (f.filters.categories?.length) parts.push(`${f.filters.categories.length} categories`);
-                          if (f.filters.materials?.length) parts.push(`${f.filters.materials.length} materials`);
-                          if (f.filters.stockLevel && f.filters.stockLevel !== 'all') parts.push('stock filter');
-                          if (f.filters.priceRange) parts.push('price range');
-                          if (f.filters.isTradeIn === 'trade_in_only') parts.push('part exchange');
-                          return parts.join(', ') || 'No criteria';
-                        };
-
-                        const IconMap: Record<string, React.ElementType> = {
-                          filter: Filter,
-                          tag: Tag,
-                          watch: Watch,
-                          bag: CircleDot,
-                          gem: Gem,
-                          star: Star,
-                          sparkles: Sparkles,
-                          heart: Heart,
-                          crown: Crown,
-                          diamond: Diamond,
-                          zap: Zap,
-                        };
-                        const FilterIcon = IconMap[filter.icon || 'filter'] || Filter;
-
-                        return (
-                          <div
-                            key={filter.id}
-                            className="flex items-center justify-between p-3 border rounded-lg bg-background hover:bg-muted/30 transition-colors"
+                  {/* Add new quick filter */}
+                  {userRole === 'owner' && (
+                    <div className="space-y-3">
+                      {/* Icon selection */}
+                      <div className="flex flex-wrap gap-1">
+                        {[
+                          { id: 'tag', icon: Tag },
+                          { id: 'footprints', icon: Footprints },
+                          { id: 'shirt', icon: Shirt },
+                          { id: 'package', icon: Package },
+                          { id: 'gem', icon: Gem },
+                          { id: 'star', icon: Star },
+                          { id: 'heart', icon: Heart },
+                          { id: 'crown', icon: Crown },
+                          { id: 'diamond', icon: Diamond },
+                          { id: 'watch', icon: Watch },
+                          { id: 'sparkles', icon: Sparkles },
+                          { id: 'zap', icon: Zap },
+                        ].map(({ id, icon: Icon }) => (
+                          <Button
+                            key={id}
+                            type="button"
+                            variant={newQuickFilterIcon === id ? 'default' : 'outline'}
+                            size="icon"
+                            className="h-8 w-8"
+                            onClick={() => setNewQuickFilterIcon(id)}
                           >
-                            <div className="flex items-center gap-3 min-w-0">
-                              <div className="flex items-center justify-center w-8 h-8 rounded-md bg-muted">
-                                <FilterIcon className="h-4 w-4 text-muted-foreground" />
-                              </div>
-                              <div className="min-w-0">
-                                <p className="font-medium truncate">{filter.name}</p>
-                                <p className="text-xs text-muted-foreground truncate">
-                                  {getFilterSummary(filter)}
-                                </p>
-                              </div>
-                            </div>
+                            <Icon className="h-4 w-4" />
+                          </Button>
+                        ))}
+                      </div>
+                      {/* Name input and add button */}
+                      <div className="flex gap-2">
+                        <Input
+                          placeholder="Enter filter name (e.g., Trainers)"
+                          value={newQuickFilterName}
+                          onChange={(e) => setNewQuickFilterName(e.target.value)}
+                          onKeyDown={(e) => {
+                            if (e.key === 'Enter' && newQuickFilterName.trim()) {
+                              const newFilter: CustomFilter = {
+                                id: `quick-${Date.now()}`,
+                                name: newQuickFilterName.trim(),
+                                icon: newQuickFilterIcon,
+                                filters: {
+                                  categories: [newQuickFilterName.trim()]
+                                }
+                              };
+                              const existingFilters = localSettings.customFilters || [];
+                              handleSettingChange('customFilters', [...existingFilters, newFilter]);
+                              setNewQuickFilterName('');
+                            }
+                          }}
+                          className="flex-1"
+                        />
+                        <Button
+                          onClick={() => {
+                            if (newQuickFilterName.trim()) {
+                              const newFilter: CustomFilter = {
+                                id: `quick-${Date.now()}`,
+                                name: newQuickFilterName.trim(),
+                                icon: newQuickFilterIcon,
+                                filters: {
+                                  categories: [newQuickFilterName.trim()]
+                                }
+                              };
+                              const existingFilters = localSettings.customFilters || [];
+                              handleSettingChange('customFilters', [...existingFilters, newFilter]);
+                              setNewQuickFilterName('');
+                            }
+                          }}
+                          disabled={!newQuickFilterName.trim()}
+                        >
+                          <Plus className="h-4 w-4 mr-2" />
+                          Add
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* List of custom quick filters */}
+                  {(localSettings.customFilters || []).length > 0 && (
+                    <div className="flex flex-wrap gap-2">
+                      {(localSettings.customFilters || []).map((filter) => {
+                        const iconMap: Record<string, React.ElementType> = {
+                          tag: Tag, footprints: Footprints, shirt: Shirt, package: Package,
+                          gem: Gem, star: Star, heart: Heart, crown: Crown,
+                          diamond: Diamond, watch: Watch, sparkles: Sparkles, zap: Zap,
+                          filter: Filter, bag: CircleDot,
+                        };
+                        const FilterIcon = iconMap[filter.icon || 'tag'] || Tag;
+                        return (
+                          <Badge
+                            key={filter.id}
+                            variant="secondary"
+                            className="flex items-center gap-1.5 px-3 py-1.5 text-sm"
+                          >
+                            <FilterIcon className="h-3 w-3" />
+                            {filter.name}
                             {userRole === 'owner' && (
-                              <div className="flex gap-1 flex-shrink-0">
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8"
-                                  onClick={() => {
-                                    setEditingFilter(filter);
-                                    setShowCustomFilterDialog(true);
-                                  }}
-                                >
-                                  <Pencil className="h-4 w-4" />
-                                </Button>
-                                <Button
-                                  size="icon"
-                                  variant="ghost"
-                                  className="h-8 w-8 text-destructive hover:text-destructive"
-                                  onClick={() => {
-                                    const newFilters = (localSettings.customFilters || []).filter(
-                                      (f) => f.id !== filter.id
-                                    );
-                                    handleSettingChange('customFilters', newFilters);
-                                  }}
-                                >
-                                  <Trash2 className="h-4 w-4" />
-                                </Button>
-                              </div>
+                              <X
+                                className="h-3 w-3 ml-1 cursor-pointer hover:text-destructive"
+                                onClick={() => {
+                                  const newFilters = (localSettings.customFilters || []).filter(
+                                    (f) => f.id !== filter.id
+                                  );
+                                  handleSettingChange('customFilters', newFilters);
+                                }}
+                              />
                             )}
-                          </div>
+                          </Badge>
                         );
                       })}
                     </div>

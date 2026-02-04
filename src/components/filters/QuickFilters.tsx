@@ -1,11 +1,10 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { 
-  Watch, 
-  CircleDot, 
-  Gem, 
+import {
+  Watch,
+  CircleDot,
+  Gem,
   Heart,
   Star,
   Coins,
@@ -18,9 +17,10 @@ import {
   X,
   Settings,
   PoundSterling,
-  Repeat,
   Filter,
-  Tag
+  Tag,
+  Footprints,
+  Shirt
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useSettings, CustomFilter } from '@/contexts/SettingsContext';
@@ -111,7 +111,7 @@ export function QuickFilters({
   const navigate = useNavigate();
 
   // Filter presets based on settings
-  const activePresets = allPresets.filter(preset => 
+  const activePresets = allPresets.filter(preset =>
     settings.quickFilterPresets.includes(preset.id)
   );
 
@@ -128,6 +128,9 @@ export function QuickFilters({
     crown: Crown,
     diamond: Diamond,
     zap: Zap,
+    footprints: Footprints,
+    shirt: Shirt,
+    package: Package,
   };
 
   // Check if a custom filter is active
@@ -332,7 +335,7 @@ export function QuickFilters({
                     "flex items-center gap-2 whitespace-nowrap transition-all flex-shrink-0",
                     isActive 
                       ? "bg-primary text-primary-foreground border-primary hover:bg-primary/90 shadow-gold" 
-                      : "hover:border-primary/50 hover:bg-primary/5 border-dashed"
+                      : "hover:border-primary/50 hover:bg-primary/5"
                   )}
                   aria-pressed={isActive}
                 >
@@ -346,7 +349,7 @@ export function QuickFilters({
             <Button
               variant="outline"
               size="sm"
-              onClick={() => navigate('/settings?section=quick-filters')}
+              onClick={() => navigate('/settings?section=customize')}
               className="flex items-center gap-2 whitespace-nowrap hover:border-primary/50 hover:bg-primary/5 flex-shrink-0"
             >
               <Settings className="h-3 w-3" />
@@ -430,6 +433,7 @@ export function QuickFilters({
           )}
         </div>
       )}
+
     </div>
   );
 }
