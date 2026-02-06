@@ -155,7 +155,7 @@ export default function Auth() {
             <Logo variant="login" size="sm" />
           </div>
           <div className="pt-10">
-            <CardTitle className="text-2xl font-luxury" style={{ fontFamily: '"Montserrat", sans-serif', fontWeight: 600, fontStyle: 'normal' }}>
+            <CardTitle className="text-2xl font-luxury">
               Welcome Back
             </CardTitle>
             <CardDescription className="opacity-70">

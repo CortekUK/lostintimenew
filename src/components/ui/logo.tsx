@@ -24,13 +24,13 @@ export function Logo({ variant = "full", size = "md", className }: LogoProps) {
   };
 
   // Use the new logo
-  const logoSrc = "/sourced-new.png";
+  const logoSrc = "/lost-in-time-logo.png";
 
   if (variant === "login") {
     return (
       <img
         src={logoSrc}
-        alt="Sourced Clothing"
+        alt="Lost in Time"
         className={cn("login-logo", className)}
         loading="eager"
       />
@@ -41,7 +41,7 @@ export function Logo({ variant = "full", size = "md", className }: LogoProps) {
     return (
       <img
         src={logoSrc}
-        alt="Sourced Clothing"
+        alt="Lost in Time"
         className={cn(sizeClasses[size].image, className)}
       />
     );
@@ -52,7 +52,7 @@ export function Logo({ variant = "full", size = "md", className }: LogoProps) {
       <div className={cn("flex items-center space-x-3", className)}>
         <img
           src={logoSrc}
-          alt="Sourced Clothing"
+          alt="Lost in Time"
           className={sizeClasses[size].image}
         />
       </div>
@@ -64,7 +64,7 @@ export function Logo({ variant = "full", size = "md", className }: LogoProps) {
     <div className={cn("flex items-center space-x-3", className)}>
       <img
         src={logoSrc}
-        alt="Sourced Clothing"
+        alt="Lost in Time"
         className={sizeClasses[size].image}
       />
     </div>

@@ -181,7 +181,7 @@ export default function ReceiptPreview() {
     return null;
   }
 
-  const storeName = 'Sourced Clothing';
+  const storeName = 'Lost in Time';
   const receiptTitle = data ? `Receipt #${data.sale.id} - ${storeName}` : 'Receipt Preview';
   const receiptDescription = data 
     ? `Sales receipt for transaction #${data.sale.id} dated ${formatDateTime(data.sale.sold_at)}. Total: ${formatCurrency(data.sale.total - data.pxTotal)}.`

@@ -50,7 +50,7 @@ export function AddressAutocomplete({
           headers: {
             'Accept': 'application/json',
             // Nominatim requires a User-Agent header
-            'User-Agent': 'SourcedClothingCRM/1.0'
+            'User-Agent': 'LostInTimeCRM/1.0'
           }
         }
       );

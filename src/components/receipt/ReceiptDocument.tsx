@@ -36,20 +36,20 @@ export function ReceiptDocument({ data, settings }: ReceiptProps) {
   
   // Get store and branding info from settings
   const store = settings?.store || {
-    name: "Sourced Clothing",
-    tagline: "Premium Fashion & Apparel",
+    name: "Lost in Time",
+    tagline: "Premium Jewellery",
     address: "123 High Street, London SW1A 1AA",
     phone: "020 7123 4567",
-    email: "info@sourcedclothing.com"
+    email: "info@lostintime.com"
   };
   
   const branding = settings?.branding || {
-    logo: "/new-logo-cropped.png",
+    logo: "/lost-in-time-logo.png",
     primary_gold: "#D4AF37"
   };
 
   // Use the new logo
-  const logo = branding.logo || "/new-logo-cropped.png";
+  const logo = branding.logo || "/lost-in-time-logo.png";
   
   const handlePrint = () => {
     window.print();

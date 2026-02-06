@@ -15,7 +15,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Inter", "sans-serif"],
-        luxury: ["Montserrat", "sans-serif"],
+        luxury: ["CAL Bodoni Palazzo", "Playfair Display", "Georgia", "serif"],
         serif: ["Playfair Display", "Georgia", "serif"],
       },
       colors: {

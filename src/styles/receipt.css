@@ -30,7 +30,7 @@
 }
 
 .rcpt-title { 
-  font-family: 'Playfair Display', Georgia, serif; 
+  font-family: 'CAL Bodoni Palazzo', 'Playfair Display', Georgia, serif;
   font-size: 24px; 
   margin: 0 0 8px 0; 
   color: hsl(var(--foreground));

@@ -544,7 +544,7 @@ export default function Settings() {
       if (outcome === 'accepted') {
         toast({
           title: 'App installed',
-          description: 'Sourced Clothing CRM has been installed successfully!',
+          description: 'Lost in Time has been installed successfully!',
         });
         setShowInstallPrompt(false);
       } else {
@@ -1632,7 +1632,7 @@ export default function Settings() {
                     Install App
                   </CardTitle>
                   <CardDescription>
-                    Install Sourced Clothing CRM as a Progressive Web App for better performance.
+                    Install Lost in Time as a Progressive Web App for better performance.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>

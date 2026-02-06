@@ -81,10 +81,10 @@ export function WelcomeModal() {
           <DialogHeader>
         <DialogTitle className="flex items-center gap-2 text-xl">
           <Sparkles className="h-6 w-6 text-primary" />
-          👋 Welcome to Sourced Clothing CRM
+          👋 Welcome to Lost in Time
         </DialogTitle>
         <DialogDescription>
-          A complete POS and inventory management system designed for clothing retailers
+          A complete POS and inventory management system designed for jewellery retailers
         </DialogDescription>
           </DialogHeader>
           

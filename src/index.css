@@ -2,6 +2,14 @@
 @import url("https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&display=swap");
 @import url("https://fonts.googleapis.com/css2?family=Montserrat:wght@600&display=swap");
 
+@font-face {
+  font-family: 'CAL Bodoni Palazzo';
+  src: url('/fonts/California Type Foundry - CALBodoniPalazzo-Regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -132,8 +140,8 @@
   }
   
   h1, h2, h3, .font-luxury {
-    font-family: "Montserrat", sans-serif;
-    font-weight: 600;
+    font-family: "CAL Bodoni Palazzo", "Playfair Display", Georgia, serif;
+    font-weight: 400;
   }
 }
 

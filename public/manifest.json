@@ -1,7 +1,7 @@
 {
-  "name": "Sourced Clothing CRM",
-  "short_name": "Sourced CRM",
-  "description": "Professional clothing store management system",
+  "name": "Lost in Time",
+  "short_name": "Lost in Time",
+  "description": "Premium jewellery POS and business management system",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#2D2D2D",
