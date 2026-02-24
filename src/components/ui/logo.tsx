@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { useTheme } from "next-themes";
 
 interface LogoProps {
   variant?: "full" | "icon" | "text" | "login";
@@ -7,14 +8,15 @@ interface LogoProps {
 }
 
 export function Logo({ variant = "full", size = "md", className }: LogoProps) {
-  
+  const { resolvedTheme } = useTheme();
+
   const sizeClasses = {
     sm: {
       image: "h-16 w-auto",
       login: "h-32 w-auto"
     },
     md: {
-      image: "h-24 w-auto", 
+      image: "h-24 w-auto",
       login: "h-40 w-auto"
     },
     lg: {
@@ -23,8 +25,8 @@ export function Logo({ variant = "full", size = "md", className }: LogoProps) {
     }
   };
 
-  // Use the new logo
-  const logoSrc = "/lost-in-time-logo.png";
+  // Use theme-aware logo: white version for dark mode, dark version for light mode
+  const logoSrc = resolvedTheme === "dark" ? "/logo-dark.png" : "/logo-light.png";
 
   if (variant === "login") {
     return (
