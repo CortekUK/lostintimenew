@@ -1,4 +1,4 @@
-import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Users, User, ReceiptPoundSterling, Coins, KeyRound, ChevronUp, Wallet, type LucideIcon } from 'lucide-react';
+import { LayoutDashboard, Package, Truck, ShoppingCart, PoundSterling, BarChart3, Activity, Settings, LogOut, Moon, Sun, ChevronRight, Handshake, CreditCard, Users, User, ReceiptPoundSterling, Coins, KeyRound, ChevronUp, Wallet, Crown, type LucideIcon } from 'lucide-react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from 'next-themes';
@@ -169,16 +169,19 @@ export function AppSidebar() {
   const isCollapsed = state === 'collapsed';
   return <TooltipProvider>
       <Sidebar className={isCollapsed ? "w-16" : "w-64"} collapsible="icon" variant="sidebar">
-        <SidebarHeader className="header-divider flex items-center justify-center px-2 py-3">
+        <SidebarHeader className="header-divider flex items-center justify-center px-2 h-16">
           {isCollapsed ? <Tooltip>
               <TooltipTrigger asChild>
-                <span className="font-luxury text-lg text-foreground cursor-pointer leading-none tracking-wide">LIT</span>
+                <Crown className="h-6 w-6 text-primary cursor-pointer" />
               </TooltipTrigger>
               <TooltipContent side="right">
-                <p>Lost In Time</p>
+                <p>Lost In Time Jewellers</p>
               </TooltipContent>
             </Tooltip> :
-            <span className="font-luxury text-[1.15rem] text-foreground tracking-wide leading-tight text-center">Lost In Time</span>
+            <div className="flex items-center gap-2">
+              <Crown className="h-6 w-6 text-primary flex-shrink-0" />
+              <span className="font-luxury text-[1.15rem] text-foreground tracking-wide leading-tight">Lost In Time Jewellers</span>
+            </div>
           }
         </SidebarHeader>
 
